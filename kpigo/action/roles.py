@@ -1,10 +1,11 @@
 """System roles and the permissions each one grants.
 
-PRD AD-1: fixed system roles, cloneable, with a per-page access matrix. Until the
-``role`` tables land (R0 Workstream D) this module is the source of truth, and
-the permission-matrix test reads it: every registered action's permission must
-be granted to at least one role, and every permission granted here must belong
-to a registered action.
+PRD AD-1: fixed system roles, cloneable, with a per-page access matrix. System
+roles live here, in code, so an upgrade can grant a new action's permission to
+them; Admins clone them into the ``role`` table to customise (``kpigo.access``).
+The permission-matrix test reads this module: every registered action's
+permission must be granted to at least one role, and every permission granted
+here must belong to a registered action.
 """
 
 from __future__ import annotations
@@ -25,7 +26,23 @@ def _role(code: str, name: str, *permissions: str) -> RoleSpec:
 
 # Reference data every role reads: metric definitions, the calendar, and the
 # subjects their own visibility closure lets them see (scope narrows the last).
-EVERYONE = ("platform.hello", "metric.view", "calendar.view", "subject.view")
+EVERYONE = ("platform.hello", "metric.view", "calendar.view", "subject.view", "auth.session")
+
+# Users, roles, page access, data scope grants, maker-checker policy, directory.
+ACCESS = (
+    "user.view",
+    "user.manage",
+    "role.view",
+    "role.manage",
+    "scope.view",
+    "scope.manage",
+    "approval.policy.manage",
+    "directory.view",
+    "directory.manage",
+)
+
+# The licence and the health page (PRD OP-2, OP-3).
+OPERATIONS = ("licence.view", "licence.manage", "system.health.view")
 
 # Configuration custodians: hierarchy, dimensions and FX are data-steward work.
 STEWARD = (
@@ -55,6 +72,8 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *EVERYONE,
             *STEWARD,
             *INGESTION,
+            *ACCESS,
+            *OPERATIONS,
             "platform.registry.view",
             "platform.approval.decide",
             "platform.migrations.view",
@@ -67,7 +86,15 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
         _role("agent_supervisor", "Agent Supervisor", *EVERYONE),
         _role("campaign_manager", "Campaign Manager", *EVERYONE, "dimension.view"),
         _role("metric_owner", "Metric Owner", *EVERYONE, "metric.manage"),
-        _role("data_steward", "Data Steward", *EVERYONE, *STEWARD, *INGESTION),
+        _role(
+            "data_steward",
+            "Data Steward",
+            *EVERYONE,
+            *STEWARD,
+            *INGESTION,
+            "licence.view",
+            "system.health.view",
+        ),
         _role("contributor", "Contributor", *EVERYONE),
         _role("staff", "Relationship Manager / Service Officer", *EVERYONE),
     )

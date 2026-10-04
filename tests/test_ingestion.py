@@ -6,6 +6,7 @@ import csv
 import io
 import os
 import time
+from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
@@ -504,10 +505,12 @@ def test_feed_registration_checks_mode_and_object_names(org: dict[str, Any]) -> 
         register_feed("u", template="target")
 
 
-def test_pipeline_dry_run_context_rolls_everything_back(org: dict[str, Any]) -> None:
+def test_pipeline_dry_run_context_rolls_everything_back(
+    org: dict[str, Any], make_user: Callable[..., User]
+) -> None:
     ready_feed()
     runs = FeedRun.objects.count()
-    ctx = build_context(User.objects.create_user("x", is_active=True), caller="cli", dry_run=True)
+    ctx = build_context(make_user(), caller="cli", dry_run=True)
     ctx = type(ctx)(**{**ctx.__dict__, "permissions": frozenset({"feed.run"})})
     run("feed.run", ctx, feed="monthly", upload=upload(MONTHLY, monthly_rows()))
     assert FeedRun.objects.count() == runs and FactActualMonthly.objects.count() == 0

@@ -31,10 +31,20 @@ Handler = Callable[[Any, ActionContext], BaseModel]
 F = TypeVar("F", bound=Callable[..., BaseModel])
 
 
+# Public actions (login, SSO callbacks, first-run setup) declare this permission
+# and nothing else. The pipeline runs them for anonymous callers; every other
+# action needs an authenticated user holding its permission.
+PUBLIC_PERMISSION = "auth.public"
+
+
 @dataclass(frozen=True)
 class HttpSpec:
     method: HttpMethod
     path: str
+    # ``form``: the body is a browser form post (a SAML IdP posts to the ACS).
+    # ``redirect``: answer 303 to the output's ``redirect_to`` instead of JSON.
+    form: bool = False
+    redirect: bool = False
 
 
 @dataclass(frozen=True)
@@ -55,6 +65,7 @@ class ActionDefinition:
     example: dict[str, Any] | None = None
     tags: tuple[str, ...] = field(default_factory=tuple)
     config_change: bool = False
+    public: bool = False
 
     @property
     def audit_event(self) -> str:
@@ -73,18 +84,19 @@ def action(
     name: str,
     schema: type[BaseModel],
     output: type[BaseModel],
-    permission: str,
     read_only: bool,
+    permission: str = "",
     summary: str = "",
     module: Module = "platform",
     scope: Scope | None = None,
     requires_approval: str | None = None,
     audit: str | None = None,
     idempotency_key: Callable[[Any], str] | None = None,
-    http: dict[str, str] | None = None,
+    http: dict[str, Any] | None = None,
     example: dict[str, Any] | None = None,
     tags: tuple[str, ...] = (),
     config_change: bool = False,
+    public: bool = False,
 ) -> Callable[[F], F]:
     """Declare a function as a kpiGo action.
 
@@ -95,7 +107,19 @@ def action(
     ``config_change=True`` declares that a successful run changes configuration
     (metrics, hierarchy, calendar, money settings): the pipeline bumps the org's
     ``config_version`` in the same transaction, so cached figures invalidate.
+
+    ``public=True`` is for the few actions an anonymous caller must reach (login,
+    SSO callbacks, first-run setup). They take no permission; the matrix test
+    pins the list so a new public action is a reviewed decision.
     """
+    if public:
+        if permission not in ("", PUBLIC_PERMISSION):
+            raise RegistryError(f"Public action '{name}' cannot also declare a permission.")
+        if requires_approval:
+            raise RegistryError(f"Public action '{name}' cannot require approval.")
+        permission = PUBLIC_PERMISSION
+    elif permission == PUBLIC_PERMISSION:
+        raise RegistryError(f"Action '{name}' uses the public permission without public=True.")
     if not _NAME_RE.match(name):
         raise RegistryError(
             f"Action name '{name}' must be dotted lower_snake, e.g. 'scorecard.compute'."
@@ -124,7 +148,15 @@ def action(
         path = http.get("path", f"/actions/{name}")
         if not path.startswith("/"):
             raise RegistryError(f"Action '{name}' HTTP path must start with '/'.")
-        http_spec = HttpSpec(method=cast(HttpMethod, method), path=path)
+        form = bool(http.get("form", False))
+        redirect = bool(http.get("redirect", False))
+        if form and method == "GET":
+            raise RegistryError(f"Action '{name}' cannot take a form body over GET.")
+        if redirect and "redirect_to" not in output.model_fields:
+            raise RegistryError(f"Redirecting action '{name}' needs a 'redirect_to' output field.")
+        http_spec = HttpSpec(
+            method=cast(HttpMethod, method), path=path, form=form, redirect=redirect
+        )
 
     def decorate(fn: F) -> F:
         definition = ActionDefinition(
@@ -144,6 +176,7 @@ def action(
             example=example,
             tags=tags,
             config_change=config_change,
+            public=public,
         )
         fn.__kpigo_action__ = definition  # type: ignore[attr-defined]
         return fn

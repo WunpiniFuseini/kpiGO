@@ -13,6 +13,9 @@ from typing import Any
 class ActionError(Exception):
     code = "action_error"
     http_status = 400
+    # True when the action's writes so far must stand although it failed: a
+    # refused login still counts toward the account's lockout.
+    commit_writes = False
 
     def __init__(self, message: str, *, detail: Any = None) -> None:
         super().__init__(message)
@@ -34,6 +37,17 @@ class InvalidInput(ActionError):
 class NotAuthenticated(ActionError):
     code = "not_authenticated"
     http_status = 401
+
+
+class AuthenticationFailed(NotAuthenticated):
+    """Credentials or an SSO assertion were refused. The attempt itself is recorded."""
+
+    code = "authentication_failed"
+    commit_writes = True
+
+
+class SessionExpired(NotAuthenticated):
+    code = "session_expired"
 
 
 class PermissionDenied(ActionError):
@@ -63,6 +77,13 @@ class MaintenanceMode(ActionError):
 
     code = "maintenance_mode"
     http_status = 503
+
+
+class LicenceRestricted(ActionError):
+    """The licence's grace state, or its module list, does not allow this action now."""
+
+    code = "licence_restricted"
+    http_status = 403
 
 
 class UnknownAction(ActionError):

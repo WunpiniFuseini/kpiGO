@@ -13,7 +13,7 @@ from django.core.management.base import BaseCommand, CommandError, CommandParser
 from kpigo.action import ActionError, invoke, registry
 from kpigo.action.adapters.cli import parse_field_args
 from kpigo.action.adapters.jobs import task_name
-from kpigo.action.identity import build_context, resolve_user
+from kpigo.action.identity import anonymous_context, build_context, resolve_user
 
 
 class Command(BaseCommand):
@@ -50,10 +50,10 @@ class Command(BaseCommand):
         name = options["action_name"]
         if not name:
             raise CommandError("Name an action, or pass --list.")
-        if not options["user"]:
-            raise CommandError("--user is required: every invocation runs as a named user.")
         try:
             definition = registry.get(name)
+            if not options["user"] and not definition.public:
+                raise CommandError("--user is required: every invocation runs as a named user.")
             payload: dict[str, Any] = {}
             if options["json_payload"]:
                 loaded = json.loads(options["json_payload"])
@@ -75,8 +75,12 @@ class Command(BaseCommand):
                 )
                 out = async_result.get(timeout=options["timeout"])
             else:
-                ctx = build_context(
-                    resolve_user(options["user"]), caller="cli", dry_run=options["dry_run"]
+                ctx = (
+                    anonymous_context(caller="cli")
+                    if definition.public
+                    else build_context(
+                        resolve_user(options["user"]), caller="cli", dry_run=options["dry_run"]
+                    )
                 )
                 out = invoke(definition, payload, ctx).model_dump(mode="json")
         except ActionError as exc:

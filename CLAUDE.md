@@ -40,17 +40,23 @@ Put it in `kpigo/<app>/actions/<module>.py`; it is auto-discovered.
 def compute_scorecard(params: ComputeScorecardIn, ctx: ActionContext) -> ScorecardOut: ...
 ```
 
-Mutating actions may add `requires_approval="<class>"` (classes in use:
-`metric_change`, `hierarchy_change`, `calendar_change`, `period_close`,
-`config_change`), `audit="event.name"`, `idempotency_key=lambda p: ...` and
+Mutating actions may add `requires_approval="<class>"` (classes, listed in
+`kpigo/platform/models.py` `APPROVAL_CLASSES`: `metric_change`,
+`hierarchy_change`, `calendar_change`, `period_close`, `config_change`,
+`access_change`), `audit="event.name"`, `idempotency_key=lambda p: ...` and
 `config_change=True`, which makes the pipeline bump `org_settings.config_version`
 in the same transaction. Every change to metrics, hierarchy, calendar or money
 settings declares it.
 
 Never do these by hand; the pipeline does them for every invocation, in order:
-validate → authorise → narrow scope → maintenance gate → idempotency → approval
-intercept → run (in a transaction for writes; dry runs roll back) → bump
-config_version → audit → span.
+validate → authorise → narrow scope → licence gate → maintenance gate →
+idempotency → approval intercept → run (in a transaction for writes; dry runs
+roll back) → bump config_version → audit → span.
+
+Public actions (`public=True`, no permission) are the only ones an anonymous
+caller reaches: sign-in, SSO callbacks, first-run setup. The list is pinned in
+`tests/test_permission_matrix.py`; adding one is a security review item. Login
+and logout go through `ctx.session`, never Django's `login()` in an action.
 
 Checklist for every new action (the review gate):
 
@@ -77,6 +83,9 @@ Checklist for every new action (the review gate):
 - **The permission-matrix test is generated from the registry**, so an action
   without a declared, granted permission fails the build.
 - **Contributors are a real persona**; the input grid gets extra design care.
+- **System roles live in code** (`kpigo/action/roles.py`, page matrix in
+  `kpigo/access/pages.py`) so upgrades can grant new permissions; Admins clone
+  them into the `role` table to customise. A new page key goes in `pages.py`.
 - **No grant means no data.** Absence of a scope row is a deny, never a wildcard.
   Subject scope comes from `visibility_closure`; no closure for the period is an
   empty scope.

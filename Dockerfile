@@ -11,7 +11,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN pip install --no-cache-dir "uv>=0.8,<0.9"
 
 RUN groupadd --system kpigo && useradd --system --gid kpigo --home /app kpigo \
-    && mkdir -p /var/lib/kpigo/drop && chown kpigo:kpigo /var/lib/kpigo/drop
+    && mkdir -p /var/lib/kpigo/drop /var/lib/kpigo/licence \
+    && chown kpigo:kpigo /var/lib/kpigo/drop /var/lib/kpigo/licence
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./

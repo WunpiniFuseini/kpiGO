@@ -65,12 +65,16 @@ jobs:
     env:
       KPIGO_BUILD_TARGET: dev
       KPIGO_SECRET_KEY: ci-only-secret
+      KPIGO_SETUP_TOKEN: ci-only-setup-token
     steps:
       - uses: actions/checkout@v4
       - name: Assert no inference is configured
         run: |
           if grep -E '^KPIGO_INFERENCE_PROVIDER=.+' .env 2>/dev/null; then exit 1; fi
           test -z "${KPIGO_INFERENCE_PROVIDER:-}"
+      - name: Configure a development install (no licence is enforced in DEBUG)
+        run: |
+          printf 'KPIGO_DEBUG=true\nKPIGO_SETUP_TOKEN=%s\n' "$KPIGO_SETUP_TOKEN" > .env
       - name: Boot the stack
         run: docker compose up -d --build --wait --wait-timeout 300
       - name: Smoke test hello over HTTP, CLI and a worker job

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from collections.abc import Iterable
+from collections.abc import Iterable, MutableMapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal, Protocol
 
@@ -70,6 +70,38 @@ class ApprovalGrant:
     approved_by_id: int | None
 
 
+class SessionBridge:
+    """What an action may do to its caller's session.
+
+    Login and logout are actions like any other; the HTTP adapter backs this with
+    the request's session and applies a requested login or logout after the
+    action succeeds. Other callers get a throwaway dict, so the same action runs
+    from the CLI or a test without a browser.
+    """
+
+    def __init__(self, store: MutableMapping[str, Any] | None = None) -> None:
+        self.store: MutableMapping[str, Any] = store if store is not None else {}
+        self.login_user: AbstractBaseUser | None = None
+        self.logout_requested = False
+
+    def login(self, user: AbstractBaseUser) -> None:
+        self.login_user = user
+        self.logout_requested = False
+
+    def logout(self) -> None:
+        self.login_user = None
+        self.logout_requested = True
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return self.store.get(key, default)
+
+    def set(self, key: str, value: Any) -> None:
+        self.store[key] = value
+
+    def pop(self, key: str, default: Any = None) -> Any:
+        return self.store.pop(key, default)
+
+
 @dataclass(frozen=True)
 class AuditEvent:
     event: str
@@ -91,6 +123,7 @@ class ActionContext:
     # Extra audit events an action records with ctx.audit(); the pipeline writes
     # them in the same transaction as the invocation's own audit row.
     pending_audit: list[AuditEvent] = field(default_factory=list, compare=False, repr=False)
+    session: SessionBridge = field(default_factory=SessionBridge, compare=False, repr=False)
 
     @property
     def user_id(self) -> int | None:

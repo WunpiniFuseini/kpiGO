@@ -190,3 +190,29 @@ class FxRate(Tracked):
 
     def __str__(self) -> str:
         return f"{self.from_currency}->{self.to_currency} {self.period_key} {self.rate_type}"
+
+
+APPROVAL_CLASSES = (
+    "metric_change",
+    "hierarchy_change",
+    "calendar_change",
+    "period_close",
+    "config_change",
+    "access_change",
+)
+
+
+class ApprovalPolicy(Tracked):
+    """Maker-checker on or off for one action class (PRD AD-3). No row means off."""
+
+    pk = models.CompositePrimaryKey("org_id", "approval_class")
+    org_id = models.UUIDField()
+    approval_class = models.TextField()
+    enabled = models.BooleanField(db_default=False)
+
+    class Meta:
+        db_table = "approval_policy"
+        constraints = [one_of("approval_class", APPROVAL_CLASSES, "approval_policy_class_valid")]
+
+    def __str__(self) -> str:
+        return f"{self.approval_class}: {'on' if self.enabled else 'off'}"

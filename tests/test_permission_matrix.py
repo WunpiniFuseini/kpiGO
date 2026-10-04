@@ -13,8 +13,24 @@ from kpigo.action.identity import build_context
 from kpigo.action.pipeline import authorise
 from kpigo.action.roles import SYSTEM_ROLES, all_granted_permissions
 
-ACTIONS: list[ActionDefinition] = list(registry)
+ALL_ACTIONS: list[ActionDefinition] = list(registry)
+# Public actions take no permission; everything below is about the others.
+ACTIONS: list[ActionDefinition] = [d for d in ALL_ACTIONS if not d.public]
 ORG = "00000000-0000-0000-0000-000000000001"
+
+# The only actions an anonymous caller reaches. Adding one is a security decision:
+# extend this list in the same change, where a reviewer will see it.
+PUBLIC_ACTIONS = {
+    "auth.providers",
+    "auth.login",
+    "auth.invite.accept",
+    "auth.oidc.start",
+    "auth.oidc.complete",
+    "auth.saml.start",
+    "auth.saml.acs",
+    "setup.status",
+    "setup.bootstrap",
+}
 
 
 def ctx_for_role(role: str) -> ActionContext:
@@ -25,6 +41,10 @@ def ctx_for_role(role: str) -> ActionContext:
 
 def test_registry_is_not_empty() -> None:
     assert ACTIONS, "autodiscovery found no actions"
+
+
+def test_public_actions_are_exactly_the_reviewed_list() -> None:
+    assert {d.name for d in ALL_ACTIONS if d.public} == PUBLIC_ACTIONS
 
 
 @pytest.mark.parametrize("definition", ACTIONS, ids=lambda d: d.name)
@@ -41,7 +61,7 @@ def test_no_role_grants_a_permission_no_action_uses() -> None:
     assert not stale, f"Roles grant permissions no registered action declares: {sorted(stale)}"
 
 
-@pytest.mark.parametrize("definition", ACTIONS, ids=lambda d: d.name)
+@pytest.mark.parametrize("definition", ALL_ACTIONS, ids=lambda d: d.name)
 def test_every_action_declares_a_valid_example(definition: ActionDefinition) -> None:
     assert definition.example is not None, f"'{definition.name}' must declare an example payload."
     definition.schema.model_validate(definition.example)

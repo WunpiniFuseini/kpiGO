@@ -1,7 +1,7 @@
 """The wrapper every invocation passes through (TDD §3.4).
 
-validate → authorise → narrow scope → maintenance gate → idempotency →
-approval intercept → run (→ bump config_version) → audit → span
+validate → authorise → narrow scope → licence gate → maintenance gate →
+idempotency → approval intercept → run (→ bump config_version) → audit → span
 
 These are properties of the pipeline, not of each action's diligence: an action
 cannot be written that skips its permission check or its audit row.
@@ -46,10 +46,24 @@ class _DryRunRollback(Exception):
     """Raised inside the transaction to discard a dry run's writes."""
 
 
-def approval_enabled(approval_class: str) -> bool:
-    """Maker-checker is per action class and off by default (PRD AD-3)."""
+def approval_enabled(approval_class: str, org_id: str | None = None) -> bool:
+    """Maker-checker is per action class and off by default (PRD AD-3).
+
+    An Admin turns a class on with ``approval.policy.set``; an install may also
+    force classes on in settings, which the database cannot turn off.
+    """
     enabled: Any = getattr(settings, "KPIGO_APPROVAL_CLASSES_ENABLED", ())
-    return approval_class in set(enabled)
+    if approval_class in set(enabled):
+        return True
+    if org_id is None:
+        return False
+    from kpigo.platform.models import ApprovalPolicy
+
+    return bool(
+        ApprovalPolicy.objects.filter(
+            org_id=org_id, approval_class=approval_class, enabled=True
+        ).exists()
+    )
 
 
 def maintenance_mode() -> bool:
@@ -71,6 +85,8 @@ def validate(definition: ActionDefinition, raw: Mapping[str, Any] | BaseModel) -
 
 def authorise(definition: ActionDefinition, ctx: ActionContext) -> None:
     """The permission check. The matrix test calls this exact function."""
+    if definition.public:
+        return
     if definition.permission not in ctx.permissions:
         raise PermissionDenied(
             f"'{definition.name}' requires permission '{definition.permission}'."
@@ -82,6 +98,13 @@ def narrow_scope(definition: ActionDefinition, params: BaseModel, ctx: ActionCon
         subject_id = getattr(params, "subject_id", None)
         if subject_id is None or not ctx.visible_subjects.contains(str(subject_id)):
             raise OutOfScope(f"Subject is outside the caller's visibility for '{definition.name}'.")
+
+
+def licence_gate(definition: ActionDefinition) -> None:
+    """Grace and lock states, and the module list, of the installed licence."""
+    from kpigo.licence.gate import check
+
+    check(definition)
 
 
 def invoke(
@@ -100,6 +123,7 @@ def invoke(
             params = validate(definition, raw)
             authorise(definition, ctx)
             narrow_scope(definition, params, ctx)
+            licence_gate(definition)
             if not definition.read_only and maintenance_mode():
                 raise MaintenanceMode("The system is updating; changes are paused.")
             result, outcome = _execute(definition, params, ctx, started)
@@ -146,6 +170,7 @@ def _execute(
         return output, "ok"
 
     key = definition.idempotency_key(params) if definition.idempotency_key else None
+    refused: ActionError | None = None
     replaying_approval = ctx.approval is not None and ctx.approval.action_name == definition.name
 
     try:
@@ -169,7 +194,7 @@ def _execute(
 
             if (
                 definition.requires_approval
-                and approval_enabled(definition.requires_approval)
+                and approval_enabled(definition.requires_approval, ctx.org_id)
                 and not replaying_approval
                 and not ctx.dry_run
             ):
@@ -195,30 +220,15 @@ def _execute(
                 )
                 return proposal, "pending_approval"
 
-            output = _run_handler(definition, params, ctx)
-            version_extra: dict[str, Any] | None = None
-            if definition.config_change:
-                version_extra = {"config_version": _bump_config_version(ctx)}
-            if key is not None and not ctx.dry_run:
-                ActionIdempotency.objects.create(
-                    org_id=ctx.org_id,
-                    action_name=definition.name,
-                    key=key,
-                    result=output.model_dump(mode="json"),
-                    request_id=ctx.request_id,
-                )
-            if ctx.dry_run:
-                raise _DryRunRollback(output)
-            _write_audit(
-                definition,
-                ctx,
-                params,
-                event=definition.audit_event,
-                outcome="ok",
-                started=started,
-                extra=version_extra,
-            )
-            return output, "ok"
+            try:
+                output = _run_handler(definition, params, ctx)
+            except ActionError as exc:
+                if not exc.commit_writes or ctx.dry_run:
+                    raise
+                # Leave the atomic block normally so the bookkeeping commits.
+                refused = exc
+            if refused is None:
+                return _finish(definition, params, ctx, started, output, key)
     except _DryRunRollback as rollback:
         dry_output: BaseModel = rollback.args[0]
         ctx.pending_audit.clear()
@@ -231,6 +241,43 @@ def _execute(
             started=started,
         )
         return dry_output, "dry_run"
+    assert refused is not None
+    raise refused
+
+
+def _finish(
+    definition: ActionDefinition,
+    params: BaseModel,
+    ctx: ActionContext,
+    started: float,
+    output: BaseModel,
+    key: str | None,
+) -> tuple[BaseModel, str]:
+    from kpigo.platform.models import ActionIdempotency
+
+    version_extra: dict[str, Any] | None = None
+    if definition.config_change:
+        version_extra = {"config_version": _bump_config_version(ctx)}
+    if key is not None and not ctx.dry_run:
+        ActionIdempotency.objects.create(
+            org_id=ctx.org_id,
+            action_name=definition.name,
+            key=key,
+            result=output.model_dump(mode="json"),
+            request_id=ctx.request_id,
+        )
+    if ctx.dry_run:
+        raise _DryRunRollback(output)
+    _write_audit(
+        definition,
+        ctx,
+        params,
+        event=definition.audit_event,
+        outcome="ok",
+        started=started,
+        extra=version_extra,
+    )
+    return output, "ok"
 
 
 def _bump_config_version(ctx: ActionContext) -> int:
