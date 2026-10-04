@@ -14,6 +14,9 @@ from kpigo.periods.models import PerformanceCycle
 from kpigo.platform.db import CITextField, Tracked, no_overlap, one_of, valid_range
 
 RELATIONSHIP_TYPES = ("solid", "dotted")
+# ``available``: seen in a feed but not yet reviewed; an Admin activates it (PRD IN-11).
+MEMBER_STATUSES = ("available", "active", "inactive")
+PRODUCT_LINE_STATUSES = ("available", "active", "retired")
 VISIBILITY_VIA = ("self", "solid", "dotted")
 DIMENSION_TYPE_PATTERN = r"^[a-z][a-z0-9_]*$"
 
@@ -190,10 +193,71 @@ class DimMember(Tracked):
     parent_code = models.TextField(null=True)
     sort_order = models.IntegerField(db_default=0)
     status = models.TextField(db_default="active")
+    # When ingestion first saw the code, for members it registered as available.
+    first_detected_at = models.DateTimeField(null=True)
 
     class Meta:
         db_table = "dim_member"
-        constraints = [one_of("status", ("active", "inactive"), "dim_member_status_valid")]
+        constraints = [one_of("status", MEMBER_STATUSES, "dim_member_status_valid")]
 
     def __str__(self) -> str:
         return f"{self.dimension_type}:{self.member_code}"
+
+
+class ProductGroup(Tracked):
+    group_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    code = models.TextField()
+    display_name = models.TextField()
+    sort_order = models.IntegerField(db_default=0)
+    module = models.TextField(db_default="agent_performance")
+    status = models.TextField(db_default="active")
+
+    class Meta:
+        db_table = "product_group"
+        constraints = [
+            models.UniqueConstraint(fields=["org_id", "code"], name="product_group_code_unique"),
+            one_of("status", ("active", "retired"), "product_group_status_valid"),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.code)
+
+
+class ProductLine(Tracked):
+    """``available → active → retired`` (App Flow §8).
+
+    A line enters as ``available`` when ingestion sees a code with data and no
+    line, so an Admin can never activate a line with no data behind it. It has
+    no group until the Admin names and groups it; activating it requires one.
+    """
+
+    line_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    code = models.TextField()
+    display_name = models.TextField()
+    sort_order = models.IntegerField(db_default=0)
+    group = models.ForeignKey(
+        ProductGroup, on_delete=models.PROTECT, null=True, related_name="lines"
+    )
+    module = models.TextField(db_default="agent_performance")
+    status = models.TextField(db_default="available")
+    source_member_code = models.TextField(null=True)
+    first_detected_at = models.DateTimeField(null=True)
+    effective_from = models.DateField()
+    effective_to = models.DateField(null=True)
+
+    class Meta:
+        db_table = "product_line"
+        constraints = [
+            models.UniqueConstraint(fields=["org_id", "code"], name="product_line_code_unique"),
+            one_of("status", PRODUCT_LINE_STATUSES, "product_line_status_valid"),
+            models.CheckConstraint(
+                condition=models.Q(status="available") | models.Q(group__isnull=False),
+                name="product_line_grouped_unless_available",
+            ),
+            valid_range("product_line_range_valid"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.code} ({self.status})"

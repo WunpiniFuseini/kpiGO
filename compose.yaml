@@ -17,6 +17,10 @@ x-app: &app
     REDIS_URL: redis://redis:6379/0
     KPIGO_SECRET_KEY: ${KPIGO_SECRET_KEY:-change-me-before-install}
     KPIGO_SECURE_COOKIES: ${KPIGO_SECURE_COOKIES:-false}
+    KPIGO_DROP_ROOT: /var/lib/kpigo/drop
+  # Drop-folder feeds read here. A client usually binds its network share instead.
+  volumes:
+    - drop:/var/lib/kpigo/drop
   depends_on:
     postgres:
       condition: service_healthy
@@ -86,6 +90,7 @@ services:
 
 volumes:
   pgdata:
+  drop:
 
 networks:
   kpigo:
