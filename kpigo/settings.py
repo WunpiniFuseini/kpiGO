@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "kpigo.periods",
     "kpigo.hierarchy",
     "kpigo.metrics",
+    "kpigo.ingestion",
 ]
 
 MIDDLEWARE = [
@@ -127,6 +128,33 @@ if env("KPIGO_HELLO_SCHEDULE_USER"):
             "run_as": env("KPIGO_HELLO_SCHEDULE_USER"),
             "every_seconds": int(env("KPIGO_HELLO_SCHEDULE_SECONDS", "3600") or 3600),
             "params": {"name": "scheduler"},
+        }
+    )
+
+# --- Ingestion (TDD §5) ----------------------------------------------------
+# Fernet keys for source credentials: comma-separated, first one encrypts. Or a
+# file on the host's secret mount, one key per line. Dev and test installs with
+# neither derive a key from SECRET_KEY; production must configure one.
+KPIGO_CREDENTIAL_KEYS = env_list("KPIGO_CREDENTIAL_KEYS", "")
+KPIGO_CREDENTIAL_KEY_FILE = env("KPIGO_CREDENTIAL_KEY_FILE")
+KPIGO_CREDENTIAL_DEV_KEY = DEBUG or env_bool("KPIGO_TESTING")
+# Drop-folder feeds name a folder under this root; nothing outside it is read.
+KPIGO_DROP_ROOT = env("KPIGO_DROP_ROOT", "/var/lib/kpigo/drop")
+# A dropped file is picked up once it has not changed for this long.
+KPIGO_DROP_SETTLE_SECONDS = int(env("KPIGO_DROP_SETTLE_SECONDS", "30") or 30)
+# Every read stops at the row cap (a load above it fails, never truncates) and
+# every pull runs under a statement timeout. A connection may set lower ones.
+KPIGO_INGEST_ROW_CAP = int(env("KPIGO_INGEST_ROW_CAP", "1000000") or 1_000_000)
+KPIGO_PULL_TIMEOUT_SECONDS = int(env("KPIGO_PULL_TIMEOUT_SECONDS", "300") or 300)
+KPIGO_UPLOAD_MAX_BYTES = int(env("KPIGO_UPLOAD_MAX_BYTES", str(50 * 1024 * 1024)) or 0)
+# Run feed.tick (drop folders, cadences, freshness) as this user every minute.
+if env("KPIGO_INGESTION_SCHEDULE_USER"):
+    KPIGO_SCHEDULED_ACTIONS.append(
+        {
+            "action": "feed.tick",
+            "run_as": env("KPIGO_INGESTION_SCHEDULE_USER"),
+            "every_seconds": int(env("KPIGO_INGESTION_TICK_SECONDS", "60") or 60),
+            "params": {},
         }
     )
 

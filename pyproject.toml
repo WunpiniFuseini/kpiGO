@@ -13,6 +13,11 @@ dependencies = [
     "gunicorn>=23",
     "uvicorn>=0.30",
     "tzdata>=2024.1",
+    "cryptography>=43",
+    "openpyxl>=3.1",
+    "pymysql>=1.1",
+    "pymssql>=2.3",
+    "oracledb>=2.4",
 ]
 
 [dependency-groups]
@@ -23,6 +28,8 @@ dev = [
     "mypy>=1.11",
     "django-stubs[compatible-mypy]>=5.2,<5.3",
     "celery-types>=0.22",
+    "types-openpyxl>=3.1.5.20260827",
+    "types-pymysql>=1.2.0.20260923",
 ]
 
 [build-system]

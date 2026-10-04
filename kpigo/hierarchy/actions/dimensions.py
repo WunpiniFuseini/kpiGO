@@ -198,7 +198,7 @@ def upsert_members(params: MembersUpsertIn, ctx: ActionContext) -> MembersOut:
 
 class MemberListIn(BaseModel):
     dimension_type: DimensionType
-    status: Literal["active", "inactive"] | None = None
+    status: Literal["available", "active", "inactive"] | None = None
 
 
 class MemberListOut(BaseModel):

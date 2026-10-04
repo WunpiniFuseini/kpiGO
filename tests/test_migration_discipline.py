@@ -26,7 +26,7 @@ from django.db.models import NOT_PROVIDED
 from kpigo.platform.migration_plan import analyse
 from tests.conftest import run
 
-KPIGO_APPS = {"platform", "periods", "hierarchy", "metrics"}
+KPIGO_APPS = {"platform", "periods", "hierarchy", "metrics", "ingestion"}
 
 # Destructive operations are deferred a full major version (TDD §12). When one is
 # genuinely due, list it here: {(app_label, migration_name): "why"}.

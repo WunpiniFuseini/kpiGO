@@ -62,6 +62,42 @@ names = {a['name'] for a in c.get('/api/v1/registry').json()['actions']}
 assert {'metric.register', 'visibility.rebuild', 'period.transition'} <= names, names
 "
 
+echo "== ingestion (R0 exit: a feed dry-runs, reports rejections, then loads all-or-nothing)"
+exec_app python manage.py action feed.register --user smoke-admin \
+  --json '{"name": "smoke_monthly", "template": "actual_monthly", "mode": "upload"}' \
+  | grep -q '"dry_run_passed": false'
+exec_app python manage.py shell -c "
+import base64
+from django.test import Client
+from django.contrib.auth.models import User
+from django.utils import timezone
+c = Client()
+c.force_login(User.objects.get(username='smoke-admin'))
+post = lambda name, body: c.post('/api/v1/actions/' + name, body, content_type='application/json')
+r = post('subject.register', {'staff_no': 'SMK1', 'full_name': 'Smoke One', 'email': 'smk1@bank.example'})
+assert r.status_code == 200, r.content
+today = timezone.localdate()
+r = post('assignment.create', {'subject_id': r.json()['subject_id'], 'role_code': 'rm',
+         'profile_code': 'smoke', 'effective_from': today.isoformat()})
+assert r.status_code == 200, r.content
+period = f'{today.year:04d}{today.month:02d}'
+def upload(rows):
+    text = 'metric_code,subject_ref,period_key,actual_value\\n' + ''.join(f'{r}\\n' for r in rows)
+    return {'filename': 'smoke.csv', 'content_base64': base64.b64encode(text.encode()).decode()}
+bad = post('feed.dry_run', {'feed': 'smoke_monthly', 'upload': upload([f'smoke_deposits,SMK1,{period},10', f'smoke_deposits,NOPE,{period},5'])}).json()
+assert bad['passed'] is False and bad['rules'] == {'unknown_subject': 1}, bad
+report = c.get('/api/v1/actions/feed.rejections.export', {'run_id': bad['run_id']}).json()
+assert 'unknown_subject' in report['content'], report
+assert post('feed.run', {'feed': 'smoke_monthly', 'upload': upload([f'smoke_deposits,SMK1,{period},10'])}).status_code == 409
+good = post('feed.dry_run', {'feed': 'smoke_monthly', 'upload': upload([f'smoke_deposits,SMK1,{period},10'])}).json()
+assert good['passed'] is True, good
+loaded = post('feed.run', {'feed': 'smoke_monthly', 'upload': upload([f'smoke_deposits,SMK1,{period},10'])}).json()
+assert loaded['outcome'] == 'success' and loaded['rows_accepted'] == 1, loaded
+again = post('feed.run', {'feed': 'smoke_monthly', 'upload': upload([f'smoke_deposits,SMK1,{period},10'])}).json()
+assert again['idempotent'] is True and again['run_id'] == loaded['run_id'], again
+print('ingestion ok')
+"
+
 echo "== audit"
 exec_app python manage.py shell -c "
 from kpigo.platform.models import AuditLog

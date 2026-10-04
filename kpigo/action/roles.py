@@ -37,6 +37,15 @@ STEWARD = (
     "fx.manage",
 )
 
+# Ingestion: source connections, feeds and their runs (PRD AD-7, IN-*).
+INGESTION = (
+    "connection.view",
+    "connection.manage",
+    "feed.view",
+    "feed.manage",
+    "feed.run",
+)
+
 SYSTEM_ROLES: dict[str, RoleSpec] = {
     r.code: r
     for r in (
@@ -45,6 +54,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "Admin",
             *EVERYONE,
             *STEWARD,
+            *INGESTION,
             "platform.registry.view",
             "platform.approval.decide",
             "platform.migrations.view",
@@ -57,7 +67,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
         _role("agent_supervisor", "Agent Supervisor", *EVERYONE),
         _role("campaign_manager", "Campaign Manager", *EVERYONE, "dimension.view"),
         _role("metric_owner", "Metric Owner", *EVERYONE, "metric.manage"),
-        _role("data_steward", "Data Steward", *EVERYONE, *STEWARD),
+        _role("data_steward", "Data Steward", *EVERYONE, *STEWARD, *INGESTION),
         _role("contributor", "Contributor", *EVERYONE),
         _role("staff", "Relationship Manager / Service Officer", *EVERYONE),
     )

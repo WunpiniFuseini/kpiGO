@@ -7,8 +7,9 @@ set -euo pipefail
 manage() { ${PYTHON:-uv run python} manage.py "$@"; }
 
 manage migrate --noinput
-# Reverse dependency order: metrics and hierarchy sit on periods and platform.
-for app in metrics hierarchy periods platform; do
+# Reverse dependency order: ingestion sits on metrics and hierarchy, which sit on
+# periods and platform.
+for app in ingestion metrics hierarchy periods platform; do
   manage migrate "$app" zero --noinput
 done
 manage migrate --noinput

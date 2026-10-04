@@ -84,6 +84,10 @@ Checklist for every new action (the review gate):
   longer applies, so `daterange(effective_from, effective_to)` is exact and a row
   ending the day the next begins does not overlap it. Overlaps are refused by GiST
   exclusion constraints (`kpigo.platform.db.no_overlap`).
+- **A load is all or nothing.** Any gate error quarantines the whole load; conform
+  runs in a savepoint. Dry runs write only `feed_run` and `feed_rejection`. The
+  gates live in `kpigo/ingestion/validator.py`, which must stay standard-library
+  only: it ships to client DE teams as the standalone validator.
 - **Metric definitions version, never mutate.** A change to direction, aggregation,
   unit or target scope on a non-draft metric closes the row and opens a new one
   under the same `metric_code` (MR-7).
