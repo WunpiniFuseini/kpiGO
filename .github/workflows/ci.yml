@@ -47,11 +47,10 @@ jobs:
       - run: uv sync --frozen --python 3.12
       - name: Migrations are complete
         run: uv run python manage.py makemigrations --check --dry-run
-      - name: Migrations apply forward and roll back
-        run: |
-          uv run python manage.py migrate --noinput
-          uv run python manage.py migrate platform zero --noinput
-          uv run python manage.py migrate --noinput
+      - name: Migrations apply forward, roll back to zero and re-apply
+        run: scripts/migrations_roundtrip.sh
+      - name: Migration discipline (additive, reversible, no backfills)
+        run: uv run pytest tests/test_migration_discipline.py -q
       - name: Permission matrix (generated from the action registry)
         run: uv run pytest tests/test_permission_matrix.py tests/test_governing_rule.py -q
       - name: Full suite

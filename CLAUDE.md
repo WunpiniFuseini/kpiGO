@@ -40,12 +40,17 @@ Put it in `kpigo/<app>/actions/<module>.py`; it is auto-discovered.
 def compute_scorecard(params: ComputeScorecardIn, ctx: ActionContext) -> ScorecardOut: ...
 ```
 
-Mutating actions may add `requires_approval="maker_checker"`, `audit="event.name"`
-and `idempotency_key=lambda p: ...`.
+Mutating actions may add `requires_approval="<class>"` (classes in use:
+`metric_change`, `hierarchy_change`, `calendar_change`, `period_close`,
+`config_change`), `audit="event.name"`, `idempotency_key=lambda p: ...` and
+`config_change=True`, which makes the pipeline bump `org_settings.config_version`
+in the same transaction. Every change to metrics, hierarchy, calendar or money
+settings declares it.
 
 Never do these by hand; the pipeline does them for every invocation, in order:
 validate → authorise → narrow scope → maintenance gate → idempotency → approval
-intercept → run (in a transaction for writes; dry runs roll back) → audit → span.
+intercept → run (in a transaction for writes; dry runs roll back) → bump
+config_version → audit → span.
 
 Checklist for every new action (the review gate):
 
@@ -73,6 +78,15 @@ Checklist for every new action (the review gate):
   without a declared, granted permission fails the build.
 - **Contributors are a real persona**; the input grid gets extra design care.
 - **No grant means no data.** Absence of a scope row is a deny, never a wildcard.
+  Subject scope comes from `visibility_closure`; no closure for the period is an
+  empty scope.
+- **Effective periods are half-open.** `effective_to` is the first day a row no
+  longer applies, so `daterange(effective_from, effective_to)` is exact and a row
+  ending the day the next begins does not overlap it. Overlaps are refused by GiST
+  exclusion constraints (`kpigo.platform.db.no_overlap`).
+- **Metric definitions version, never mutate.** A change to direction, aggregation,
+  unit or target scope on a non-draft metric closes the row and opens a new one
+  under the same `metric_code` (MR-7).
 
 ## Deployment constraints
 
@@ -93,5 +107,6 @@ uv sync
 export KPIGO_TESTING=1
 uv run pytest
 uv run ruff check . && uv run ruff format --check . && uv run mypy kpigo tests
+scripts/migrations_roundtrip.sh   # forward, every app to zero, forward again
 docker compose up -d --build --wait && scripts/smoke.sh
 ```

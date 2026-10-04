@@ -54,6 +54,7 @@ class ActionDefinition:
     http: HttpSpec | None = None
     example: dict[str, Any] | None = None
     tags: tuple[str, ...] = field(default_factory=tuple)
+    config_change: bool = False
 
     @property
     def audit_event(self) -> str:
@@ -83,12 +84,17 @@ def action(
     http: dict[str, str] | None = None,
     example: dict[str, Any] | None = None,
     tags: tuple[str, ...] = (),
+    config_change: bool = False,
 ) -> Callable[[F], F]:
     """Declare a function as a kpiGo action.
 
     The function is not callable as an action until it is registered; adapters
     (HTTP, CLI, job) only ever reach it through the pipeline, which applies
     validation, permission, scope, idempotency, approval, audit and tracing.
+
+    ``config_change=True`` declares that a successful run changes configuration
+    (metrics, hierarchy, calendar, money settings): the pipeline bumps the org's
+    ``config_version`` in the same transaction, so cached figures invalidate.
     """
     if not _NAME_RE.match(name):
         raise RegistryError(
@@ -100,6 +106,8 @@ def action(
         raise RegistryError(f"Action '{name}' declares unknown module '{module}'.")
     if read_only and requires_approval:
         raise RegistryError(f"Read-only action '{name}' cannot require approval.")
+    if read_only and config_change:
+        raise RegistryError(f"Read-only action '{name}' cannot change configuration.")
     if not (isinstance(schema, type) and issubclass(schema, BaseModel)):
         raise RegistryError(f"Action '{name}' schema must be a Pydantic model.")
     if not (isinstance(output, type) and issubclass(output, BaseModel)):
@@ -135,6 +143,7 @@ def action(
             http=http_spec,
             example=example,
             tags=tags,
+            config_change=config_change,
         )
         fn.__kpigo_action__ = definition  # type: ignore[attr-defined]
         return fn

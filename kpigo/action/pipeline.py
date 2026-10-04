@@ -1,7 +1,7 @@
 """The wrapper every invocation passes through (TDD §3.4).
 
 validate → authorise → narrow scope → maintenance gate → idempotency →
-approval intercept → run → audit → span
+approval intercept → run (→ bump config_version) → audit → span
 
 These are properties of the pipeline, not of each action's diligence: an action
 cannot be written that skips its permission check or its audit row.
@@ -196,6 +196,9 @@ def _execute(
                 return proposal, "pending_approval"
 
             output = _run_handler(definition, params, ctx)
+            version_extra: dict[str, Any] | None = None
+            if definition.config_change:
+                version_extra = {"config_version": _bump_config_version(ctx)}
             if key is not None and not ctx.dry_run:
                 ActionIdempotency.objects.create(
                     org_id=ctx.org_id,
@@ -207,7 +210,13 @@ def _execute(
             if ctx.dry_run:
                 raise _DryRunRollback(output)
             _write_audit(
-                definition, ctx, params, event=definition.audit_event, outcome="ok", started=started
+                definition,
+                ctx,
+                params,
+                event=definition.audit_event,
+                outcome="ok",
+                started=started,
+                extra=version_extra,
             )
             return output, "ok"
     except _DryRunRollback as rollback:
@@ -222,6 +231,12 @@ def _execute(
             started=started,
         )
         return dry_output, "dry_run"
+
+
+def _bump_config_version(ctx: ActionContext) -> int:
+    from kpigo.platform.config import bump_config_version
+
+    return bump_config_version(ctx.org_id)
 
 
 def _fail(

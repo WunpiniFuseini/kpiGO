@@ -34,8 +34,12 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.sessions",
     "django.contrib.staticfiles",
+    "django.contrib.postgres",
     "ninja",
     "kpigo.platform",
+    "kpigo.periods",
+    "kpigo.hierarchy",
+    "kpigo.metrics",
 ]
 
 MIDDLEWARE = [
