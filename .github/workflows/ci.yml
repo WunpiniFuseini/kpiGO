@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint and typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen --python 3.12
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy kpigo tests
+        env:
+          KPIGO_TESTING: "1"
+
+  test:
+    name: Tests (incl. permission matrix)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: kpigo
+          POSTGRES_USER: kpigo
+          POSTGRES_PASSWORD: kpigo
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U kpigo" --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+    env:
+      KPIGO_TESTING: "1"
+      POSTGRES_HOST: localhost
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen --python 3.12
+      - name: Migrations are complete
+        run: uv run python manage.py makemigrations --check --dry-run
+      - name: Migrations apply forward and roll back
+        run: |
+          uv run python manage.py migrate --noinput
+          uv run python manage.py migrate platform zero --noinput
+          uv run python manage.py migrate --noinput
+      - name: Permission matrix (generated from the action registry)
+        run: uv run pytest tests/test_permission_matrix.py tests/test_governing_rule.py -q
+      - name: Full suite
+        run: uv run pytest -q
+
+  no-inference:
+    name: No-inference boot gate
+    # Standing gate (Brief R7, TDD §13): boot the whole stack with no inference
+    # configured and run the full suite inside it. If kpiGo ever needs a model,
+    # this fails.
+    runs-on: ubuntu-latest
+    env:
+      KPIGO_BUILD_TARGET: dev
+      KPIGO_SECRET_KEY: ci-only-secret
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assert no inference is configured
+        run: |
+          if grep -E '^KPIGO_INFERENCE_PROVIDER=.+' .env 2>/dev/null; then exit 1; fi
+          test -z "${KPIGO_INFERENCE_PROVIDER:-}"
+      - name: Boot the stack
+        run: docker compose up -d --build --wait --wait-timeout 300
+      - name: Smoke test hello over HTTP, CLI and a worker job
+        run: scripts/smoke.sh
+      - name: Full suite inside the booted stack
+        run: >-
+          docker compose exec -T -e KPIGO_TESTING=1 -e KPIGO_REQUIRE_NO_INFERENCE=1 app
+          pytest -q -p no:cacheprovider
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
