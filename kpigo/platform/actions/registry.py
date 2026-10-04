@@ -20,6 +20,7 @@ class ActionInfo(BaseModel):
     read_only: bool
     scope: str | None
     requires_approval: str | None
+    config_change: bool
     http_method: str
     http_path: str
     input_schema: dict[str, Any]
@@ -51,6 +52,7 @@ def list_actions(params: RegistryListIn, ctx: ActionContext) -> RegistryListOut:
             read_only=d.read_only,
             scope=d.scope,
             requires_approval=d.requires_approval,
+            config_change=d.config_change,
             http_method=d.http_spec.method,
             http_path=d.http_spec.path,
             input_schema=d.schema.model_json_schema(),

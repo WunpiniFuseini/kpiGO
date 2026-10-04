@@ -4,8 +4,9 @@ from typing import Any
 import pytest
 from django.contrib.auth.models import Group, User
 
-from kpigo.action import registry
+from kpigo.action import ActionContext, invoke, registry
 from kpigo.action.definition import ActionDefinition
+from kpigo.action.roles import SYSTEM_ROLES
 
 
 @pytest.fixture
@@ -35,3 +36,18 @@ def register() -> Iterator[Callable[[Callable[..., object]], ActionDefinition]]:
     yield add
     for name in added:
         registry.unregister(name)
+
+
+ORG_ID = "00000000-0000-0000-0000-000000000001"
+
+
+def role_ctx(role: str = "admin", **extra: Any) -> ActionContext:
+    """A context holding a system role's permissions, as the matrix test builds it."""
+    return ActionContext(
+        caller="cli", user=None, org_id=ORG_ID, permissions=SYSTEM_ROLES[role].permissions, **extra
+    )
+
+
+def run(action_name: str, ctx: ActionContext | None = None, /, **payload: Any) -> Any:
+    """Invoke a registered action through the full pipeline (admin by default)."""
+    return invoke(registry.get(action_name), payload, ctx or role_ctx())

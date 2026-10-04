@@ -1,8 +1,14 @@
-"""Platform tables (Schema §13): audit_log, approval_request, action_idempotency."""
+"""Platform tables.
+
+Schema §13: audit_log, approval_request, action_idempotency.
+Schema §4: org_settings (with the config_version counter), currency, fx_rate.
+"""
 
 import uuid
 
 from django.db import models
+
+from kpigo.platform.db import Stamped, Tracked, one_of
 
 
 class AuditLog(models.Model):
@@ -97,3 +103,90 @@ class ActionIdempotency(models.Model):
 
     def __str__(self) -> str:
         return f"{self.action_name}:{self.key}"
+
+
+class OrgSettings(Tracked):
+    """One row per org. ``config_version`` is bumped by every configuration change.
+
+    Cache keys embed ``config_version`` (TDD §5), so a change to metrics, hierarchy,
+    calendar or money settings invalidates without targeted eviction. Actions never
+    bump it by hand: declaring ``config_change=True`` makes the pipeline do it.
+    """
+
+    org_id = models.UUIDField(primary_key=True)
+    reporting_currency = models.CharField(max_length=3, null=True)
+    reporting_timezone = models.TextField(db_default="UTC")
+    # Activity at or after this local time counts toward the next business day.
+    # Null means the business day ends at midnight.
+    business_day_cutoff = models.TimeField(null=True)
+    config_version = models.BigIntegerField(db_default=0)
+
+    class Meta:
+        db_table = "org_settings"
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(config_version__gte=0), name="org_settings_version_positive"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"org {self.org_id} (config v{self.config_version})"
+
+
+class Currency(Stamped):
+    pk = models.CompositePrimaryKey("org_id", "code")
+    org_id = models.UUIDField()
+    code = models.CharField(max_length=3)
+    name = models.TextField()
+    minor_units = models.SmallIntegerField(db_default=2)
+    is_active = models.BooleanField(db_default=True)
+
+    class Meta:
+        db_table = "currency"
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(code__regex=r"^[A-Z]{3}$"), name="currency_code_iso"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(minor_units__gte=0, minor_units__lte=4),
+                name="currency_minor_units_range",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return str(self.code)
+
+
+FX_RATE_TYPES = ("average", "closing", "budget")
+
+
+class FxRate(Tracked):
+    """``rate`` converts one unit of ``from_currency`` into ``to_currency`` for a period."""
+
+    pk = models.CompositePrimaryKey(
+        "org_id", "from_currency", "to_currency", "period_key", "rate_type"
+    )
+    org_id = models.UUIDField()
+    from_currency = models.CharField(max_length=3)
+    to_currency = models.CharField(max_length=3)
+    period_key = models.CharField(max_length=6)
+    rate_type = models.TextField()
+    rate = models.DecimalField(max_digits=24, decimal_places=10)
+
+    class Meta:
+        db_table = "fx_rate"
+        constraints = [
+            one_of("rate_type", FX_RATE_TYPES, "fx_rate_type_valid"),
+            models.CheckConstraint(condition=models.Q(rate__gt=0), name="fx_rate_positive"),
+            models.CheckConstraint(
+                condition=~models.Q(from_currency=models.F("to_currency")),
+                name="fx_rate_distinct_currencies",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(period_key__regex=r"^[0-9]{4}(0[1-9]|1[0-2])$"),
+                name="fx_rate_period_key_valid",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.from_currency}->{self.to_currency} {self.period_key} {self.rate_type}"

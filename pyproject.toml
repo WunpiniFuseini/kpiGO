@@ -12,6 +12,7 @@ dependencies = [
     "opentelemetry-api>=1.27,<2",
     "gunicorn>=23",
     "uvicorn>=0.30",
+    "tzdata>=2024.1",
 ]
 
 [dependency-groups]
@@ -47,7 +48,8 @@ exclude = ["*.md"]
 select = ["E", "F", "W", "I", "B", "UP", "DJ", "SIM", "RUF"]
 # E501: the formatter owns line length. RUF012: Django's Meta/Migration idiom.
 # RUF001-003: the docs use typographic characters (×, —) deliberately.
-ignore = ["E501", "RUF012", "RUF001", "RUF002", "RUF003"]
+# DJ001: the schema uses NULL for absent text (region_code null = org-wide row).
+ignore = ["E501", "RUF012", "RUF001", "RUF002", "RUF003", "DJ001"]
 
 [tool.ruff.lint.per-file-ignores]
 "kpigo/*/migrations/*" = ["I001"]
