@@ -17,6 +17,7 @@ import { readAsBase64 } from "../../lib/files";
 import { currentPeriod, formatDateTime, formatDecimal, formatPeriod, shiftPeriod } from "../../lib/format";
 import { Page } from "../../shell/AppShell";
 import { useMe } from "../../session/Session";
+import { OverridesSection } from "./Overrides";
 
 type Coverage = Output<"target.coverage">;
 type Cell = Coverage["cells"][number];
@@ -135,6 +136,10 @@ export function TargetsPage() {
           <BatchesView batches={batches.data.batches} canPublish={canPublish} onReverted={reloadAll} />
         )}
       </section>
+
+      {me.permissions.includes("override.view") ? (
+        <OverridesSection canRequest={me.permissions.includes("override.request")} canApprove={me.permissions.includes("override.approve")} />
+      ) : null}
     </Page>
   );
 }

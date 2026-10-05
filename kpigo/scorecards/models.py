@@ -337,3 +337,92 @@ class Target(Tracked):
 
     def __str__(self) -> str:
         return f"{self.metric_id} {self.scope_type}:{self.scope_code} {self.period_key} v{self.version}"
+
+
+# ── overrides (Schema §6, PRD SC-5) ──────────────────────────────────────────
+
+OVERRIDE_SCOPE_TYPES = ("subject", "profile", "dimension")
+OVERRIDE_CHANGE_TYPES = ("target", "weight", "cap", "actual", "target_type")
+OVERRIDE_STATUSES = ("pending", "approved", "rejected", "withdrawn", "revoked")
+# Dimension overrides reach a subject through these fields of the assignment in force.
+OVERRIDE_DIMENSIONS = ("branch", "region", "segment", "portfolio")
+
+
+class Override(Tracked):
+    """A period-ranged exception to a target, weight, cap, actual or target type.
+
+    Requested by one user and approved by another: ``reason`` and the approver
+    are mandatory, and only ``approved`` rows move a score. Precedence is
+    subject > profile > dimension for the overlapping periods only. For
+    ``dimension`` scope, ``scope_code`` is ``<dimension>:<member_code>``.
+    """
+
+    override_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    scope_type = models.TextField()
+    scope_code = models.TextField()
+    metric = models.ForeignKey(Metric, on_delete=models.PROTECT, related_name="+")
+    product = models.TextField(db_default="scorecards")
+    period_from = models.CharField(max_length=6)
+    # Null: the single period ``period_from``.
+    period_to = models.CharField(max_length=6, null=True)
+    change_type = models.TextField()
+    override_value = models.DecimalField(max_digits=18, decimal_places=4, null=True)
+    override_text = models.TextField(null=True)
+    reason = models.TextField()
+    status = models.TextField(db_default="pending")
+    requested_by = models.BigIntegerField(null=True)
+    approved_by = models.BigIntegerField(null=True)
+    approved_at = models.DateTimeField(null=True)
+    decision_note = models.TextField(db_default="")
+    ended_by = models.BigIntegerField(null=True)
+    ended_at = models.DateTimeField(null=True)
+
+    class Meta:
+        db_table = "override"
+        constraints = [
+            one_of("scope_type", OVERRIDE_SCOPE_TYPES, "override_scope_type_valid"),
+            one_of("change_type", OVERRIDE_CHANGE_TYPES, "override_change_type_valid"),
+            one_of("status", OVERRIDE_STATUSES, "override_status_valid"),
+            one_of("product", PRODUCTS, "override_product_valid"),
+            models.CheckConstraint(
+                condition=models.Q(period_from__regex=PERIOD_KEY_PATTERN)
+                & (
+                    models.Q(period_to__isnull=True) | models.Q(period_to__regex=PERIOD_KEY_PATTERN)
+                ),
+                name="override_period_key_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(period_to__isnull=True)
+                | models.Q(period_to__gte=models.F("period_from")),
+                name="override_period_range_valid",
+            ),
+            models.CheckConstraint(condition=~models.Q(reason=""), name="override_reason_required"),
+            # target_type carries text; every other change carries a number.
+            models.CheckConstraint(
+                condition=(
+                    models.Q(change_type="target_type", override_text__in=TARGET_TYPES)
+                    | (
+                        ~models.Q(change_type="target_type")
+                        & models.Q(override_value__isnull=False)
+                    )
+                ),
+                name="override_value_shape",
+            ),
+            # Approved means a second person approved it.
+            models.CheckConstraint(
+                condition=~models.Q(status="approved")
+                | (
+                    models.Q(approved_by__isnull=False, approved_at__isnull=False)
+                    & ~models.Q(approved_by=models.F("requested_by"))
+                ),
+                name="override_approved_by_other",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["org_id", "product", "status"], name="override_status"),
+            models.Index(fields=["scope_type", "scope_code"], name="override_scope"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.change_type} {self.scope_type}:{self.scope_code} {self.period_from}"

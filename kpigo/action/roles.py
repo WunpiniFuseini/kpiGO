@@ -73,6 +73,9 @@ SCORECARD_CONFIG = (
     "target.publish",
 )
 
+# Overrides (PRD SC-5): requested by one person, approved by another.
+OVERRIDE_REQUEST = ("override.view", "override.request")
+
 SYSTEM_ROLES: dict[str, RoleSpec] = {
     r.code: r
     for r in (
@@ -92,11 +95,13 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "settings.manage",
             *SCORECARD_CONFIG,
             "scorecard.view",
+            *OVERRIDE_REQUEST,
+            "override.approve",
         ),
         _role(
             "executive", "Executive / Regional Head", *EVERYONE, "dimension.view", "scorecard.view"
         ),
-        _role("line_manager", "Line Manager", *EVERYONE, "scorecard.view"),
+        _role("line_manager", "Line Manager", *EVERYONE, "scorecard.view", *OVERRIDE_REQUEST),
         _role("agent_supervisor", "Agent Supervisor", *EVERYONE),
         _role("campaign_manager", "Campaign Manager", *EVERYONE, "dimension.view"),
         _role(
@@ -106,6 +111,8 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "metric.manage",
             *SCORECARD_CONFIG,
             "scorecard.view",
+            *OVERRIDE_REQUEST,
+            "override.approve",
         ),
         _role(
             "data_steward",

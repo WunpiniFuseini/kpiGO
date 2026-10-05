@@ -15,6 +15,9 @@ import {
   drafts,
   noBatches,
   noDrafts,
+  noOverrides,
+  overridesApproved,
+  overridesPending,
   noProfiles,
   noTemplate,
   profiles,
@@ -25,6 +28,7 @@ import {
   viewerMe,
 } from "../../stories/scorecardFixtures";
 import { ScorecardSetupPage } from "./ScorecardSetup";
+import { OverridesView } from "./Overrides";
 import { SheetFindings, TargetsPage } from "./Targets";
 
 function InShell({ children }: { children: React.ReactNode }) {
@@ -52,6 +56,7 @@ const targets: Handlers = {
   "target.coverage": { data: coverage },
   "target.list": { data: drafts },
   "target.batch.list": { data: batches },
+  "override.list": { data: overridesPending },
 };
 
 export const Targets: Story = page(<TargetsPage />, { path: "/admin/targets", handlers: targets });
@@ -62,21 +67,36 @@ export const TargetsComplete: Story = page(<TargetsPage />, {
 /** No profile has metrics yet: the grid says where to start. */
 export const TargetsNoProfiles: Story = page(<TargetsPage />, {
   path: "/admin/targets",
-  handlers: { "target.coverage": { data: coverageEmpty }, "target.list": { data: noDrafts }, "target.batch.list": { data: noBatches } },
+  handlers: {
+    "target.coverage": { data: coverageEmpty },
+    "target.list": { data: noDrafts },
+    "target.batch.list": { data: noBatches },
+    "override.list": { data: noOverrides },
+  },
 });
 export const TargetsLoading: Story = page(<TargetsPage />, {
   path: "/admin/targets",
-  handlers: { "target.coverage": "pending", "target.list": "pending", "target.batch.list": "pending" },
+  handlers: { "target.coverage": "pending", "target.list": "pending", "target.batch.list": "pending", "override.list": "pending" },
 });
 export const TargetsError: Story = page(<TargetsPage />, {
   path: "/admin/targets",
-  handlers: { "target.coverage": { error: serverError }, "target.list": { error: serverError }, "target.batch.list": { error: serverError } },
+  handlers: {
+    "target.coverage": { error: serverError },
+    "target.list": { error: serverError },
+    "target.batch.list": { error: serverError },
+    "override.list": { error: serverError },
+  },
 });
 /** Read-only: a viewer sees coverage and history but no upload, publish or revert. */
 export const TargetsReadOnly: Story = page(<TargetsPage />, { me: viewerMe, path: "/admin/targets", handlers: targets });
 export const TargetsNoPermission: Story = page(<TargetsPage />, {
   path: "/admin/targets",
-  handlers: { "target.coverage": { error: forbidden }, "target.list": { error: forbidden }, "target.batch.list": { error: forbidden } },
+  handlers: {
+    "target.coverage": { error: forbidden },
+    "target.list": { error: forbidden },
+    "target.batch.list": { error: forbidden },
+    "override.list": { error: forbidden },
+  },
 });
 
 export const SheetCheckFindings: Story = {
@@ -85,6 +105,29 @@ export const SheetCheckFindings: Story = {
       <SheetFindings result={sheetResult} />
     </div>
   ),
+};
+
+const overrides = (props: Parameters<typeof OverridesView>[0]) => (
+  <div style={{ padding: 20 }}>
+    <OverridesView {...props} />
+  </div>
+);
+/** Pending: approve or reject someone else's request; withdraw your own, never approve it. */
+export const OverridesPending: Story = {
+  render: () => overrides({ overrides: overridesPending.overrides, status: "pending", canApprove: true, onChanged: () => {} }),
+};
+export const OverridesApproved: Story = {
+  render: () => overrides({ overrides: overridesApproved.overrides, status: "approved", canApprove: true, onChanged: () => {} }),
+};
+/** A requester without approval rights: they can only withdraw their own. */
+export const OverridesRequesterOnly: Story = {
+  render: () => overrides({ overrides: overridesPending.overrides, status: "pending", canApprove: false, onChanged: () => {} }),
+};
+export const OverridesNonePending: Story = {
+  render: () => overrides({ overrides: [], status: "pending", canApprove: true, onChanged: () => {} }),
+};
+export const OverridesNone: Story = {
+  render: () => overrides({ overrides: [], status: "", canApprove: true, onChanged: () => {} }),
 };
 
 const setup: Handlers = {

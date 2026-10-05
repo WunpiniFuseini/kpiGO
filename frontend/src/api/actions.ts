@@ -64,6 +64,12 @@ export const ROUTES = {
   "metric.register": { method: "POST", path: "/api/v1/actions/metric.register", pathParams: [], public: false },
   "metric.set_status": { method: "POST", path: "/api/v1/actions/metric.set_status", pathParams: [], public: false },
   "metric.update": { method: "POST", path: "/api/v1/actions/metric.update", pathParams: [], public: false },
+  "override.approve": { method: "POST", path: "/api/v1/actions/override.approve", pathParams: [], public: false },
+  "override.list": { method: "GET", path: "/api/v1/actions/override.list", pathParams: [], public: false },
+  "override.reject": { method: "POST", path: "/api/v1/actions/override.reject", pathParams: [], public: false },
+  "override.request": { method: "POST", path: "/api/v1/actions/override.request", pathParams: [], public: false },
+  "override.revoke": { method: "POST", path: "/api/v1/actions/override.revoke", pathParams: [], public: false },
+  "override.withdraw": { method: "POST", path: "/api/v1/actions/override.withdraw", pathParams: [], public: false },
   "period.deadline.list": { method: "GET", path: "/api/v1/actions/period.deadline.list", pathParams: [], public: false },
   "period.deadline.set": { method: "POST", path: "/api/v1/actions/period.deadline.set", pathParams: [], public: false },
   "period.list": { method: "GET", path: "/api/v1/actions/period.list", pathParams: [], public: false },
@@ -86,8 +92,10 @@ export const ROUTES = {
   "scope.grant.create": { method: "POST", path: "/api/v1/actions/scope.grant.create", pathParams: [], public: false },
   "scope.grant.end": { method: "POST", path: "/api/v1/actions/scope.grant.end", pathParams: [], public: false },
   "scope.grant.list": { method: "GET", path: "/api/v1/scope-grants", pathParams: [], public: false },
+  "scorecard.compute": { method: "GET", path: "/api/v1/actions/scorecard.compute", pathParams: [], public: false },
   "scorecard.node.delete": { method: "POST", path: "/api/v1/actions/scorecard.node.delete", pathParams: [], public: false },
   "scorecard.node.save": { method: "POST", path: "/api/v1/actions/scorecard.node.save", pathParams: [], public: false },
+  "scorecard.period.list": { method: "GET", path: "/api/v1/actions/scorecard.period.list", pathParams: [], public: false },
   "scorecard.placement.clear": { method: "POST", path: "/api/v1/actions/scorecard.placement.clear", pathParams: [], public: false },
   "scorecard.placement.set": { method: "POST", path: "/api/v1/actions/scorecard.placement.set", pathParams: [], public: false },
   "scorecard.profile.list": { method: "GET", path: "/api/v1/actions/scorecard.profile.list", pathParams: [], public: false },
@@ -191,6 +199,12 @@ export interface Actions {
   "metric.register": { input: NonNullable<operations["metric_register"]["requestBody"]>["content"]["application/json"]; output: operations["metric_register"]["responses"][200]["content"]["application/json"] };
   "metric.set_status": { input: NonNullable<operations["metric_set_status"]["requestBody"]>["content"]["application/json"]; output: operations["metric_set_status"]["responses"][200]["content"]["application/json"] };
   "metric.update": { input: NonNullable<operations["metric_update"]["requestBody"]>["content"]["application/json"]; output: operations["metric_update"]["responses"][200]["content"]["application/json"] };
+  "override.approve": { input: NonNullable<operations["override_approve"]["requestBody"]>["content"]["application/json"]; output: operations["override_approve"]["responses"][200]["content"]["application/json"] };
+  "override.list": { input: NonNullable<operations["override_list"]["parameters"]["query"]>; output: operations["override_list"]["responses"][200]["content"]["application/json"] };
+  "override.reject": { input: NonNullable<operations["override_reject"]["requestBody"]>["content"]["application/json"]; output: operations["override_reject"]["responses"][200]["content"]["application/json"] };
+  "override.request": { input: NonNullable<operations["override_request"]["requestBody"]>["content"]["application/json"]; output: operations["override_request"]["responses"][200]["content"]["application/json"] };
+  "override.revoke": { input: NonNullable<operations["override_revoke"]["requestBody"]>["content"]["application/json"]; output: operations["override_revoke"]["responses"][200]["content"]["application/json"] };
+  "override.withdraw": { input: NonNullable<operations["override_withdraw"]["requestBody"]>["content"]["application/json"]; output: operations["override_withdraw"]["responses"][200]["content"]["application/json"] };
   "period.deadline.list": { input: NonNullable<operations["period_deadline_list"]["parameters"]["query"]>; output: operations["period_deadline_list"]["responses"][200]["content"]["application/json"] };
   "period.deadline.set": { input: NonNullable<operations["period_deadline_set"]["requestBody"]>["content"]["application/json"]; output: operations["period_deadline_set"]["responses"][200]["content"]["application/json"] };
   "period.list": { input: NonNullable<operations["period_list"]["parameters"]["query"]>; output: operations["period_list"]["responses"][200]["content"]["application/json"] };
@@ -213,8 +227,10 @@ export interface Actions {
   "scope.grant.create": { input: NonNullable<operations["scope_grant_create"]["requestBody"]>["content"]["application/json"]; output: operations["scope_grant_create"]["responses"][200]["content"]["application/json"] };
   "scope.grant.end": { input: NonNullable<operations["scope_grant_end"]["requestBody"]>["content"]["application/json"]; output: operations["scope_grant_end"]["responses"][200]["content"]["application/json"] };
   "scope.grant.list": { input: NonNullable<operations["scope_grant_list"]["parameters"]["query"]>; output: operations["scope_grant_list"]["responses"][200]["content"]["application/json"] };
+  "scorecard.compute": { input: NonNullable<operations["scorecard_compute"]["parameters"]["query"]>; output: operations["scorecard_compute"]["responses"][200]["content"]["application/json"] };
   "scorecard.node.delete": { input: NonNullable<operations["scorecard_node_delete"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_node_delete"]["responses"][200]["content"]["application/json"] };
   "scorecard.node.save": { input: NonNullable<operations["scorecard_node_save"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_node_save"]["responses"][200]["content"]["application/json"] };
+  "scorecard.period.list": { input: NonNullable<operations["scorecard_period_list"]["parameters"]["query"]>; output: operations["scorecard_period_list"]["responses"][200]["content"]["application/json"] };
   "scorecard.placement.clear": { input: NonNullable<operations["scorecard_placement_clear"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_placement_clear"]["responses"][200]["content"]["application/json"] };
   "scorecard.placement.set": { input: NonNullable<operations["scorecard_placement_set"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_placement_set"]["responses"][200]["content"]["application/json"] };
   "scorecard.profile.list": { input: NonNullable<operations["scorecard_profile_list"]["parameters"]["query"]>; output: operations["scorecard_profile_list"]["responses"][200]["content"]["application/json"] };

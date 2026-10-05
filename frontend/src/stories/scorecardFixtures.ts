@@ -13,6 +13,9 @@ export const configMe: Me = {
     "target.view",
     "target.manage",
     "target.publish",
+    "override.view",
+    "override.request",
+    "override.approve",
   ],
 };
 
@@ -257,3 +260,82 @@ export const scorecardSettings: Output<"scorecard.settings.get"> = {
   cap_max_ratio: "3.000",
   denominator_policy: "reduced",
 };
+
+// ── overrides ───────────────────────────────────────────────────────────────
+
+type OverrideRow = Output<"override.list">["overrides"][number];
+
+const override = (o: Partial<OverrideRow> & Pick<OverrideRow, "override_id">): OverrideRow => ({
+  scope_type: "subject",
+  scope_code: "4f9a1c2e-0000-4000-8000-000000000001",
+  scope_label: "E1042 · Ama Mensah",
+  metric_code: "casa_growth",
+  metric_name: "CASA balance growth",
+  period_from: "202610",
+  period_to: null,
+  change_type: "target",
+  override_value: "80.0000",
+  override_text: null,
+  reason: "Branch closed for refurbishment for two weeks.",
+  status: "pending",
+  requested_by: 7,
+  requested_by_name: "Kofi Boateng",
+  requested_at: "2026-10-03T09:12:00Z",
+  approved_by: null,
+  approved_by_name: null,
+  approved_at: null,
+  decision_note: "",
+  ended_by: null,
+  ended_at: null,
+  mine: false,
+  ...o,
+});
+
+export const overridesPending: Output<"override.list"> = {
+  pending: 3,
+  truncated: false,
+  overrides: [
+    override({ override_id: "a1" }),
+    override({
+      override_id: "a2",
+      scope_type: "profile",
+      scope_code: "sme_rm",
+      scope_label: "sme_rm",
+      metric_code: "service_tat",
+      metric_name: "Service TAT",
+      period_from: "202610",
+      period_to: "202612",
+      change_type: "weight",
+      override_value: "10.0000",
+      reason: "Queue system outage; TAT is not measurable this quarter.",
+      mine: true,
+      requested_by_name: "You",
+    }),
+    override({
+      override_id: "a3",
+      scope_type: "dimension",
+      scope_code: "branch:ACC",
+      scope_label: "branch:ACC",
+      change_type: "target_type",
+      override_value: null,
+      override_text: "prorated",
+      reason: "Branch opened mid-cycle.",
+    }),
+  ],
+};
+
+export const overridesApproved: Output<"override.list"> = {
+  pending: 0,
+  truncated: false,
+  overrides: [
+    override({
+      override_id: "b1",
+      status: "approved",
+      approved_by: 3,
+      approved_by_name: "Esi Owusu",
+      approved_at: "2026-10-04T11:00:00Z",
+    }),
+  ],
+};
+
+export const noOverrides: Output<"override.list"> = { pending: 0, truncated: false, overrides: [] };
