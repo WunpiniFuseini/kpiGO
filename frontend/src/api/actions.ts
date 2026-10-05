@@ -13,6 +13,7 @@ export const ROUTES = {
   "agent.leaderboard.refresh": { method: "POST", path: "/api/v1/actions/agent.leaderboard.refresh", pathParams: [], public: false },
   "agent.matrix": { method: "GET", path: "/api/v1/actions/agent.matrix", pathParams: [], public: false },
   "agent.pace": { method: "GET", path: "/api/v1/actions/agent.pace", pathParams: [], public: false },
+  "agent.pipeline": { method: "GET", path: "/api/v1/actions/agent.pipeline", pathParams: [], public: false },
   "agent.preset": { method: "GET", path: "/api/v1/actions/agent.preset", pathParams: [], public: false },
   "agent.settings.get": { method: "GET", path: "/api/v1/actions/agent.settings.get", pathParams: [], public: false },
   "agent.settings.set": { method: "POST", path: "/api/v1/actions/agent.settings.set", pathParams: [], public: false },
@@ -104,6 +105,9 @@ export const ROUTES = {
   "period.deadline.set": { method: "POST", path: "/api/v1/actions/period.deadline.set", pathParams: [], public: false },
   "period.list": { method: "GET", path: "/api/v1/actions/period.list", pathParams: [], public: false },
   "period.transition": { method: "POST", path: "/api/v1/actions/period.transition", pathParams: [], public: false },
+  "pipeline.stage.list": { method: "GET", path: "/api/v1/actions/pipeline.stage.list", pathParams: [], public: false },
+  "pipeline.stage.remove": { method: "POST", path: "/api/v1/actions/pipeline.stage.remove", pathParams: [], public: false },
+  "pipeline.stage.set": { method: "POST", path: "/api/v1/actions/pipeline.stage.set", pathParams: [], public: false },
   "platform.approval.approve": { method: "POST", path: "/api/v1/actions/platform.approval.approve", pathParams: [], public: false },
   "platform.approval.reject": { method: "POST", path: "/api/v1/actions/platform.approval.reject", pathParams: [], public: false },
   "platform.hello": { method: "GET", path: "/api/v1/hello", pathParams: [], public: false },
@@ -202,6 +206,7 @@ export interface Actions {
   "agent.leaderboard.refresh": { input: NonNullable<operations["agent_leaderboard_refresh"]["requestBody"]>["content"]["application/json"]; output: operations["agent_leaderboard_refresh"]["responses"][200]["content"]["application/json"] };
   "agent.matrix": { input: NonNullable<operations["agent_matrix"]["parameters"]["query"]>; output: operations["agent_matrix"]["responses"][200]["content"]["application/json"] };
   "agent.pace": { input: NonNullable<operations["agent_pace"]["parameters"]["query"]>; output: operations["agent_pace"]["responses"][200]["content"]["application/json"] };
+  "agent.pipeline": { input: NonNullable<operations["agent_pipeline"]["parameters"]["query"]>; output: operations["agent_pipeline"]["responses"][200]["content"]["application/json"] };
   "agent.preset": { input: NonNullable<operations["agent_preset"]["parameters"]["query"]>; output: operations["agent_preset"]["responses"][200]["content"]["application/json"] };
   "agent.settings.get": { input: NonNullable<operations["agent_settings_get"]["parameters"]["query"]>; output: operations["agent_settings_get"]["responses"][200]["content"]["application/json"] };
   "agent.settings.set": { input: NonNullable<operations["agent_settings_set"]["requestBody"]>["content"]["application/json"]; output: operations["agent_settings_set"]["responses"][200]["content"]["application/json"] };
@@ -293,6 +298,9 @@ export interface Actions {
   "period.deadline.set": { input: NonNullable<operations["period_deadline_set"]["requestBody"]>["content"]["application/json"]; output: operations["period_deadline_set"]["responses"][200]["content"]["application/json"] };
   "period.list": { input: NonNullable<operations["period_list"]["parameters"]["query"]>; output: operations["period_list"]["responses"][200]["content"]["application/json"] };
   "period.transition": { input: NonNullable<operations["period_transition"]["requestBody"]>["content"]["application/json"]; output: operations["period_transition"]["responses"][200]["content"]["application/json"] };
+  "pipeline.stage.list": { input: NonNullable<operations["pipeline_stage_list"]["parameters"]["query"]>; output: operations["pipeline_stage_list"]["responses"][200]["content"]["application/json"] };
+  "pipeline.stage.remove": { input: NonNullable<operations["pipeline_stage_remove"]["requestBody"]>["content"]["application/json"]; output: operations["pipeline_stage_remove"]["responses"][200]["content"]["application/json"] };
+  "pipeline.stage.set": { input: NonNullable<operations["pipeline_stage_set"]["requestBody"]>["content"]["application/json"]; output: operations["pipeline_stage_set"]["responses"][200]["content"]["application/json"] };
   "platform.approval.approve": { input: NonNullable<operations["platform_approval_approve"]["requestBody"]>["content"]["application/json"]; output: operations["platform_approval_approve"]["responses"][200]["content"]["application/json"] };
   "platform.approval.reject": { input: NonNullable<operations["platform_approval_reject"]["requestBody"]>["content"]["application/json"]; output: operations["platform_approval_reject"]["responses"][200]["content"]["application/json"] };
   "platform.hello": { input: NonNullable<operations["platform_hello"]["parameters"]["query"]>; output: operations["platform_hello"]["responses"][200]["content"]["application/json"] };

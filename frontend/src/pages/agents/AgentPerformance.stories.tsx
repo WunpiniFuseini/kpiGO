@@ -3,7 +3,7 @@ import { Route, Routes } from "react-router-dom";
 
 import { AppShell } from "../../shell/AppShell";
 import { useSession, type Me } from "../../session/Session";
-import { agentAdminMe, agentMe, agentPace, distribution, heatmap, leaderboard, matrix, presetRestricted, presetSales, presetService, trend, trendAverage, visibilityRules, matrixGrouped, matrixNoLines, matrixNoMetric, matrixRms, leaderboardComposite, leaderboardNoCohorts, leaderboardUnconfigured } from "../../stories/agentFixtures";
+import { agentAdminMe, agentMe, agentPace, distribution, heatmap, leaderboard, matrix, presetRestricted, presetSales, presetService, trend, trendAverage, visibilityRules, matrixGrouped, matrixNoLines, matrixNoMetric, matrixRms, leaderboardComposite, leaderboardNoCohorts, leaderboardUnconfigured, pipeline, pipelineNoStages, pipelineStages } from "../../stories/agentFixtures";
 import { serverError } from "../../stories/fixtures";
 import { withApp, type Handlers } from "../../stories/mockApi";
 import { AgentPerformancePage } from "./AgentPerformance";
@@ -26,7 +26,7 @@ const page = (handlers: Handlers, me: Me = agentMe): Story => ({
       <AgentPerformancePage />
     </InShell>
   ),
-  decorators: [withApp({ me, path: "/agent-performance", handlers: { "agent.preset": { data: presetSales }, "agent.trend": { data: trend }, "agent.pace": { data: agentPace }, "agent.matrix": { data: matrix }, "preference.set": { data: { key: "agent.matrix.view", value: "grouped", allowed: ["expanded", "grouped"] } }, ...handlers } })],
+  decorators: [withApp({ me, path: "/agent-performance", handlers: { "agent.preset": { data: presetSales }, "agent.trend": { data: trend }, "agent.pace": { data: agentPace }, "agent.matrix": { data: matrix }, "agent.pipeline": { data: pipeline }, "preference.set": { data: { key: "agent.matrix.view", value: "grouped", allowed: ["expanded", "grouped"] } }, ...handlers } })],
 });
 
 const meta: Meta = { title: "Pages/Agent Performance", parameters: { layout: "fullscreen" } };
@@ -71,3 +71,9 @@ export const Service: Story = page({
 export const Restricted: Story = page({ "agent.preset": { data: presetRestricted }, "agent.leaderboard": { data: leaderboard } });
 /** An Admin sees the Who sees whom and Product lines quick settings. */
 export const AdminQuickSettings: Story = page({ "agent.leaderboard": { data: leaderboard }, "agent.visibility.list": { data: visibilityRules } }, agentAdminMe);
+/** No pipeline stages set up yet: the section says what the data team adds. */
+export const PipelineNoStages: Story = page({ "agent.leaderboard": { data: leaderboard }, "agent.pipeline": { data: pipelineNoStages } });
+export const PipelineLoading: Story = page({ "agent.leaderboard": { data: leaderboard }, "agent.pipeline": "pending" });
+export const PipelineFailed: Story = page({ "agent.leaderboard": { data: leaderboard }, "agent.pipeline": { error: serverError } });
+/** An Admin also sees Pipeline stages on Sales. */
+export const AdminPipelineStages: Story = page({ "agent.leaderboard": { data: leaderboard }, "agent.visibility.list": { data: visibilityRules }, "pipeline.stage.list": { data: pipelineStages } }, agentAdminMe);

@@ -289,6 +289,7 @@ export const presetSales: Preset = {
   as_of: "2026-06-17",
   sections: [
     { key: "leaderboard", kind: "leaderboard", title: "Leaderboard", caption: "Ranked within a peer group, to date.", metric: null, metric_options: [] },
+    { key: "pipeline", kind: "pipeline", title: "Pipeline", caption: "What sits in each stage now, and how it moved this month.", metric: null, metric_options: [] },
     { key: "product_mix", kind: "matrix", title: "Product mix", caption: "Actual against the target expected by now, per product line.", metric: null, metric_options: [] },
     { key: "to_date", kind: "trend", title: "Month to date", caption: "What has been booked so far against where the target expects it.", metric: valueBooked, metric_options: [accounts, valueBooked] },
   ],
@@ -404,3 +405,72 @@ export const agentAdminMe: Me = {
   ...productLineAdminMe,
   permissions: [...productLineAdminMe.permissions, "agent.config.manage"],
 };
+
+// ── sales pipeline ──────────────────────────────────────────────────────────
+
+type AgentPipeline = Output<"agent.pipeline">;
+type PipelineCell = AgentPipeline["rows"][number]["cells"][number];
+
+function pcell(value: string | null, count: string | null, valueChange: string | null, countChange: string | null, reported: number, conversion: string | null = null): PipelineCell {
+  return { value, count, value_change: valueChange, count_change: countChange, reported, conversion, currency_code: value === null ? null : "GHS", mixed_currency: false };
+}
+const pnone = pcell(null, null, null, null, 0);
+
+const pipelineStageList: AgentPipeline["stages"] = [
+  { code: "lead", display_name: "Leads", sort_order: 10, value_metric_code: "pipeline_lead_value", count_metric_code: "pipeline_lead_count" },
+  { code: "proposal", display_name: "Proposals", sort_order: 20, value_metric_code: "pipeline_proposal_value", count_metric_code: "pipeline_proposal_count" },
+  { code: "approved", display_name: "Approved", sort_order: 30, value_metric_code: "pipeline_approved_value", count_metric_code: null },
+];
+
+/** Regions on three stages, month to date; nobody in Ashanti has an approval yet. */
+export const pipeline: AgentPipeline = {
+  product: "agent_sales",
+  window,
+  level: "region",
+  breadcrumb: [{ level: "all", code: null, name: "All regions" }],
+  stages: pipelineStageList,
+  rows: [
+    { key: "AS", name: "Ashanti", level: "region", drill_level: "branch", region_code: "AS", branch_code: null, agents: 3, cells: [pcell("420000", "21", "60000", "3", 3), pcell("150000", "6", "-20000", "-1", 3, "0.2857"), pnone] },
+    { key: "GA", name: "Greater Accra", level: "region", drill_level: "branch", region_code: "GA", branch_code: null, agents: 5, cells: [pcell("880000", "40", "120000", "5", 5), pcell("310000", "11", "0", "0", 4, "0.2750"), pcell("95000", null, "95000", null, 2, "0.3065")] },
+  ],
+  total: { key: "total", name: "Total", level: "total", drill_level: null, region_code: null, branch_code: null, agents: 8, cells: [pcell("1300000", "61", "180000", "8", 8), pcell("460000", "17", "-20000", "-1", 7, "0.2787"), pcell("95000", null, "95000", null, 2, "0.2065")] },
+  visibility: open,
+};
+
+/** Drilled to one branch's RMs. */
+export const pipelineRms: AgentPipeline = {
+  ...pipeline,
+  level: "rm",
+  breadcrumb: [
+    { level: "all", code: null, name: "All regions" },
+    { level: "region", code: "GA", name: "Greater Accra" },
+    { level: "branch", code: "GA-01", name: "Accra Central" },
+  ],
+  rows: [
+    { key: "s1", name: "Abena Owusu", level: "rm", drill_level: null, region_code: "GA", branch_code: "GA-01", agents: 1, cells: [pcell("200000", "9", "40000", "2", 1), pcell("90000", "3", "0", "0", 1, "0.3333"), pcell("45000", null, "45000", null, 1, "0.5000")] },
+    { key: "s2", name: "Kofi Boateng", level: "rm", drill_level: null, region_code: "GA", branch_code: "GA-01", agents: 1, cells: [pcell("150000", "8", "-10000", "-1", 1), pnone, pnone] },
+  ],
+  total: { key: "total", name: "Total", level: "total", drill_level: null, region_code: null, branch_code: null, agents: 2, cells: [pcell("350000", "17", "30000", "1", 2), pcell("90000", "3", "0", "0", 1, "0.1765"), pcell("45000", null, "45000", null, 1, "0.5000")] },
+};
+
+/** No stage set up yet. */
+export const pipelineNoStages: AgentPipeline = { ...pipeline, stages: [], rows: [], total: null };
+
+/** Stages set up, but no snapshot loaded this month. */
+export const pipelineEmpty: AgentPipeline = {
+  ...pipeline,
+  rows: pipeline.rows.map((r) => ({ ...r, cells: [pnone, pnone, pnone] })),
+  total: { ...pipeline.total!, cells: [pnone, pnone, pnone] },
+};
+
+const pipelineCandidates: Output<"pipeline.stage.list">["candidates"] = [
+  { metric_code: "pipeline_lead_value", display_name: "Leads, value", unit: "currency" },
+  { metric_code: "pipeline_lead_count", display_name: "Leads, deals", unit: "count" },
+  { metric_code: "pipeline_proposal_value", display_name: "Proposals, value", unit: "currency" },
+  { metric_code: "pipeline_proposal_count", display_name: "Proposals, deals", unit: "count" },
+  { metric_code: "pipeline_approved_value", display_name: "Approved, value", unit: "currency" },
+];
+
+export const pipelineStages: Output<"pipeline.stage.list"> = { product: "agent_sales", stages: pipelineStageList, candidates: pipelineCandidates };
+export const pipelineStagesNone: Output<"pipeline.stage.list"> = { product: "agent_sales", stages: [], candidates: pipelineCandidates };
+export const pipelineStagesNoMetrics: Output<"pipeline.stage.list"> = { product: "agent_sales", stages: [], candidates: [] };

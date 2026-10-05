@@ -44,7 +44,7 @@ def _key_out(m: Metric) -> RankKeyOut:
     )
 
 
-def _window_out(pacer: Pacer) -> WindowOut:
+def pacer_window_out(pacer: Pacer) -> WindowOut:
     w = pacer.window
     return WindowOut(
         kind=w.kind,
@@ -148,7 +148,7 @@ class AgentPresetIn(BaseModel):
 
 class AgentPresetSectionOut(BaseModel):
     key: str
-    kind: Literal["leaderboard", "matrix", "trend", "heatmap", "distribution"]
+    kind: Literal["leaderboard", "pipeline", "matrix", "trend", "heatmap", "distribution"]
     title: str
     caption: str
     # The metric it opens on; null when no metric in view suits it, and for the
@@ -179,8 +179,8 @@ def preset(params: AgentPresetIn, ctx: ActionContext) -> AgentPresetOut:
     metrics = view.metrics
     sections = []
     for s in preset_for(params.product).sections:
-        # The leaderboard and the matrix choose their own metric (module settings).
-        own = s.kind in ("leaderboard", "matrix")
+        # The leaderboard, pipeline and matrix choose their own metrics.
+        own = s.kind in ("leaderboard", "pipeline", "matrix")
         chosen = None if own else s.pick(metrics)
         sections.append(
             AgentPresetSectionOut(
@@ -257,7 +257,7 @@ def trend(params: AgentTrendIn, ctx: ActionContext) -> AgentTrendOut:
     t = views.trend(pacer, metric, found) if metric else None
     return AgentTrendOut(
         product=params.product,
-        window=_window_out(pacer),
+        window=pacer_window_out(pacer),
         metric=_key_out(metric) if metric else None,
         additive=metric is not None and metric.aggregation in ("sum", "count"),
         agents=len(agents),
@@ -359,7 +359,7 @@ def heat(params: AgentHeatmapIn, ctx: ActionContext) -> AgentHeatmapOut:
     h = views.heatmap(pacer, metric, found, params.level, names) if metric else None
     return AgentHeatmapOut(
         product=params.product,
-        window=_window_out(pacer),
+        window=pacer_window_out(pacer),
         metric=_key_out(metric) if metric else None,
         level=params.level,
         days=h.days if h else views.to_date_days(view.window),
@@ -441,7 +441,7 @@ def distribution(params: AgentDistributionIn, ctx: ActionContext) -> AgentDistri
     d = views.distribution(pacer, metric, found) if metric else None
     return AgentDistributionOut(
         product=params.product,
-        window=_window_out(pacer),
+        window=pacer_window_out(pacer),
         metric=_key_out(metric) if metric else None,
         agents=len(agents),
         reported=d.reported if d else 0,
