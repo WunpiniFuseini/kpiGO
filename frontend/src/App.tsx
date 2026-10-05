@@ -4,6 +4,7 @@ import { EmptyState, Loading, Skeleton } from "./components";
 import { AdminPlaceholder, ModulePage } from "./pages/ModulePage";
 import { HealthPage } from "./pages/admin/Health";
 import { MetricsPage } from "./pages/admin/Metrics";
+import { PeriodClosePage } from "./pages/admin/PeriodClose";
 import { ScorecardSetupPage } from "./pages/admin/ScorecardSetup";
 import { TargetsPage } from "./pages/admin/Targets";
 import { UsersPage } from "./pages/admin/Users";
@@ -34,7 +35,7 @@ export function App() {
         <Route path="/admin/health" element={<HealthPage />} />
         <Route path="/admin/targets" element={<TargetsPage />} />
         <Route path="/admin/scorecard-setup" element={<ScorecardSetupPage />} />
-        <Route path="/admin/calendar" element={<AdminPlaceholder title="Business calendar" what="Cycles, working days, deadlines and period close." />} />
+        <Route path="/admin/calendar" element={<PeriodClosePage />} />
         <Route path="/admin/product-lines" element={<AdminPlaceholder title="Product lines" what="The product line registry, groups and activation." />} />
         <Route path="/admin/data-integration" element={<AdminPlaceholder title="Data integration" what="Connections, feeds, runs and rejections." />} />
         <Route path="/admin/widgets" element={<AdminPlaceholder title="Widgets" what="Executive widget placement and thresholds." />} />

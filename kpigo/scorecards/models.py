@@ -426,3 +426,203 @@ class Override(Tracked):
 
     def __str__(self) -> str:
         return f"{self.change_type} {self.scope_type}:{self.scope_code} {self.period_from}"
+
+
+# ── close: exclusions and frozen snapshots (Schema §9, PRD SC-9, SC-12, SC-13) ──
+
+SNAPSHOT_KINDS = ("close", "restatement")
+SCORE_STATES = ("scored", "zero_actual", "not_reported", "no_target", "no_fx_rate", "excluded")
+
+
+class ScoreExclusion(Stamped):
+    """An explicit decision to leave a metric out of a period's scores, with a reason.
+
+    Close is blocked while any metric is unscored (SC-9): the Admin chases the
+    feed or records one of these. ``subject`` null excludes the metric for
+    everyone whose scorecard carries it in the period.
+    """
+
+    exclusion_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    product = models.TextField(db_default="scorecards")
+    period_key = models.CharField(max_length=6)
+    metric = models.ForeignKey(Metric, on_delete=models.PROTECT, related_name="+")
+    subject = models.ForeignKey(
+        "hierarchy.Subject", on_delete=models.PROTECT, null=True, related_name="+"
+    )
+    reason = models.TextField()
+
+    class Meta:
+        db_table = "score_exclusion"
+        constraints = [
+            one_of("product", PRODUCTS, "score_exclusion_product_valid"),
+            _period_check("score_exclusion_period_key_valid"),
+            models.CheckConstraint(
+                condition=~models.Q(reason=""), name="score_exclusion_reason_required"
+            ),
+            models.UniqueConstraint(
+                fields=["org_id", "product", "period_key", "metric", "subject"],
+                name="score_exclusion_unique",
+                nulls_distinct=False,
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"exclude {self.metric_id} {self.period_key} {self.subject_id or 'all'}"
+
+
+class ScoreSnapshot(Stamped):
+    """One close or restatement of a period: the version every row below belongs to."""
+
+    snapshot_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    product = models.TextField(db_default="scorecards")
+    period_key = models.CharField(max_length=6)
+    snapshot_version = models.IntegerField()
+    kind = models.TextField()
+    # Why the period was restated; empty for its first close.
+    reason = models.TextField(db_default="")
+    subjects = models.IntegerField()
+
+    class Meta:
+        db_table = "score_snapshot"
+        constraints = [
+            one_of("product", PRODUCTS, "score_snapshot_product_valid"),
+            one_of("kind", SNAPSHOT_KINDS, "score_snapshot_kind_valid"),
+            _period_check("score_snapshot_period_key_valid"),
+            models.UniqueConstraint(
+                fields=["org_id", "product", "period_key", "snapshot_version"],
+                name="score_snapshot_version_unique",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(kind="close", snapshot_version=1)
+                | models.Q(kind="restatement", snapshot_version__gt=1),
+                name="score_snapshot_kind_matches_version",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.product} {self.period_key} v{self.snapshot_version}"
+
+
+class ScoreTotal(models.Model):
+    """A subject's frozen total for a period version. Immutable but for ``is_current``."""
+
+    score_total_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    snapshot = models.ForeignKey(ScoreSnapshot, on_delete=models.PROTECT, related_name="totals")
+    subject = models.ForeignKey("hierarchy.Subject", on_delete=models.PROTECT, related_name="+")
+    assignment = models.ForeignKey(
+        "hierarchy.Assignment", on_delete=models.PROTECT, related_name="+"
+    )
+    product = models.TextField(db_default="scorecards")
+    period_key = models.CharField(max_length=6)
+    profile_code = models.TextField()
+    policy = models.TextField()
+    months_elapsed = models.SmallIntegerField()
+    quarters_elapsed = models.SmallIntegerField()
+    cycle_months = models.SmallIntegerField()
+    total_score = models.DecimalField(max_digits=18, decimal_places=6)
+    total_cap = models.DecimalField(max_digits=18, decimal_places=6)
+    weight_scored = models.DecimalField(max_digits=18, decimal_places=4)
+    weight_expected = models.DecimalField(max_digits=18, decimal_places=4)
+    graded_score = models.DecimalField(max_digits=18, decimal_places=6, null=True)
+    achievement_pct = models.DecimalField(max_digits=18, decimal_places=6, null=True)
+    metrics_scored = models.SmallIntegerField()
+    metrics_total = models.SmallIntegerField()
+    not_reported = models.SmallIntegerField()
+    no_target = models.SmallIntegerField()
+    excluded = models.SmallIntegerField()
+    # The band as it stood at close, so a later change to the bands moves nothing.
+    band_id = models.UUIDField(null=True)
+    band_label = models.TextField(null=True)
+    band_threshold = models.DecimalField(max_digits=8, decimal_places=4, null=True)
+    band_ramp_position = models.SmallIntegerField(null=True)
+    band_colour_hex = models.TextField(null=True)
+    snapshot_version = models.IntegerField()
+    is_current = models.BooleanField(db_default=True)
+    computed_at = models.DateTimeField()
+
+    class Meta:
+        db_table = "score_total"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["subject", "product", "period_key", "snapshot_version"],
+                name="score_total_version_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["subject", "product", "period_key"],
+                condition=models.Q(is_current=True),
+                name="score_total_one_current",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["org_id", "product", "period_key"],
+                condition=models.Q(is_current=True),
+                name="score_total_current",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.subject_id} {self.period_key} v{self.snapshot_version}"
+
+
+class ScoreHistory(models.Model):
+    """A metric's frozen score with every input it was computed from (provenance)."""
+
+    score_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    snapshot = models.ForeignKey(ScoreSnapshot, on_delete=models.PROTECT, related_name="scores")
+    subject = models.ForeignKey("hierarchy.Subject", on_delete=models.PROTECT, related_name="+")
+    assignment = models.ForeignKey(
+        "hierarchy.Assignment", on_delete=models.PROTECT, related_name="+"
+    )
+    metric = models.ForeignKey(Metric, on_delete=models.PROTECT, related_name="+")
+    product = models.TextField(db_default="scorecards")
+    period_key = models.CharField(max_length=6)
+    sort_order = models.SmallIntegerField()
+    state = models.TextField()
+    target = models.ForeignKey(Target, on_delete=models.PROTECT, null=True, related_name="+")
+    target_version = models.IntegerField(null=True)
+    target_scope = models.TextField(null=True)
+    base_target = models.DecimalField(max_digits=18, decimal_places=4, null=True)
+    target_type = models.TextField(null=True)
+    target_currency = models.CharField(max_length=3, null=True)
+    target_value = models.DecimalField(max_digits=18, decimal_places=4, null=True)
+    reported_actual = models.DecimalField(max_digits=18, decimal_places=4, null=True)
+    actual_currency = models.CharField(max_length=3, null=True)
+    fx_rate_applied = models.DecimalField(max_digits=24, decimal_places=10, null=True)
+    actual_value = models.DecimalField(max_digits=18, decimal_places=4, null=True)
+    run_ids = ArrayField(models.UUIDField(), default=list)
+    weight = models.DecimalField(max_digits=18, decimal_places=4, null=True)
+    cap = models.DecimalField(max_digits=18, decimal_places=4, null=True)
+    pct_achieved = models.DecimalField(max_digits=18, decimal_places=6, null=True)
+    score = models.DecimalField(max_digits=18, decimal_places=6, null=True)
+    override_ids = ArrayField(models.UUIDField(), default=list)
+    # The overrides as they applied: change, scope, value and reason.
+    overrides = models.JSONField(default=list)
+    exclusion_reason = models.TextField(null=True)
+    computed_at = models.DateTimeField()
+    snapshot_version = models.IntegerField()
+    is_current = models.BooleanField(db_default=True)
+
+    class Meta:
+        db_table = "score_history"
+        constraints = [
+            one_of("state", SCORE_STATES, "score_history_state_valid"),
+            models.UniqueConstraint(
+                fields=["subject", "metric", "product", "period_key", "snapshot_version"],
+                name="score_history_version_unique",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["subject", "product", "period_key"],
+                condition=models.Q(is_current=True),
+                name="score_history_current",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.subject_id} {self.metric_id} {self.period_key} v{self.snapshot_version}"

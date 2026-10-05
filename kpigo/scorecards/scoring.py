@@ -10,6 +10,7 @@ This path is the readable reference; ``bulk`` must agree with it exactly.
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Sequence
 from datetime import datetime
 from decimal import Decimal
 
@@ -34,7 +35,7 @@ from kpigo.scorecards.engine import (
     total,
     winning,
 )
-from kpigo.scorecards.models import OVERRIDE_DIMENSIONS, Override, Target
+from kpigo.scorecards.models import OVERRIDE_DIMENSIONS, Override, ScoreExclusion, Target
 
 PRODUCT = "scorecards"
 
@@ -114,6 +115,8 @@ def score_subject(org_id: str, subject_id: str, period_key: str) -> SubjectScore
         )
     }
 
+    excluded = exclusions(org_id, period_key, ids, str(subject_id))
+
     dims = dimension_keys(a)
     candidates: dict[str, list[tuple[AppliedOverride, int]]] = defaultdict(list)
     rows = (
@@ -170,6 +173,7 @@ def score_subject(org_id: str, subject_id: str, period_key: str) -> SubjectScore
                     actual=actual,
                     overrides=winning(candidates.get(m.metric_code, [])),
                     fx_rate=_rate(org_id, period_key, actual, target),
+                    excluded=excluded.get(str(m.metric_id)),
                 ),
                 pos,
             )
@@ -185,6 +189,19 @@ def score_subject(org_id: str, subject_id: str, period_key: str) -> SubjectScore
         metrics=scored,
         bands=bands_for(org_id),
     )
+
+
+def exclusions(
+    org_id: str, period_key: str, metric_ids: Sequence[object], subject_id: str
+) -> dict[str, str]:
+    """metric_id → reason; one for this subject beats one for everyone."""
+    out: dict[str, str] = {}
+    rows = ScoreExclusion.objects.filter(
+        org_id=org_id, product=PRODUCT, period_key=period_key, metric_id__in=metric_ids
+    ).filter(Q(subject_id=subject_id) | Q(subject__isnull=True))
+    for e in rows.order_by("subject_id"):  # NULLS LAST: the subject's own row first
+        out.setdefault(str(e.metric_id), e.reason)
+    return out
 
 
 def _rate(

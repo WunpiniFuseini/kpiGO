@@ -9,8 +9,9 @@ only; the engine applies it (``kpigo.scorecards.engine.winning``).
 
 A line manager may request an override for a subject they can see; profile and
 dimension overrides change many people's scores and need Scorecards
-configuration rights. Periods from ``closing`` on are not open to overrides:
-changing a published month is a restatement (Scope §7.4).
+configuration rights. A closed period takes no overrides until an Admin
+restates it: an override approved while it is ``restating`` lands in the next
+snapshot version (App Flow §7.3).
 """
 
 from __future__ import annotations
@@ -32,7 +33,6 @@ from kpigo.metrics.actions.metric import MetricCode
 from kpigo.periods.models import PeriodStatus
 from kpigo.platform.vocab import PeriodKey
 from kpigo.scorecards import roster
-from kpigo.scorecards.config import LOCKED
 from kpigo.scorecards.models import OVERRIDE_DIMENSIONS, TARGET_TYPES, Override
 
 PRODUCT = "scorecards"
@@ -131,7 +131,7 @@ def _locked(org_id: str, period_from: str, period_to: str | None) -> list[str]:
             product=PRODUCT,
             period_key__gte=period_from,
             period_key__lte=period_to or period_from,
-            status__in=sorted(LOCKED),
+            status__in=["closing", "closed"],
         ).values_list("period_key", flat=True)
     )
 
@@ -140,8 +140,8 @@ def _refuse_locked(org_id: str, period_from: str, period_to: str | None) -> None
     locked = _locked(org_id, period_from, period_to)
     if locked:
         raise Conflict(
-            "Overrides cannot touch a period from closing on; a published month changes "
-            f"only by restatement. Locked: {', '.join(locked)}."
+            "Overrides cannot touch a closed period; restate it first, and the override "
+            f"applies to the restated version. Closed: {', '.join(locked)}."
         )
 
 

@@ -36,7 +36,8 @@ grain          no duplicates at the template's grain           load
 domain         period key well formed, values in bounds,       rows
                no future activity
 volume         row count within the expected range             load
-period_status  no writes to a closed period unless restating   load
+period_status  a closed period refuses loads; a restating one   load
+               takes only restatement loads
 =============  =============================================  ==========
 
 Absent is not zero: a subject expected to report a metric whose row is missing
@@ -1368,8 +1369,11 @@ def _missing_rows(template: Template, rows: list[Row], ref: Reference) -> list[I
 
 
 def _period_status(template: Template, rows: list[Row], ref: Reference) -> list[Issue]:
-    if ref.restatement:
-        return []
+    """A published month is locked against source change (Scope §7.4).
+
+    A restatement load may write only to a period an Admin has put in
+    ``restating``; a closed period refuses every load, flagged or not.
+    """
     issues: list[Issue] = []
     seen: set[tuple[str, str]] = set()
     for row in rows:
@@ -1379,20 +1383,28 @@ def _period_status(template: Template, rows: list[Row], ref: Reference) -> list[
         period = f"{day.year:04d}{day.month:02d}"
         for product in row.resolved.get("products", ()):
             status = ref.period_status.get((product, period), "open")
-            if status in LOCKED_STATUSES and (product, period) not in seen:
-                seen.add((product, period))
-                issues.append(
-                    Issue(
-                        "period_status",
-                        "period_closed",
-                        "error",
-                        f"{product} {period} is {status}. Writing to it needs the load to be "
-                        "flagged as a restatement.",
-                        row_no=row.row_no,
-                        column="period_key" if "period_key" in row.values else "activity_date",
-                        value=period,
-                    )
+            if status not in LOCKED_STATUSES or (product, period) in seen:
+                continue
+            if ref.restatement and status == "restating":
+                continue
+            seen.add((product, period))
+            issues.append(
+                Issue(
+                    "period_status",
+                    "period_closed",
+                    "error",
+                    (
+                        f"{product} {period} is {status}. A restatement load needs an Admin "
+                        "to restate the period, with a reason, first."
+                        if ref.restatement
+                        else f"{product} {period} is {status}. Writing to it needs the period "
+                        "restated and the load flagged as a restatement."
+                    ),
+                    row_no=row.row_no,
+                    column="period_key" if "period_key" in row.values else "activity_date",
+                    value=period,
                 )
+            )
     return issues
 
 

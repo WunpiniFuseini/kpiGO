@@ -134,9 +134,10 @@ def test_without_cutoff_the_day_ends_at_midnight() -> None:
 
 
 def period(to_status: str, reason: str = "") -> object:
+    # Scorecards closes through its own actions (tests/test_period_close.py).
     return run(
         "period.transition",
-        product="scorecards",
+        product="agent_sales",
         period_key="202610",
         to_status=to_status,
         reason=reason,
@@ -164,8 +165,15 @@ def test_period_state_machine_and_snapshot_versions() -> None:
     assert [r.payload["reason"] for r in reasons] == [
         "Corrected deposits feed for Kumasi branches."
     ]
-    (listed,) = run("period.list", product="scorecards").periods
+    (listed,) = run("period.list", product="agent_sales").periods
     assert (listed.period_key, listed.status) == ("202610", "closed")
+
+
+def test_scorecards_periods_close_only_through_their_own_actions() -> None:
+    run("period.transition", product="scorecards", period_key="202610", to_status="open")
+    for status in ("closing", "closed", "restating"):
+        with pytest.raises(Conflict, match=r"scorecard\.period\.close"):
+            run("period.transition", product="scorecards", period_key="202610", to_status=status)
 
 
 def test_only_admin_closes_periods() -> None:

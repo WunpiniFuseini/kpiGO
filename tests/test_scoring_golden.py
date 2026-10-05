@@ -21,7 +21,7 @@ from kpigo.periods.models import PerformanceCycle
 from kpigo.platform.models import FxRate
 from kpigo.scorecards.bulk import score_period
 from kpigo.scorecards.engine import SubjectScore
-from kpigo.scorecards.models import Override, ScorecardSettings, Target
+from kpigo.scorecards.models import Override, ScorecardSettings, ScoreExclusion, Target
 from kpigo.scorecards.scoring import score_subject
 from tests.conftest import ORG_ID, run
 from tests.scorecard_support import PROFILE, SINCE, TODAY, world
@@ -346,6 +346,37 @@ def test_target_type_and_dimension_overrides(g: dict[str, Any]) -> None:
     assert e8["fee_income"].weight == 25  # profile beats dimension
     assert [o.scope_type for o in e8["fee_income"].overrides] == ["profile"]
     assert e8["ntb_accounts"].target_value == 20  # a year-long region override covers June
+
+
+def test_exclusions_leave_the_denominator(g: dict[str, Any]) -> None:
+    ScoreExclusion.objects.create(
+        org_id=ORG_ID,
+        period_key=P,
+        metric=metric("casa_growth"),
+        subject_id=g["E2"],
+        reason="Core banking migration lost E2's June balances.",
+    )
+    ScoreExclusion.objects.create(
+        org_id=ORG_ID, period_key=P, metric=metric("fee_income"), reason="Fee feed retired."
+    )
+    ScoreExclusion.objects.create(
+        org_id=ORG_ID,
+        period_key=P,
+        metric=metric("fee_income"),
+        subject_id=g["E5"],
+        reason="No EUR rate this month.",
+    )
+    s = both(g)
+    e2 = by_code(s["E2"])
+    assert e2["casa_growth"].state == "excluded"
+    assert e2["casa_growth"].exclusion_reason == "Core banking migration lost E2's June balances."
+    assert e2["fee_income"].exclusion_reason == "Fee feed retired."
+    assert s["E2"].weight_expected == 45 and s["E2"].graded_score == D("0.45")
+    assert s["E2"].statement == "2 of 4 metrics scored · 2 excluded"
+    # The subject's own exclusion beats the one for everyone.
+    assert by_code(s["E5"])["fee_income"].exclusion_reason == "No EUR rate this month."
+    # A scored metric stays scored: an exclusion only covers what is missing.
+    assert by_code(s["E1"])["fee_income"].state == "scored"
 
 
 def test_no_assignment_in_force() -> None:

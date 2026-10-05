@@ -102,6 +102,8 @@ class PeriodStatus(Tracked):
     closed_at = models.DateTimeField(null=True)
     closed_by = models.BigIntegerField(null=True)
     snapshot_version = models.IntegerField(db_default=0)
+    # Why the period was last restated; carried onto the snapshot the restatement closes.
+    status_reason = models.TextField(null=True)
     auto_close_at = models.DateTimeField(null=True)
     grace_until = models.DateTimeField(null=True)
 

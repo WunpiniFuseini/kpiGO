@@ -1,9 +1,10 @@
 """Period status and feed deadlines (Schema §4: period_status, period_deadline).
 
 The state machine is ``open → closing → closed → restating → closed`` (App Flow
-§8). Close pre-checks and score snapshots arrive with Scorecards (R1); they hook
-into ``period.transition``. Here each close increments ``snapshot_version``, so
-a restated period's next close is version n+1.
+§8). Scorecards closes and restates through its own actions
+(``scorecard.period.close``, ``scorecard.period.restate``), which run the
+pre-checks and freeze the snapshot; here each close increments
+``snapshot_version``, so a restated period's next close is version n+1.
 """
 
 from __future__ import annotations
@@ -94,6 +95,11 @@ class TransitionIn(BaseModel):
     example={"product": "scorecards", "period_key": "202610", "to_status": "open"},
 )
 def transition(params: TransitionIn, ctx: ActionContext) -> PeriodStatusOut:
+    if params.product == "scorecards" and params.to_status in ("closing", "closed", "restating"):
+        raise Conflict(
+            "Scorecards periods close and restate through scorecard.period.close and "
+            "scorecard.period.restate, which run the pre-checks and freeze the snapshot."
+        )
     row = (
         PeriodStatus.objects.select_for_update()
         .filter(org_id=ctx.org_id, product=params.product, period_key=params.period_key)
@@ -119,6 +125,8 @@ def transition(params: TransitionIn, ctx: ActionContext) -> PeriodStatusOut:
         )
     else:
         row.status = params.to_status
+        if params.to_status == "restating":
+            row.status_reason = params.reason
         if params.to_status == "closed":
             row.closed_at = now
             row.closed_by = ctx.user_id
