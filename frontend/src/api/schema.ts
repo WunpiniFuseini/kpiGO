@@ -786,6 +786,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/campaign.metric.publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish a campaign result as a registry metric, with a lineage link. */
+        post: operations["campaign_metric_publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/campaign.metric.withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw a published campaign metric; it goes inactive in the registry. */
+        post: operations["campaign_metric_withdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/campaign.metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The registry metrics published from a campaign, active and withdrawn. */
+        get: operations["campaign_metrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/campaign.objective.list": {
         parameters: {
             query?: never;
@@ -4958,6 +5009,21 @@ export interface components {
             /** Parent Code */
             parent_code: string | null;
         };
+        /** CampaignMetricsInQuery */
+        CampaignMetricsInQuery: {
+            /**
+             * Campaign Id
+             * Format: uuid
+             */
+            campaign_id: string;
+        };
+        /** CampaignMetricsOut */
+        CampaignMetricsOut: {
+            /** Campaign Id */
+            campaign_id: string;
+            /** Published */
+            published: components["schemas"]["PublishedMetricOut"][];
+        };
         /** CampaignMoneyOut */
         CampaignMoneyOut: {
             /** Budget */
@@ -8689,11 +8755,88 @@ export interface components {
             /** Period Keys */
             period_keys: string[];
         };
+        /** PublishMetricIn */
+        PublishMetricIn: {
+            /**
+             * Acknowledge Similar
+             * @default false
+             */
+            acknowledge_similar?: boolean;
+            /**
+             * Campaign Id
+             * Format: uuid
+             */
+            campaign_id: string;
+            /**
+             * Description
+             * @default
+             */
+            description?: string;
+            /** Display Name */
+            display_name?: string | null;
+            /** Effective From */
+            effective_from?: string | null;
+            /** Metric Code */
+            metric_code?: string | null;
+            /** Products */
+            products: ("scorecards" | "agent_sales" | "agent_service" | "executive" | "campaign")[];
+            /**
+             * Result Kind
+             * @enum {string}
+             */
+            result_kind: "attributed_value" | "incremental_value" | "conversions" | "conversion_rate" | "winbacks_confirmed";
+        };
         /** PublishOut */
         PublishOut: {
             batch: components["schemas"]["BatchOut"];
             /** Superseded */
             superseded: number;
+        };
+        /** PublishedMetricOut */
+        PublishedMetricOut: {
+            /** Aggregation */
+            aggregation: string;
+            /** Campaign Code */
+            campaign_code: string;
+            /** Campaign Id */
+            campaign_id: string;
+            /** Campaign Name */
+            campaign_name: string;
+            /** Direction */
+            direction: string;
+            /** Display Name */
+            display_name: string;
+            /** Is Percentage */
+            is_percentage: boolean;
+            /** Label */
+            label: string;
+            /** Metric Code */
+            metric_code: string;
+            /** Metric Id */
+            metric_id: string;
+            /** Products */
+            products: string[];
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+            /** Published Id */
+            published_id: string;
+            /**
+             * Result Kind
+             * @enum {string}
+             */
+            result_kind: "attributed_value" | "incremental_value" | "conversions" | "conversion_rate" | "winbacks_confirmed";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "withdrawn";
+            /** Unit */
+            unit: string;
+            /** Withdrawn At */
+            withdrawn_at: string | null;
         };
         /** QueryListInQuery */
         QueryListInQuery: {
@@ -10300,6 +10443,14 @@ export interface components {
             working_day: number;
             /** Working Days */
             working_days: number;
+        };
+        /** WithdrawMetricIn */
+        WithdrawMetricIn: {
+            /**
+             * Published Id
+             * Format: uuid
+             */
+            published_id: string;
         };
     };
     responses: never;
@@ -13737,6 +13888,247 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CampaignListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    campaign_metric_publish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublishMetricIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishedMetricOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    campaign_metric_withdraw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WithdrawMetricIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishedMetricOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    campaign_metrics: {
+        parameters: {
+            query: {
+                campaign_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignMetricsOut"];
                 };
             };
             /** @description Unauthorized */

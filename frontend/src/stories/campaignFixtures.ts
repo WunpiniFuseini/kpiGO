@@ -1,5 +1,5 @@
 import type { Me } from "../session/Session";
-import type { Board, BoardMoney, BoardRow, Campaign, CampaignEvent, CampaignList, CampaignSummary, Estimate, EventReach, EventValue, Reach, Reconciliation, Reference, ValueReport, Winbacks } from "../pages/campaigns/model";
+import type { Board, BoardMoney, BoardRow, Campaign, CampaignEvent, CampaignList, CampaignSummary, Estimate, EventReach, EventValue, PublishedMetrics, Reach, Reconciliation, Reference, ValueReport, Winbacks } from "../pages/campaigns/model";
 import { adminMe } from "./fixtures";
 
 export const campaignManagerMe: Me = {
@@ -479,3 +479,51 @@ export const campaignReconciliationNoOutcomes: Reconciliation = { ...campaignRec
 
 /** Nothing published, so there is no span to reconcile. */
 export const campaignReconciliationNothingPublished: Reconciliation = { ...campaignReconciliationNoOutcomes, span_start: null, span_end: null, events: [] };
+
+// ── published metrics (lineage) ─────────────────────────────────────────────
+
+export const campaignPublished: PublishedMetrics = {
+  campaign_id: campaignDetail.campaign_id,
+  published: [
+    {
+      published_id: "p1000000-0000-4000-8000-000000000001",
+      campaign_id: campaignDetail.campaign_id,
+      campaign_code: "SAVE-Q4",
+      campaign_name: "Save more this quarter",
+      result_kind: "attributed_value",
+      label: "Attributed campaign value",
+      status: "active",
+      published_at: "2026-10-02T10:00:00Z",
+      withdrawn_at: null,
+      metric_id: "m1000000-0000-4000-8000-000000000001",
+      metric_code: "attributed_campaign_value_save_q4",
+      display_name: "RM campaign revenue",
+      unit: "currency",
+      direction: "higher_is_better",
+      aggregation: "sum",
+      is_percentage: false,
+      products: ["agent_sales", "scorecards"],
+    },
+    {
+      published_id: "p1000000-0000-4000-8000-000000000002",
+      campaign_id: campaignDetail.campaign_id,
+      campaign_code: "SAVE-Q4",
+      campaign_name: "Save more this quarter",
+      result_kind: "conversion_rate",
+      label: "Campaign conversion rate",
+      status: "withdrawn",
+      published_at: "2026-09-20T10:00:00Z",
+      withdrawn_at: "2026-10-01T09:00:00Z",
+      metric_id: "m1000000-0000-4000-8000-000000000002",
+      metric_code: "campaign_conversion_rate_save_q4",
+      display_name: "Campaign conversion rate: SAVE-Q4",
+      unit: "percent",
+      direction: "higher_is_better",
+      aggregation: "average",
+      is_percentage: true,
+      products: ["executive"],
+    },
+  ],
+};
+
+export const campaignPublishedNone: PublishedMetrics = { campaign_id: campaignDetail.campaign_id, published: [] };

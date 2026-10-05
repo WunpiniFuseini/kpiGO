@@ -13,6 +13,8 @@ import {
   campaignReconciliation,
   campaignReconciliationNoOutcomes,
   campaignReconciliationNothingPublished,
+  campaignPublished,
+  campaignPublishedNone,
   campaignReachNothingFed,
   campaignValue,
   campaignValueGross,
@@ -92,6 +94,7 @@ const reachOk = {
   "campaign.reach": { data: campaignReach },
   "campaign.value": { data: campaignValue },
   "campaign.reconciliation": { data: campaignReconciliation },
+  "campaign.metrics": { data: campaignPublished },
   "campaign.audience.estimate": { data: estimate },
 } as const;
 
@@ -128,3 +131,10 @@ export const DetailReconciliationNoOutcomes: Story = at(DETAIL, { ...detailOk, "
 export const DetailReconciliationNothingPublished: Story = at(DETAIL, { ...detailOk, "campaign.get": { data: campaignAllDrafts }, "campaign.reconciliation": { data: campaignReconciliationNothingPublished } });
 export const DetailReconciliationLoading: Story = at(DETAIL, { ...detailOk, "campaign.reconciliation": "pending" });
 export const DetailReconciliationFailed: Story = at(DETAIL, { ...detailOk, "campaign.reconciliation": { error: serverError } });
+
+/** Nothing published yet: the panel invites a manager to publish a result. */
+export const DetailPublishNone: Story = at(DETAIL, { ...detailOk, "campaign.metrics": { data: campaignPublishedNone } });
+/** A viewer sees the lineage but no publish or withdraw controls. */
+export const DetailPublishReadOnly: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, ...reachOk }, campaignViewerMe);
+export const DetailPublishLoading: Story = at(DETAIL, { ...detailOk, "campaign.metrics": "pending" });
+export const DetailPublishFailed: Story = at(DETAIL, { ...detailOk, "campaign.metrics": { error: serverError } });

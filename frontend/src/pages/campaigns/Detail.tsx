@@ -5,6 +5,7 @@ import { useQuery, type QueryState } from "../../api/useAction";
 import { Chip, EmptyState, ErrorPanel, Loading, Notice, SelectField, Skeleton, TextField } from "../../components";
 import { formatDate, formatDateTime, formatDelta } from "../../lib/format";
 import { ReconciliationPanel } from "./Board";
+import { PublishPanel } from "./Publish";
 import { EventFields } from "./EventFields";
 import {
   blankEvent,
@@ -36,6 +37,7 @@ import {
   type Reach,
   type Reference,
   type Reconciliation,
+  type PublishedMetrics,
   type ValueReport,
   type Winbacks,
 } from "./model";
@@ -53,6 +55,7 @@ export function CampaignDetailView({
   value,
   winbacks,
   reconciliation,
+  published,
 }: {
   campaign: Campaign;
   reference?: Reference;
@@ -66,6 +69,8 @@ export function CampaignDetailView({
   winbacks?: QueryState<Winbacks>;
   /** Attributed value against source totals; absent, the section is left out. */
   reconciliation?: QueryState<Reconciliation>;
+  /** Registry metrics published from this campaign; absent, the panel is left out. */
+  published?: QueryState<PublishedMetrics>;
 }) {
   const [message, setMessage] = useState<Message>(null);
   const [busy, setBusy] = useState(false);
@@ -129,6 +134,8 @@ export function CampaignDetailView({
       )}
 
       {reconciliation ? <ReconciliationPanel campaign={campaign} reconciliation={reconciliation} /> : null}
+
+      {published ? <PublishPanel campaign={campaign} published={published} canManage={canManage} busy={busy} act={act} /> : null}
 
       {editable && campaign.status !== "closed" && reference ? <AddEvent campaign={campaign} reference={reference} busy={busy} act={act} /> : null}
     </div>

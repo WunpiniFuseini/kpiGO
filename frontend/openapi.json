@@ -4097,6 +4097,41 @@
         "title": "CampaignMemberOptionOut",
         "type": "object"
       },
+      "CampaignMetricsInQuery": {
+        "properties": {
+          "campaign_id": {
+            "format": "uuid",
+            "title": "Campaign Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "campaign_id"
+        ],
+        "title": "CampaignMetricsInQuery",
+        "type": "object"
+      },
+      "CampaignMetricsOut": {
+        "properties": {
+          "campaign_id": {
+            "title": "Campaign Id",
+            "type": "string"
+          },
+          "published": {
+            "items": {
+              "$ref": "#/components/schemas/PublishedMetricOut"
+            },
+            "title": "Published",
+            "type": "array"
+          }
+        },
+        "required": [
+          "campaign_id",
+          "published"
+        ],
+        "title": "CampaignMetricsOut",
+        "type": "object"
+      },
       "CampaignMoneyOut": {
         "properties": {
           "budget": {
@@ -15760,6 +15795,97 @@
         "title": "PublishIn",
         "type": "object"
       },
+      "PublishMetricIn": {
+        "properties": {
+          "acknowledge_similar": {
+            "default": false,
+            "title": "Acknowledge Similar",
+            "type": "boolean"
+          },
+          "campaign_id": {
+            "format": "uuid",
+            "title": "Campaign Id",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Description",
+            "type": "string"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "effective_from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective From"
+          },
+          "metric_code": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Code"
+          },
+          "products": {
+            "items": {
+              "enum": [
+                "scorecards",
+                "agent_sales",
+                "agent_service",
+                "executive",
+                "campaign"
+              ],
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Products",
+            "type": "array"
+          },
+          "result_kind": {
+            "enum": [
+              "attributed_value",
+              "incremental_value",
+              "conversions",
+              "conversion_rate",
+              "winbacks_confirmed"
+            ],
+            "title": "Result Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "campaign_id",
+          "result_kind",
+          "products"
+        ],
+        "title": "PublishMetricIn",
+        "type": "object"
+      },
       "PublishOut": {
         "properties": {
           "batch": {
@@ -15775,6 +15901,122 @@
           "superseded"
         ],
         "title": "PublishOut",
+        "type": "object"
+      },
+      "PublishedMetricOut": {
+        "properties": {
+          "aggregation": {
+            "title": "Aggregation",
+            "type": "string"
+          },
+          "campaign_code": {
+            "title": "Campaign Code",
+            "type": "string"
+          },
+          "campaign_id": {
+            "title": "Campaign Id",
+            "type": "string"
+          },
+          "campaign_name": {
+            "title": "Campaign Name",
+            "type": "string"
+          },
+          "direction": {
+            "title": "Direction",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "is_percentage": {
+            "title": "Is Percentage",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "metric_id": {
+            "title": "Metric Id",
+            "type": "string"
+          },
+          "products": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Products",
+            "type": "array"
+          },
+          "published_at": {
+            "format": "date-time",
+            "title": "Published At",
+            "type": "string"
+          },
+          "published_id": {
+            "title": "Published Id",
+            "type": "string"
+          },
+          "result_kind": {
+            "enum": [
+              "attributed_value",
+              "incremental_value",
+              "conversions",
+              "conversion_rate",
+              "winbacks_confirmed"
+            ],
+            "title": "Result Kind",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "withdrawn"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "withdrawn_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withdrawn At"
+          }
+        },
+        "required": [
+          "published_id",
+          "campaign_id",
+          "campaign_code",
+          "campaign_name",
+          "result_kind",
+          "label",
+          "status",
+          "published_at",
+          "withdrawn_at",
+          "metric_id",
+          "metric_code",
+          "display_name",
+          "unit",
+          "direction",
+          "aggregation",
+          "is_percentage",
+          "products"
+        ],
+        "title": "PublishedMetricOut",
         "type": "object"
       },
       "QueryListInQuery": {
@@ -20440,6 +20682,20 @@
           "working_days"
         ],
         "title": "WindowOut",
+        "type": "object"
+      },
+      "WithdrawMetricIn": {
+        "properties": {
+          "published_id": {
+            "format": "uuid",
+            "title": "Published Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "published_id"
+        ],
+        "title": "WithdrawMetricIn",
         "type": "object"
       }
     },
@@ -25682,6 +25938,311 @@
           "campaign"
         ],
         "x-kpigo-action": "campaign.list"
+      }
+    },
+    "/api/v1/actions/campaign.metric.publish": {
+      "post": {
+        "operationId": "campaign_metric_publish",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishMetricIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishedMetricOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Publish a campaign result as a registry metric, with a lineage link.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.metric.publish"
+      }
+    },
+    "/api/v1/actions/campaign.metric.withdraw": {
+      "post": {
+        "operationId": "campaign_metric_withdraw",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WithdrawMetricIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishedMetricOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Withdraw a published campaign metric; it goes inactive in the registry.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.metric.withdraw"
+      }
+    },
+    "/api/v1/actions/campaign.metrics": {
+      "get": {
+        "operationId": "campaign_metrics",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignMetricsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "The registry metrics published from a campaign, active and withdrawn.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.metrics"
       }
     },
     "/api/v1/actions/campaign.objective.list": {

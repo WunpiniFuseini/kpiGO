@@ -57,6 +57,9 @@ export const ROUTES = {
   "campaign.event.update": { method: "POST", path: "/api/v1/actions/campaign.event.update", pathParams: [], public: false },
   "campaign.get": { method: "GET", path: "/api/v1/actions/campaign.get", pathParams: [], public: false },
   "campaign.list": { method: "GET", path: "/api/v1/actions/campaign.list", pathParams: [], public: false },
+  "campaign.metric.publish": { method: "POST", path: "/api/v1/actions/campaign.metric.publish", pathParams: [], public: false },
+  "campaign.metric.withdraw": { method: "POST", path: "/api/v1/actions/campaign.metric.withdraw", pathParams: [], public: false },
+  "campaign.metrics": { method: "GET", path: "/api/v1/actions/campaign.metrics", pathParams: [], public: false },
   "campaign.objective.list": { method: "GET", path: "/api/v1/actions/campaign.objective.list", pathParams: [], public: false },
   "campaign.objective.set": { method: "POST", path: "/api/v1/actions/campaign.objective.set", pathParams: [], public: false },
   "campaign.reach": { method: "GET", path: "/api/v1/actions/campaign.reach", pathParams: [], public: false },
@@ -276,6 +279,9 @@ export interface Actions {
   "campaign.event.update": { input: NonNullable<operations["campaign_event_update"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_event_update"]["responses"][200]["content"]["application/json"] };
   "campaign.get": { input: NonNullable<operations["campaign_get"]["parameters"]["query"]>; output: operations["campaign_get"]["responses"][200]["content"]["application/json"] };
   "campaign.list": { input: NonNullable<operations["campaign_list"]["parameters"]["query"]>; output: operations["campaign_list"]["responses"][200]["content"]["application/json"] };
+  "campaign.metric.publish": { input: NonNullable<operations["campaign_metric_publish"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_metric_publish"]["responses"][200]["content"]["application/json"] };
+  "campaign.metric.withdraw": { input: NonNullable<operations["campaign_metric_withdraw"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_metric_withdraw"]["responses"][200]["content"]["application/json"] };
+  "campaign.metrics": { input: NonNullable<operations["campaign_metrics"]["parameters"]["query"]>; output: operations["campaign_metrics"]["responses"][200]["content"]["application/json"] };
   "campaign.objective.list": { input: Record<string, never>; output: operations["campaign_objective_list"]["responses"][200]["content"]["application/json"] };
   "campaign.objective.set": { input: NonNullable<operations["campaign_objective_set"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_objective_set"]["responses"][200]["content"]["application/json"] };
   "campaign.reach": { input: NonNullable<operations["campaign_reach"]["parameters"]["query"]>; output: operations["campaign_reach"]["responses"][200]["content"]["application/json"] };
