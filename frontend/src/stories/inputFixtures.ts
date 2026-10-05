@@ -120,6 +120,7 @@ export const assignments: Assignments = {
     },
   ],
   unassigned: [{ metric_code: "esg_score", metric_name: "ESG compliance" }],
+  email_reminders: true,
 };
 
 export const noAssignments: Assignments = { ...assignments, assignments: [], unassigned: [] };

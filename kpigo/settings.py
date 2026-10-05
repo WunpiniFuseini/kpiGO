@@ -260,6 +260,26 @@ if env("KPIGO_INGESTION_SCHEDULE_USER"):
         }
     )
 
+# Outbound mail goes only to the install's own relay, and only when one is set.
+# Unset, kpiGo sends no email: reminders stay in-app and in the audit log.
+KPIGO_EMAIL_HOST = env("KPIGO_EMAIL_HOST")
+KPIGO_EMAIL_FROM = env("KPIGO_EMAIL_FROM")
+if KPIGO_EMAIL_HOST and not KPIGO_EMAIL_FROM:
+    raise RuntimeError("KPIGO_EMAIL_HOST is set, so KPIGO_EMAIL_FROM must name the sender.")
+KPIGO_EMAIL_SECURITY = (env("KPIGO_EMAIL_SECURITY", "starttls") or "starttls").lower()
+if KPIGO_EMAIL_SECURITY not in ("starttls", "tls", "none"):
+    raise RuntimeError("KPIGO_EMAIL_SECURITY must be starttls, tls or none.")
+EMAIL_HOST = KPIGO_EMAIL_HOST or "localhost"
+EMAIL_PORT = int(env("KPIGO_EMAIL_PORT", "465" if KPIGO_EMAIL_SECURITY == "tls" else "587") or 587)
+EMAIL_HOST_USER = env("KPIGO_EMAIL_USER", "") or ""
+EMAIL_HOST_PASSWORD = env_secret("KPIGO_EMAIL_PASSWORD") or ""
+EMAIL_USE_TLS = KPIGO_EMAIL_SECURITY == "starttls"
+EMAIL_USE_SSL = KPIGO_EMAIL_SECURITY == "tls"
+EMAIL_TIMEOUT = int(env("KPIGO_EMAIL_TIMEOUT_SECONDS", "30") or 30)
+DEFAULT_FROM_EMAIL = KPIGO_EMAIL_FROM or "kpigo@localhost"
+# The address people open kpiGo at, for links in email; optional.
+KPIGO_PUBLIC_URL = (env("KPIGO_PUBLIC_URL", "") or "").rstrip("/")
+
 # Send the one manual-input reminder (R1) as this user; it checks daily who is due.
 if env("KPIGO_INPUT_REMINDER_USER"):
     KPIGO_SCHEDULED_ACTIONS.append(

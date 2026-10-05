@@ -87,7 +87,10 @@ export function ManualInputView({
   return (
     <div className="kg-stack">
       <p className="kg-cap">
-        {month} inputs {list.locked ? "locked" : "are due by the end of"} {formatDate(new Date(new Date(list.due_at).getTime() - 1))}.
+        {month} inputs {list.locked ? "locked" : "are due by the end of"} {formatDate(new Date(new Date(list.due_at).getTime() - 1))}.{" "}
+        {list.email_reminders
+          ? "Contributors who still owe an input get one reminder, in kpiGo and by email."
+          : "Contributors who still owe an input get one reminder in kpiGo. Email is off because no mail relay is set for this install; your infrastructure team can set one."}
       </p>
       {list.unassigned.length ? (
         <Notice tone="warn" title="Nobody is asked to enter:">
