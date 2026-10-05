@@ -91,6 +91,11 @@ AGENT_ADMIN = ("agent.config.manage", "agent.retention.manage")
 # The product-line registry (Scope §8.5): the handshake, groups, moves, retirement.
 # Product lines are a dimension, so stewards hold it with Admins (pages.py).
 PRODUCT_LINES = "product_line.manage"
+# Campaign Manager (PRD CM-*): reading campaigns in scope, authoring and managing
+# them; objectives and attribution settings are configuration an Admin holds.
+CAMPAIGN_VIEW = "campaign.view"
+CAMPAIGN_AUTHOR = ("campaign.view", "campaign.manage")
+CAMPAIGN_CONFIG = "campaign.config.manage"
 
 SYSTEM_ROLES: dict[str, RoleSpec] = {
     r.code: r
@@ -119,6 +124,8 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             AGENT_VIEW,
             *AGENT_ADMIN,
             PRODUCT_LINES,
+            *CAMPAIGN_AUTHOR,
+            CAMPAIGN_CONFIG,
         ),
         _role(
             "executive",
@@ -141,7 +148,14 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             AGENT_VIEW,
         ),
         _role("agent_supervisor", "Agent Supervisor", *EVERYONE, AGENT_VIEW),
-        _role("campaign_manager", "Campaign Manager", *EVERYONE, "dimension.view", AGENT_VIEW),
+        _role(
+            "campaign_manager",
+            "Campaign Manager",
+            *EVERYONE,
+            "dimension.view",
+            AGENT_VIEW,
+            *CAMPAIGN_AUTHOR,
+        ),
         _role(
             "metric_owner",
             "Metric Owner",
