@@ -55,9 +55,11 @@ SYSTEM_PAGE_ACCESS: dict[str, dict[str, Access]] = {
         "agent_performance": "view",
         "campaign": "view",
         "executive": "view",
+        "my_inputs": "edit",
     },
     "executive": {"executive": "view", "scorecards": "view", "agent_performance": "view"},
-    "line_manager": {"scorecards": "view", "agent_performance": "view"},
+    # A line manager enters inputs owed by "the line manager of" their people (MI-2).
+    "line_manager": {"scorecards": "view", "agent_performance": "view", "my_inputs": "edit"},
     "agent_supervisor": {"agent_performance": "view"},
     "campaign_manager": {"campaign": "edit", "agent_performance": "view"},
     "metric_owner": {

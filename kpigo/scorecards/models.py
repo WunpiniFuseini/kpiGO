@@ -19,7 +19,7 @@ from django.db import models
 
 from kpigo.metrics.models import Metric
 from kpigo.periods.models import PerformanceCycle
-from kpigo.platform.db import Stamped, Tracked, one_of
+from kpigo.platform.db import Stamped, Tracked, no_overlap, one_of
 from kpigo.platform.vocab import PERIOD_KEY_PATTERN, PRODUCTS
 
 TEMPLATE_STATUSES = ("draft", "active", "inactive")
@@ -208,6 +208,10 @@ class ScorecardSettings(Tracked):
     # ``reduced``: unscored metrics leave the denominator (the default, SC-7).
     # ``redistribute``: their weight spreads over the scored metrics; explicit opt-in.
     denominator_policy = models.TextField(db_default="reduced")
+    # Manual input (MI-7): due at the end of this working day of the following
+    # month, on the business calendar; one reminder this many working days before.
+    input_due_working_day = models.SmallIntegerField(db_default=5)
+    input_reminder_working_days = models.SmallIntegerField(db_default=2)
 
     class Meta:
         db_table = "scorecard_settings"
@@ -221,6 +225,11 @@ class ScorecardSettings(Tracked):
                 condition=models.Q(cap_min_ratio__gt=0)
                 & models.Q(cap_max_ratio__gte=models.F("cap_min_ratio")),
                 name="scorecard_settings_cap_ratios_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(input_due_working_day__gte=1, input_due_working_day__lte=20)
+                & models.Q(input_reminder_working_days__gte=0, input_reminder_working_days__lte=10),
+                name="scorecard_settings_input_schedule_valid",
             ),
         ]
 
@@ -705,3 +714,173 @@ class ScorecardInteraction(Tracked):
 
     def __str__(self) -> str:
         return f"{self.interaction_type} {self.subject_id} {self.period_key}"
+
+
+# ── manual metric input (Schema §7.1, PRD MI-1–MI-13) ─────────────────────────
+
+INPUT_SCOPE_TYPES = ("subject", "profile", "dimension")
+INPUT_ASSIGNEE_TYPES = ("user", "role_relative")
+INPUT_ROLES = ("line_manager_of",)
+INPUT_STATES = ("draft", "submitted", "restated")
+
+
+class InputAssignment(Tracked):
+    """Who enters a manual-input metric for one slice of the scope.
+
+    Keyed by ``metric_code`` so it survives the metric versioning (MR-7). A slice
+    is one subject, a profile (every holder of it) or a dimension member
+    (``branch:ACC``): one value for the whole slice, conformed to each member.
+    ``role_relative`` (``line_manager_of``) resolves against the reporting lines
+    in force for the period, so staff changes need no re-assignment.
+    """
+
+    assignment_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    metric_code = models.TextField()
+    scope_type = models.TextField()
+    scope_code = models.TextField()
+    assignee_type = models.TextField()
+    assignee_user = models.ForeignKey(
+        "access.AppUser", on_delete=models.PROTECT, null=True, related_name="+"
+    )
+    assignee_role = models.TextField(null=True)
+    # The R1.5 escalation ladder; R1 sends a single reminder.
+    escalation_config = models.JSONField(
+        db_default=models.Value({}, output_field=models.JSONField())
+    )
+    effective_from = models.DateField()
+    effective_to = models.DateField(null=True)
+
+    class Meta:
+        db_table = "input_assignment"
+        constraints = [
+            one_of("scope_type", INPUT_SCOPE_TYPES, "input_assignment_scope_valid"),
+            one_of("assignee_type", INPUT_ASSIGNEE_TYPES, "input_assignment_assignee_type_valid"),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(
+                        assignee_type="user",
+                        assignee_user__isnull=False,
+                        assignee_role__isnull=True,
+                    )
+                    | models.Q(
+                        assignee_type="role_relative",
+                        assignee_user__isnull=True,
+                        assignee_role__in=INPUT_ROLES,
+                        scope_type="subject",
+                    )
+                ),
+                name="input_assignment_assignee_shape",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(effective_to__isnull=True)
+                | models.Q(effective_to__gt=models.F("effective_from")),
+                name="input_assignment_range_valid",
+            ),
+            # One contributor owns a slice at a time.
+            no_overlap(
+                "input_assignment_no_overlap", "org_id", "metric_code", "scope_type", "scope_code"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.metric_code} {self.scope_type}:{self.scope_code}"
+
+
+class InputSubmission(Tracked):
+    """A contributor's value for a slice and a month, versioned.
+
+    ``draft`` is saved but not conformed; ``submitted`` is conformed to
+    ``fact_actual_monthly`` for every member of the slice. ``pending`` (no row)
+    and ``locked`` (past the deadline) are read, not stored. A change after the
+    deadline is a ``restated`` row with the next version, made only while the
+    month is being restated; the prior version stays.
+    """
+
+    submission_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    input_assignment = models.ForeignKey(
+        InputAssignment, on_delete=models.PROTECT, related_name="submissions"
+    )
+    metric = models.ForeignKey(Metric, on_delete=models.PROTECT, related_name="+")
+    metric_code = models.TextField()
+    scope_type = models.TextField()
+    scope_code = models.TextField()
+    period_key = models.CharField(max_length=6)
+    value = models.DecimalField(max_digits=18, decimal_places=4, null=True)
+    note = models.TextField(db_default="")
+    submitted_by = models.BigIntegerField(null=True)
+    submitted_at = models.DateTimeField(null=True)
+    state = models.TextField(db_default="draft")
+    approval_request_id = models.UUIDField(null=True)
+    version = models.IntegerField(db_default=1)
+    is_current = models.BooleanField(db_default=True)
+
+    class Meta:
+        db_table = "input_submission"
+        constraints = [
+            one_of("state", INPUT_STATES, "input_submission_state_valid"),
+            one_of("scope_type", INPUT_SCOPE_TYPES, "input_submission_scope_valid"),
+            _period_check("input_submission_period_key_valid"),
+            models.CheckConstraint(
+                condition=models.Q(state="draft")
+                | models.Q(value__isnull=False, submitted_at__isnull=False),
+                name="input_submission_submitted_shape",
+            ),
+            models.UniqueConstraint(
+                fields=[
+                    "org_id",
+                    "metric_code",
+                    "scope_type",
+                    "scope_code",
+                    "period_key",
+                    "version",
+                ],
+                name="input_submission_version_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["org_id", "metric_code", "scope_type", "scope_code", "period_key"],
+                condition=models.Q(is_current=True),
+                name="input_submission_one_current",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.metric_code} {self.scope_code} {self.period_key} v{self.version}"
+
+
+class InputSchedule(Stamped):
+    """When a slice's input is due for a month, and how far the chase has gone."""
+
+    schedule_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    input_assignment = models.ForeignKey(
+        InputAssignment, on_delete=models.PROTECT, related_name="schedules"
+    )
+    period_key = models.CharField(max_length=6)
+    due_at = models.DateTimeField()
+    last_reminder_step = models.SmallIntegerField(db_default=0)
+    last_reminded_at = models.DateTimeField(null=True)
+    # Who the reminder went to: the contributor, resolved when it was sent.
+    reminded_user = models.ForeignKey(
+        "access.AppUser", on_delete=models.PROTECT, null=True, related_name="+"
+    )
+
+    class Meta:
+        db_table = "input_schedule"
+        constraints = [
+            _period_check("input_schedule_period_key_valid"),
+            models.UniqueConstraint(
+                fields=["input_assignment", "period_key"], name="input_schedule_one_per_period"
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["period_key", "due_at"],
+                condition=models.Q(last_reminder_step__lt=3),
+                name="input_schedule_open",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.input_assignment_id} {self.period_key}"

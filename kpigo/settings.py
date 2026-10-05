@@ -260,6 +260,17 @@ if env("KPIGO_INGESTION_SCHEDULE_USER"):
         }
     )
 
+# Send the one manual-input reminder (R1) as this user; it checks daily who is due.
+if env("KPIGO_INPUT_REMINDER_USER"):
+    KPIGO_SCHEDULED_ACTIONS.append(
+        {
+            "action": "input.remind",
+            "run_as": env("KPIGO_INPUT_REMINDER_USER"),
+            "every_seconds": 24 * 3600,
+            "params": {},
+        }
+    )
+
 # Send the licence heartbeat daily as this user, when a heartbeat URL is set.
 if KPIGO_LICENCE_HEARTBEAT_URL and env("KPIGO_LICENCE_HEARTBEAT_USER"):
     KPIGO_SCHEDULED_ACTIONS.append(

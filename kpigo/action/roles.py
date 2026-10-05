@@ -80,6 +80,8 @@ OVERRIDE_REQUEST = ("override.view", "override.request")
 SCORECARD_READER = ("scorecard.view", "scorecard.acknowledge", "scorecard.query")
 # Managing others' (SC-15, SC-16): answer their queries, comment on their month.
 SCORECARD_MANAGER = ("scorecard.query.resolve", "scorecard.comment")
+# Manual metric input (PRD MI-1–MI-13): set up who enters what; enter it.
+INPUT_MANAGE = ("input.manage", "input.submit")
 
 SYSTEM_ROLES: dict[str, RoleSpec] = {
     r.code: r
@@ -104,6 +106,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *OVERRIDE_REQUEST,
             "override.approve",
             "period.close",
+            *INPUT_MANAGE,
         ),
         _role(
             "executive",
@@ -119,6 +122,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *SCORECARD_READER,
             *SCORECARD_MANAGER,
             *OVERRIDE_REQUEST,
+            "input.submit",
         ),
         _role("agent_supervisor", "Agent Supervisor", *EVERYONE),
         _role("campaign_manager", "Campaign Manager", *EVERYONE, "dimension.view"),
@@ -141,7 +145,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "licence.view",
             "system.health.view",
         ),
-        _role("contributor", "Contributor", *EVERYONE),
+        _role("contributor", "Contributor", *EVERYONE, "input.submit"),
         _role("staff", "Relationship Manager / Service Officer", *EVERYONE, *SCORECARD_READER),
     )
 }

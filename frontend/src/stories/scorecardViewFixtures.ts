@@ -65,6 +65,11 @@ function metric(
     score,
     overrides: [],
     exclusion_reason: null,
+    collection_method: "feed",
+    hidden_until_close: false,
+    input_by: null,
+    input_at: null,
+    input_note: null,
     ...rest,
   };
 }
@@ -364,3 +369,23 @@ export const team: Output<"scorecard.period.list"> = {
 export const queue: Output<"scorecard.query.list"> = { mine: [], queue: [{ ...openQuery, mine: false }], routed_to_me: 1 };
 export const emptyQueue: Output<"scorecard.query.list"> = { mine: [], queue: [], routed_to_me: 0 };
 export const overridesForQuery: Output<"override.list"> = { pending: 0, truncated: false, overrides: [] };
+
+/** The activation rate collected by hand: entered, and visible once the month closed. */
+export const manualEntered: MetricRow = {
+  ...cardClosed.metrics[4],
+  state: "scored",
+  exclusion_reason: null,
+  actual_value: "63.5",
+  reported_actual: "63.5",
+  run_id: null,
+  pct_achieved: "0.907143",
+  score: "0.136071",
+  collection_method: "manual_input",
+  input_by: "Kofi Asante",
+  input_at: "2026-10-03T14:20:00Z",
+  input_note: "From the digital team's monthly extract.",
+};
+
+/** The same metric while the month is open, seen by the person it is about. */
+export const manualHidden: MetricRow = { ...cardLive.metrics[4], collection_method: "manual_input", hidden_until_close: true };
+export const cardLiveHidden: Card = { ...cardLive, metrics: [...cardLive.metrics.slice(0, 4), manualHidden] };

@@ -2,6 +2,7 @@ import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 
 import { EmptyState, Loading, Skeleton } from "./components";
 import { AdminPlaceholder, ModulePage } from "./pages/ModulePage";
+import { MyInputsPage } from "./pages/inputs/MyInputs";
 import { ScorecardPage } from "./pages/scorecards/Scorecard";
 import { HealthPage } from "./pages/admin/Health";
 import { MetricsPage } from "./pages/admin/Metrics";
@@ -30,7 +31,7 @@ export function App() {
         <Route path="/agent-performance" element={<ModulePage pageKey="agent_performance" title="Agent Performance" />} />
         <Route path="/campaign" element={<ModulePage pageKey="campaign" title="Campaign Manager" />} />
         <Route path="/executive" element={<ModulePage pageKey="executive" title="Executive" exec />} />
-        <Route path="/my-inputs" element={<ModulePage pageKey="my_inputs" title="My inputs" />} />
+        <Route path="/my-inputs" element={<MyInputsPage />} />
         <Route path="/admin/users" element={<UsersPage />} />
         <Route path="/admin/metrics" element={<MetricsPage />} />
         <Route path="/admin/health" element={<HealthPage />} />

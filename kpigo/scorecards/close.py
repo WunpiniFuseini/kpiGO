@@ -25,6 +25,7 @@ from django.utils import timezone
 
 from kpigo.ingestion.models import Feed, FeedRun
 from kpigo.periods.models import PeriodDeadline, PeriodStatus
+from kpigo.scorecards import inputs
 from kpigo.scorecards.bands import Band
 from kpigo.scorecards.bulk import score_period
 from kpigo.scorecards.config import settings_for
@@ -61,6 +62,8 @@ class Issue:
     # Staff numbers affected; ``count`` is the full number when the list is cut.
     subjects: list[str] = field(default_factory=list)
     count: int = 0
+    # Manual input: the contributors who still owe it (MI-9).
+    owed_by: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -91,18 +94,28 @@ def pre_check(org_id: str, period_key: str, status: str, staff: dict[str, str]) 
         for m in s.metrics:
             if m.state not in COUNTED and m.state != "excluded":
                 unscored[(m.state, m.metric_code)].append(staff.get(s.subject_id, s.subject_id))
+    owed = inputs.unsubmitted(org_id, period_key)
     for (state, code), who in sorted(unscored.items()):
+        people = f"{len(who)} {'person' if len(who) == 1 else 'people'}"
+        if state == "not_reported" and code in owed:
+            # MI-9: "awaiting data" becomes "awaiting input from X".
+            message = (
+                f"{code}: awaiting manual input from {', '.join(owed[code])} for {people}. "
+                "Chase them, or exclude it with a reason."
+            )
+        else:
+            message = (
+                f"{code}: {UNSCORED_WORDS[state]} for {people}. Load it, or exclude it "
+                "with a reason."
+            )
         blockers.append(
             Issue(
                 kind=state,
                 metric_code=code,
                 subjects=sorted(who)[:SHOWN],
                 count=len(who),
-                message=(
-                    f"{code}: {UNSCORED_WORDS[state]} for {len(who)} "
-                    f"{'person' if len(who) == 1 else 'people'}. Load it, or exclude it "
-                    "with a reason."
-                ),
+                message=message,
+                owed_by=owed.get(code, []) if state == "not_reported" else [],
             )
         )
 

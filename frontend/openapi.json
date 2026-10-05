@@ -1226,6 +1226,13 @@
             ],
             "title": "Metric Code"
           },
+          "owed_by": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Owed By",
+            "type": "array"
+          },
           "profile_code": {
             "anyOf": [
               {
@@ -1251,7 +1258,8 @@
           "metric_code",
           "profile_code",
           "subjects",
-          "count"
+          "count",
+          "owed_by"
         ],
         "title": "CloseIssueOut",
         "type": "object"
@@ -4768,6 +4776,599 @@
         "title": "ImportOut",
         "type": "object"
       },
+      "InputAssignmentCreateIn": {
+        "properties": {
+          "assignee_role": {
+            "anyOf": [
+              {
+                "const": "line_manager_of",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee Role"
+          },
+          "assignee_type": {
+            "default": "user",
+            "enum": [
+              "user",
+              "role_relative"
+            ],
+            "title": "Assignee Type",
+            "type": "string"
+          },
+          "assignee_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee User Id"
+          },
+          "effective_from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective From"
+          },
+          "metric_code": {
+            "maxLength": 80,
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "scope_code": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Scope Code",
+            "type": "string"
+          },
+          "scope_type": {
+            "enum": [
+              "subject",
+              "profile",
+              "dimension"
+            ],
+            "title": "Scope Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric_code",
+          "scope_type",
+          "scope_code"
+        ],
+        "title": "InputAssignmentCreateIn",
+        "type": "object"
+      },
+      "InputAssignmentEndIn": {
+        "properties": {
+          "assignment_id": {
+            "format": "uuid",
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "effective_to": {
+            "format": "date",
+            "title": "Effective To",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assignment_id",
+          "effective_to"
+        ],
+        "title": "InputAssignmentEndIn",
+        "type": "object"
+      },
+      "InputAssignmentListInQuery": {
+        "properties": {
+          "period_key": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Key"
+          }
+        },
+        "title": "InputAssignmentListInQuery",
+        "type": "object"
+      },
+      "InputAssignmentListOut": {
+        "properties": {
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/InputAssignmentOut"
+            },
+            "title": "Assignments",
+            "type": "array"
+          },
+          "due_at": {
+            "format": "date-time",
+            "title": "Due At",
+            "type": "string"
+          },
+          "locked": {
+            "title": "Locked",
+            "type": "boolean"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "unassigned": {
+            "items": {
+              "$ref": "#/components/schemas/UnassignedMetricOut"
+            },
+            "title": "Unassigned",
+            "type": "array"
+          }
+        },
+        "required": [
+          "period_key",
+          "due_at",
+          "locked",
+          "assignments",
+          "unassigned"
+        ],
+        "title": "InputAssignmentListOut",
+        "type": "object"
+      },
+      "InputAssignmentOut": {
+        "properties": {
+          "assignee_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee Role"
+          },
+          "assignee_type": {
+            "title": "Assignee Type",
+            "type": "string"
+          },
+          "assignee_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee User Id"
+          },
+          "assignment_id": {
+            "format": "uuid",
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "contributor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contributor Name"
+          },
+          "effective_from": {
+            "format": "date",
+            "title": "Effective From",
+            "type": "string"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "members": {
+            "title": "Members",
+            "type": "integer"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "metric_name": {
+            "title": "Metric Name",
+            "type": "string"
+          },
+          "scope_code": {
+            "title": "Scope Code",
+            "type": "string"
+          },
+          "scope_label": {
+            "title": "Scope Label",
+            "type": "string"
+          },
+          "scope_type": {
+            "title": "Scope Type",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          }
+        },
+        "required": [
+          "assignment_id",
+          "metric_code",
+          "metric_name",
+          "scope_type",
+          "scope_code",
+          "scope_label",
+          "assignee_type",
+          "assignee_user_id",
+          "assignee_role",
+          "contributor_name",
+          "members",
+          "effective_from",
+          "effective_to",
+          "state",
+          "submitted_at"
+        ],
+        "title": "InputAssignmentOut",
+        "type": "object"
+      },
+      "InputEntryIn": {
+        "properties": {
+          "assignment_id": {
+            "format": "uuid",
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Note",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,18}|(?=[\\d.]{1,19}0*$)\\d*\\.\\d*0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "assignment_id"
+        ],
+        "title": "InputEntryIn",
+        "type": "object"
+      },
+      "InputRemindIn": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          }
+        },
+        "title": "InputRemindIn",
+        "type": "object"
+      },
+      "InputRemindOut": {
+        "properties": {
+          "recipients": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Recipients",
+            "type": "array"
+          },
+          "reminded": {
+            "title": "Reminded",
+            "type": "integer"
+          },
+          "unresolved": {
+            "title": "Unresolved",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reminded",
+          "recipients",
+          "unresolved"
+        ],
+        "title": "InputRemindOut",
+        "type": "object"
+      },
+      "InputSaveIn": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/InputEntryIn"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Entries",
+            "type": "array"
+          },
+          "period_key": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "Period Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_key",
+          "entries"
+        ],
+        "title": "InputSaveIn",
+        "type": "object"
+      },
+      "InputSubmitIn": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/InputEntryIn"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Entries",
+            "type": "array"
+          },
+          "period_key": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "Period Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_key",
+          "entries"
+        ],
+        "title": "InputSubmitIn",
+        "type": "object"
+      },
+      "InputTaskListInQuery": {
+        "properties": {
+          "period_key": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Key"
+          }
+        },
+        "title": "InputTaskListInQuery",
+        "type": "object"
+      },
+      "InputTaskListOut": {
+        "properties": {
+          "due_at": {
+            "format": "date-time",
+            "title": "Due At",
+            "type": "string"
+          },
+          "locked": {
+            "title": "Locked",
+            "type": "boolean"
+          },
+          "other_periods": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Other Periods",
+            "type": "array"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "period_status": {
+            "title": "Period Status",
+            "type": "string"
+          },
+          "restating": {
+            "title": "Restating",
+            "type": "boolean"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/InputTaskOut"
+            },
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "period_key",
+          "due_at",
+          "locked",
+          "period_status",
+          "restating",
+          "tasks",
+          "other_periods"
+        ],
+        "title": "InputTaskListOut",
+        "type": "object"
+      },
+      "InputTaskOut": {
+        "properties": {
+          "assignment_id": {
+            "format": "uuid",
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "decimal_places": {
+            "title": "Decimal Places",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "direction": {
+            "title": "Direction",
+            "type": "string"
+          },
+          "members": {
+            "title": "Members",
+            "type": "integer"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "metric_name": {
+            "title": "Metric Name",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "reminded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reminded At"
+          },
+          "scope_label": {
+            "title": "Scope Label",
+            "type": "string"
+          },
+          "scope_type": {
+            "title": "Scope Type",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "assignment_id",
+          "metric_code",
+          "metric_name",
+          "unit",
+          "decimal_places",
+          "direction",
+          "description",
+          "scope_type",
+          "scope_label",
+          "members",
+          "state",
+          "value",
+          "note",
+          "submitted_at",
+          "version",
+          "reminded_at"
+        ],
+        "title": "InputTaskOut",
+        "type": "object"
+      },
       "InteractionListInQuery": {
         "properties": {
           "period_key": {
@@ -6097,6 +6698,10 @@
             ],
             "title": "Cap"
           },
+          "collection_method": {
+            "title": "Collection Method",
+            "type": "string"
+          },
           "decimal_places": {
             "title": "Decimal Places",
             "type": "integer"
@@ -6131,6 +6736,44 @@
               }
             ],
             "title": "Fx Rate"
+          },
+          "hidden_until_close": {
+            "title": "Hidden Until Close",
+            "type": "boolean"
+          },
+          "input_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input At"
+          },
+          "input_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input By"
+          },
+          "input_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Note"
           },
           "metric_code": {
             "title": "Metric Code",
@@ -6318,7 +6961,12 @@
           "pct_achieved",
           "score",
           "overrides",
-          "exclusion_reason"
+          "exclusion_reason",
+          "collection_method",
+          "hidden_until_close",
+          "input_by",
+          "input_at",
+          "input_note"
         ],
         "title": "MetricScoreOut",
         "type": "object"
@@ -9832,6 +10480,14 @@
             "title": "Denominator Policy",
             "type": "string"
           },
+          "input_due_working_day": {
+            "title": "Input Due Working Day",
+            "type": "integer"
+          },
+          "input_reminder_working_days": {
+            "title": "Input Reminder Working Days",
+            "type": "integer"
+          },
           "weight_tolerance": {
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Weight Tolerance",
@@ -9848,7 +10504,9 @@
           "weight_tolerance",
           "cap_min_ratio",
           "cap_max_ratio",
-          "denominator_policy"
+          "denominator_policy",
+          "input_due_working_day",
+          "input_reminder_working_days"
         ],
         "title": "ScorecardSettingsOut",
         "type": "object"
@@ -9903,6 +10561,32 @@
               }
             ],
             "title": "Denominator Policy"
+          },
+          "input_due_working_day": {
+            "anyOf": [
+              {
+                "maximum": 20,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Due Working Day"
+          },
+          "input_reminder_working_days": {
+            "anyOf": [
+              {
+                "maximum": 10,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Reminder Working Days"
           },
           "weight_tolerance": {
             "anyOf": [
@@ -11661,6 +12345,24 @@
           "to_status"
         ],
         "title": "TransitionIn",
+        "type": "object"
+      },
+      "UnassignedMetricOut": {
+        "properties": {
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "metric_name": {
+            "title": "Metric Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric_code",
+          "metric_name"
+        ],
+        "title": "UnassignedMetricOut",
         "type": "object"
       },
       "UpdateOut": {
@@ -16329,6 +17031,698 @@
           "platform"
         ],
         "x-kpigo-action": "fx.set"
+      }
+    },
+    "/api/v1/actions/input.assignment.create": {
+      "post": {
+        "operationId": "input_assignment_create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InputAssignmentCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InputAssignmentOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Assign a slice of a manual-input metric to a contributor.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "input.assignment.create"
+      }
+    },
+    "/api/v1/actions/input.assignment.end": {
+      "post": {
+        "operationId": "input_assignment_end",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InputAssignmentEndIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InputAssignmentOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Stop a contributor's assignment from a date.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "input.assignment.end"
+      }
+    },
+    "/api/v1/actions/input.assignment.list": {
+      "get": {
+        "operationId": "input_assignment_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InputAssignmentListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Who enters each manual-input metric, and where each slice stands this month.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "input.assignment.list"
+      }
+    },
+    "/api/v1/actions/input.remind": {
+      "post": {
+        "operationId": "input_remind",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InputRemindIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InputRemindOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Send the one reminder for inputs still owed as their deadline nears (scheduled daily).",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "input.remind"
+      }
+    },
+    "/api/v1/actions/input.save": {
+      "post": {
+        "operationId": "input_save",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InputSaveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InputTaskListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Save manual inputs as drafts; nothing reaches a scorecard until submitted.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "input.save"
+      }
+    },
+    "/api/v1/actions/input.submit": {
+      "post": {
+        "operationId": "input_submit",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InputSubmitIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InputTaskListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Submit manual inputs: each lands as the actual for everyone in its slice.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "input.submit"
+      }
+    },
+    "/api/v1/actions/input.task.list": {
+      "get": {
+        "operationId": "input_task_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InputTaskListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "The manual inputs you owe for a month, and where each stands.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "input.task.list"
       }
     },
     "/api/v1/actions/licence.entitlement.check": {

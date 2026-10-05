@@ -260,6 +260,8 @@ export const scorecardSettings: Output<"scorecard.settings.get"> = {
   cap_min_ratio: "1.000",
   cap_max_ratio: "3.000",
   denominator_policy: "reduced",
+  input_due_working_day: 5,
+  input_reminder_working_days: 2,
 };
 
 // ── overrides ───────────────────────────────────────────────────────────────
@@ -354,7 +356,7 @@ export const closeBlocked: Check = {
   subjects: 214,
   blockers: [
     {
-      kind: "not_reported",
+      kind: "not_reported", owed_by: [],
       metric_code: "fee_income",
       profile_code: null,
       subjects: ["E1042", "E1077"],
@@ -362,7 +364,7 @@ export const closeBlocked: Check = {
       message: "fee_income: no actual reported for 2 people. Load it, or exclude it with a reason.",
     },
     {
-      kind: "no_target",
+      kind: "no_target", owed_by: [],
       metric_code: "ntb_accounts",
       profile_code: null,
       subjects: Array.from({ length: 25 }, (_, i) => `E${2000 + i}`),
@@ -370,7 +372,7 @@ export const closeBlocked: Check = {
       message: "ntb_accounts: no target published for 31 people. Load it, or exclude it with a reason.",
     },
     {
-      kind: "weights",
+      kind: "weights", owed_by: [],
       metric_code: null,
       profile_code: "sme_rm",
       subjects: ["E1042"],
@@ -380,14 +382,14 @@ export const closeBlocked: Check = {
   ],
   warnings: [
     {
-      kind: "pending_overrides",
+      kind: "pending_overrides", owed_by: [],
       metric_code: null,
       profile_code: null,
       subjects: [],
       count: 1,
       message: "1 override request(s) for this period are still awaiting approval; close freezes scores without them.",
     },
-    { kind: "feed", metric_code: null, profile_code: null, subjects: [], count: 0, message: "Feed 'monthly' was due for this period and has no successful load for it." },
+    { kind: "feed", owed_by: [], metric_code: null, profile_code: null, subjects: [], count: 0, message: "Feed 'monthly' was due for this period and has no successful load for it." },
   ],
 };
 
