@@ -94,21 +94,21 @@ def describe(org_id: str) -> LicenceOut:
     return out
 
 
-class StatusIn(BaseModel):
+class LicenceStatusIn(BaseModel):
     pass
 
 
 @action(
     name="licence.status",
     summary="The installed licence, its grace state, the install fingerprint and version.",
-    schema=StatusIn,
+    schema=LicenceStatusIn,
     output=LicenceOut,
     permission="licence.view",
     read_only=True,
     http={"method": "GET", "path": "/licence"},
     example={},
 )
-def status(params: StatusIn, ctx: ActionContext) -> LicenceOut:
+def status(params: LicenceStatusIn, ctx: ActionContext) -> LicenceOut:
     return describe(ctx.org_id)
 
 

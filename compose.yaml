@@ -1,5 +1,6 @@
 # kpiGo single-node stack. Offline-friendly: no service reaches the internet.
-# nginx (TLS, static) joins in R5 packaging; until then the app listens on 8000.
+# Users open the web front (port 8080), which serves the UI and proxies /api to
+# the app. TLS joins in R5 packaging; until then the app also listens on 8000.
 
 x-app: &app
   build:
@@ -90,6 +91,24 @@ services:
       migrate:
         condition: service_completed_successfully
     command: ["celery", "-A", "kpigo", "beat", "--loglevel", "INFO", "--schedule", "/tmp/celerybeat-schedule"]
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    image: kpigo/web:${KPIGO_VERSION:-dev}
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "${KPIGO_WEB_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [kpigo]
+    restart: unless-stopped
 
 volumes:
   pgdata:

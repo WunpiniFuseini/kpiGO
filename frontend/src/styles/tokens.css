@@ -1,0 +1,89 @@
+/*
+ * kpiGo design tokens (Design Brief §4). The values in §4 are kept verbatim.
+ *
+ * The brief also sets WCAG 2.1 AA (§8). Several §4 hues are too light to carry
+ * text on white or on their own soft tint, so text uses a separate "ink"
+ * token beside each one. These are darker versions of the same hues, as the
+ * GradeBanner wordmark already does in §5.1. The light hues stay for bars,
+ * dots, borders and fills, and every one of those is paired with a label.
+ * src/test/tokens.test.ts holds the ratios.
+ */
+:root {
+  /* canvas and surface */
+  --canvas: #ffffff;
+  --canvas-exec: #a9b5fc;
+  --surface: #ffffff;
+  --sunken: #f9fafb;
+  --rail: #f5f6f8;
+  --rail-hover: #edeff3;
+  --rail-active: #e3e6ec;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 16px -4px rgba(16, 24, 40, 0.08);
+  --shadow-lift: 0 1px 2px rgba(16, 24, 40, 0.05), 0 10px 24px -6px rgba(16, 24, 40, 0.1);
+
+  /* ink */
+  --ink: #101828;
+  --ink-2: #475467;
+  --ink-3: #98a2b3; /* disabled, rules and icons; never small text (2.6:1) */
+  --ink-cap: #667085; /* captions and targets: --ink-3's role for text, at 5:1 */
+  --line: #eaecf0;
+  --line-2: #f2f4f7;
+
+  /* grade ramp: standing. Ordinal and monotonic; bands come from rating_band config. */
+  --grade-1: #e5484d;
+  --grade-2: #f5a524;
+  --grade-3: #17b26a;
+  --grade-4: #05603a;
+  /* text on a grade tint: the hue mixed 55% toward black (5.3:1 or better) */
+  --grade-1-ink: #7e282a;
+  --grade-2-ink: #875b14;
+  --grade-3-ink: #0d623a;
+  --grade-4-ink: #033520;
+  /* the banner's 15% tint and 30% border */
+  --grade-1-tint: #fbe4e4;
+  --grade-2-tint: #fef2de;
+  --grade-3-tint: #dcf3e9;
+  --grade-4-tint: #dae7e1;
+  --grade-1-edge: #f7c8ca;
+  --grade-2-edge: #fce4bd;
+  --grade-3-edge: #b9e8d2;
+  --grade-4-edge: #b4cfc4;
+
+  /* state accents: movement and attention. Never interchangeable with the ramp. */
+  --accent: #4361ee;
+  --accent-soft: #eef2ff;
+  --accent-ink: #31419c; /* text on --accent-soft */
+  --accent-strong: #3451d1; /* selected nav text on --rail-active */
+  --pos: #12b76a;
+  --pos-soft: #ecfdf3;
+  --pos-ink: #067647;
+  --neg: #f04438;
+  --neg-soft: #fef3f2;
+  --neg-ink: #b42318;
+  --warn: #f79009;
+  --warn-soft: #fffaeb;
+  --warn-ink: #b54708;
+  --warn-edge: #fec84b;
+
+  /* geometry */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-pill: 999px;
+  --pad: 20px;
+
+  /* type */
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* motion (Design Brief §10) */
+  --t-nav: 120ms;
+  --t-hover: 150ms;
+  --t-drill: 100ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-nav: 0ms;
+    --t-hover: 0ms;
+    --t-drill: 0ms;
+  }
+}

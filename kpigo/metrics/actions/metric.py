@@ -69,7 +69,7 @@ def _check_manual_input(method: str, products: Iterable[str]) -> None:
 # ── outputs ──────────────────────────────────────────────────────────────────
 
 
-class BindingOut(BaseModel):
+class MetricBindingOut(BaseModel):
     product: str
     is_active: bool
 
@@ -98,7 +98,7 @@ class MetricOut(BaseModel):
     effective_from: date
     effective_to: date | None
     supersedes_id: uuid.UUID | None
-    bindings: list[BindingOut] = []
+    bindings: list[MetricBindingOut] = []
     profiles: list[ProfileOut] = []
 
     @classmethod
@@ -111,7 +111,7 @@ class MetricOut(BaseModel):
         return cls(
             **fields,
             bindings=[
-                BindingOut(product=b.product, is_active=b.is_active)
+                MetricBindingOut(product=b.product, is_active=b.is_active)
                 for b in metric.bindings.order_by("product")
             ],
             profiles=[
@@ -370,7 +370,7 @@ def register(params: RegisterIn, ctx: ActionContext) -> RegisterOut:
 # ── metric.update ───────────────────────────────────────────────────────────
 
 
-class UpdateIn(BaseModel):
+class MetricUpdateIn(BaseModel):
     metric_code: MetricCode
     display_name: Name | None = None
     decimal_places: int | None = Field(default=None, ge=0, le=6)
@@ -395,7 +395,7 @@ class UpdateOut(BaseModel):
 @action(
     name="metric.update",
     summary="Change a metric. Definitional changes open a new effective period.",
-    schema=UpdateIn,
+    schema=MetricUpdateIn,
     output=UpdateOut,
     permission="metric.manage",
     read_only=False,
@@ -404,7 +404,7 @@ class UpdateOut(BaseModel):
     config_change=True,
     example={"metric_code": "total_deposits", "unit": "count", "effective_from": "2026-11-01"},
 )
-def update(params: UpdateIn, ctx: ActionContext) -> UpdateOut:
+def update(params: MetricUpdateIn, ctx: ActionContext) -> UpdateOut:
     current = _current(ctx.org_id, params.metric_code, lock=True)
     changes: dict[str, Any] = {
         k: v
@@ -628,14 +628,14 @@ def assign_profile(params: ProfileAssignIn, ctx: ActionContext) -> MetricOut:
 # ── metric.list / metric.get ────────────────────────────────────────────────
 
 
-class ListIn(BaseModel):
+class MetricListIn(BaseModel):
     product: Product | None = None
     status: MetricStatus | None = None
     # The date whose definitions to list. Defaults to today.
     as_of: date | None = None
 
 
-class ListOut(BaseModel):
+class MetricListOut(BaseModel):
     as_of: date
     metrics: list[MetricOut]
 
@@ -643,13 +643,13 @@ class ListOut(BaseModel):
 @action(
     name="metric.list",
     summary="List metric definitions in force on a date.",
-    schema=ListIn,
-    output=ListOut,
+    schema=MetricListIn,
+    output=MetricListOut,
     permission="metric.view",
     read_only=True,
     example={"product": "scorecards"},
 )
-def list_metrics(params: ListIn, ctx: ActionContext) -> ListOut:
+def list_metrics(params: MetricListIn, ctx: ActionContext) -> MetricListOut:
     as_of = params.as_of or _today()
     rows = Metric.objects.filter(org_id=ctx.org_id, effective_from__lte=as_of).filter(
         Q(effective_to__isnull=True) | Q(effective_to__gt=as_of)
@@ -658,10 +658,12 @@ def list_metrics(params: ListIn, ctx: ActionContext) -> ListOut:
         rows = rows.filter(status=params.status)
     if params.product is not None:
         rows = rows.filter(bindings__product=params.product, bindings__is_active=True)
-    return ListOut(as_of=as_of, metrics=[MetricOut.of(m) for m in rows.order_by("metric_code")])
+    return MetricListOut(
+        as_of=as_of, metrics=[MetricOut.of(m) for m in rows.order_by("metric_code")]
+    )
 
 
-class GetIn(BaseModel):
+class MetricGetIn(BaseModel):
     metric_code: MetricCode
 
 
@@ -674,13 +676,13 @@ class GetOut(BaseModel):
 @action(
     name="metric.get",
     summary="A metric's family and every effective period of its definition.",
-    schema=GetIn,
+    schema=MetricGetIn,
     output=GetOut,
     permission="metric.view",
     read_only=True,
     example={"metric_code": "total_deposits"},
 )
-def get_metric(params: GetIn, ctx: ActionContext) -> GetOut:
+def get_metric(params: MetricGetIn, ctx: ActionContext) -> GetOut:
     rows = list(
         Metric.objects.filter(org_id=ctx.org_id, metric_code=params.metric_code)
         .select_related("family")

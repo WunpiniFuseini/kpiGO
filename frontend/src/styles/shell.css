@@ -1,0 +1,69 @@
+/* App shell (Design Brief §3, §9): rail, topbar, view container. */
+.kg-shell { display: flex; min-height: 100vh; }
+.kg-skip {
+  position: absolute; left: 8px; top: -40px; z-index: 100; padding: 8px 12px; border-radius: var(--r-sm);
+  background: var(--accent); color: #fff; font-weight: 600; text-decoration: none;
+}
+.kg-skip:focus { top: 8px; }
+.kg-rail {
+  width: 212px; flex: 0 0 212px; background: var(--rail); border-right: 1px solid var(--line);
+  padding: 18px 12px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.kg-brand { display: flex; align-items: center; gap: 9px; padding: 2px 8px 20px; color: var(--ink); text-decoration: none; }
+.kg-mark {
+  width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: #fff; flex: 0 0 26px;
+  display: grid; place-items: center; font-weight: 700; font-size: 13px; letter-spacing: -0.02em;
+}
+.kg-brand b { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+.kg-nav ul { list-style: none; margin: 0; padding: 0; }
+.kg-navlabel { font-size: 10.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-cap); padding: 16px 9px 8px; }
+.kg-navitem {
+  display: flex; align-items: center; gap: 10px; padding: 9px; border-radius: var(--r-sm); margin-bottom: 4px;
+  color: var(--ink-2); font-weight: 500; font-size: 13.5px; text-decoration: none; transition: background var(--t-nav);
+}
+.kg-navitem:hover { background: var(--rail-hover); }
+.kg-navitem[aria-current="page"] { background: var(--rail-active); color: var(--accent-strong); font-weight: 600; }
+.kg-navitem svg { flex: 0 0 16px; }
+.kg-rail-foot { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
+.kg-who { display: flex; align-items: center; gap: 9px; padding: 8px; }
+.kg-who__text { min-width: 0; flex: 1; }
+.kg-who__text span { display: block; font-size: 12.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kg-who__text small { display: block; color: var(--ink-cap); font-size: 11px; }
+.kg-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.kg-topbar {
+  display: flex; align-items: center; gap: 12px; padding: 14px 22px; background: var(--surface);
+  border-bottom: 1px solid var(--line); flex-wrap: wrap; min-height: 60px;
+}
+.kg-topbar h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+.kg-spacer { flex: 1; }
+.kg-view { padding: 22px; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+.kg-view--exec { background: var(--canvas-exec); }
+.kg-view:focus { outline: none; }
+
+/* 820–1279px: the rail collapses to icons */
+@media (max-width: 1279px) {
+  .kg-rail { width: 64px; flex-basis: 64px; padding: 18px 10px; }
+  .kg-brand b, .kg-navlabel, .kg-navitem__label, .kg-who__text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .kg-brand { padding: 2px 9px 18px; }
+  .kg-navitem { justify-content: center; }
+  .kg-navlabel { padding: 10px 0 4px; }
+  .kg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* below 820px: the rail becomes a horizontal scroller and cards go single-column */
+@media (max-width: 819px) {
+  .kg-shell { flex-direction: column; }
+  .kg-rail {
+    position: relative; height: auto; width: 100%; flex: none; flex-direction: row; align-items: center; gap: 4px;
+    padding: 8px 12px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line);
+  }
+  .kg-nav, .kg-nav ul { display: flex; gap: 4px; }
+  .kg-navitem { margin: 0; white-space: nowrap; }
+  .kg-navitem__label { position: static; width: auto; height: auto; clip: auto; overflow: visible; }
+  .kg-brand { padding: 0 8px 0 0; }
+  .kg-rail-foot { margin: 0 0 0 auto; padding: 0; border: 0; display: flex; align-items: center; gap: 4px; }
+  .kg-who { padding: 0 4px; }
+  .kg-grid { grid-template-columns: minmax(0, 1fr); }
+  .kg-view { padding: 16px; }
+  .kg-topbar { padding: 12px 16px; }
+}
+.kg-navitem--button { width: 100%; border: 0; background: none; cursor: pointer; text-align: left; }

@@ -231,25 +231,25 @@ def discard(params: DiscardIn, ctx: ActionContext) -> ImportOut:
     return import_out(row)
 
 
-class ListIn(BaseModel):
+class ImportListIn(BaseModel):
     status: Literal["previewed", "applied", "discarded"] | None = None
 
 
-class ListOut(BaseModel):
+class ImportListOut(BaseModel):
     imports: list[ImportOut]
 
 
 @action(
     name="directory.import.list",
     summary="Directory imports, newest first.",
-    schema=ListIn,
-    output=ListOut,
+    schema=ImportListIn,
+    output=ImportListOut,
     permission="directory.view",
     read_only=True,
     example={},
 )
-def list_imports(params: ListIn, ctx: ActionContext) -> ListOut:
+def list_imports(params: ImportListIn, ctx: ActionContext) -> ImportListOut:
     query = DirectoryImport.objects.filter(org_id=ctx.org_id)
     if params.status:
         query = query.filter(status=params.status)
-    return ListOut(imports=[import_out(r) for r in query.order_by("-created_at")[:50]])
+    return ImportListOut(imports=[import_out(r) for r in query.order_by("-created_at")[:50]])

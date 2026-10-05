@@ -67,7 +67,7 @@ def create_cycle(params: CycleCreateIn, ctx: ActionContext) -> CycleOut:
     return CycleOut.model_validate(cycle)
 
 
-class BindingOut(BaseModel):
+class CycleBindingOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     binding_id: uuid.UUID
@@ -83,7 +83,7 @@ class CycleListIn(BaseModel):
 
 class CycleListOut(BaseModel):
     cycles: list[CycleOut]
-    bindings: list[BindingOut]
+    bindings: list[CycleBindingOut]
 
 
 @action(
@@ -102,7 +102,7 @@ def list_cycles(params: CycleListIn, ctx: ActionContext) -> CycleListOut:
             for c in PerformanceCycle.objects.filter(org_id=ctx.org_id).order_by("name")
         ],
         bindings=[
-            BindingOut.model_validate(b)
+            CycleBindingOut.model_validate(b)
             for b in CycleBinding.objects.filter(org_id=ctx.org_id).order_by(
                 "product", "effective_from"
             )
@@ -127,7 +127,7 @@ class CycleBindIn(BaseModel):
     name="cycle.bind",
     summary="Make a product follow a cycle from a date.",
     schema=CycleBindIn,
-    output=BindingOut,
+    output=CycleBindingOut,
     permission="calendar.manage",
     read_only=False,
     requires_approval="calendar_change",
@@ -135,7 +135,7 @@ class CycleBindIn(BaseModel):
     config_change=True,
     example={"product": "scorecards", "cycle_id": EXAMPLE_ID, "effective_from": "2027-01-01"},
 )
-def bind_cycle(params: CycleBindIn, ctx: ActionContext) -> BindingOut:
+def bind_cycle(params: CycleBindIn, ctx: ActionContext) -> CycleBindingOut:
     cycle = PerformanceCycle.objects.filter(org_id=ctx.org_id, cycle_id=params.cycle_id).first()
     if cycle is None:
         raise NotFound("No such performance cycle.")
@@ -148,7 +148,7 @@ def bind_cycle(params: CycleBindIn, ctx: ActionContext) -> BindingOut:
             effective_to=params.effective_to,
             created_by=ctx.user_id,
         )
-    return BindingOut.model_validate(binding)
+    return CycleBindingOut.model_validate(binding)
 
 
 # ── calendar days ───────────────────────────────────────────────────────────

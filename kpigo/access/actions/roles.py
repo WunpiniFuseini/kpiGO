@@ -74,11 +74,11 @@ def role_out(org_id: str, code: str) -> RoleOut:
     return _system_out(code, org_id) if code in SYSTEM_ROLES else _custom_out(_custom(org_id, code))
 
 
-class ListIn(BaseModel):
+class RoleListIn(BaseModel):
     pass
 
 
-class ListOut(BaseModel):
+class RoleListOut(BaseModel):
     roles: list[RoleOut]
     page_keys: list[str]
     assignable_permissions: list[str]
@@ -87,17 +87,17 @@ class ListOut(BaseModel):
 @action(
     name="role.list",
     summary="Every role with its permissions and page access matrix.",
-    schema=ListIn,
-    output=ListOut,
+    schema=RoleListIn,
+    output=RoleListOut,
     permission="role.view",
     read_only=True,
     http={"method": "GET", "path": "/roles"},
     example={},
 )
-def list_roles(params: ListIn, ctx: ActionContext) -> ListOut:
+def list_roles(params: RoleListIn, ctx: ActionContext) -> RoleListOut:
     roles = [_system_out(code, ctx.org_id) for code in SYSTEM_ROLES]
     roles += [_custom_out(r) for r in Role.objects.filter(org_id=ctx.org_id).order_by("code")]
-    return ListOut(
+    return RoleListOut(
         roles=roles,
         page_keys=list(PAGE_KEYS),
         assignable_permissions=sorted(all_granted_permissions()),
@@ -177,7 +177,7 @@ def _set_pages(role: Role, pages: dict[str, str], by: int | None) -> None:
         )
 
 
-class UpdateIn(BaseModel):
+class RoleUpdateIn(BaseModel):
     code: str = Field(min_length=1, max_length=60)
     name: Name | None = None
     description: str | None = Field(default=None, max_length=500)
@@ -188,7 +188,7 @@ class UpdateIn(BaseModel):
 @action(
     name="role.update",
     summary="Edit a cloned role: name, permissions, or its page access matrix.",
-    schema=UpdateIn,
+    schema=RoleUpdateIn,
     output=RoleOut,
     permission="role.manage",
     read_only=False,
@@ -196,7 +196,7 @@ class UpdateIn(BaseModel):
     audit="role.updated",
     example={"code": "branch_manager", "pages": {"admin.targets": "view"}},
 )
-def update(params: UpdateIn, ctx: ActionContext) -> RoleOut:
+def update(params: RoleUpdateIn, ctx: ActionContext) -> RoleOut:
     role = _custom(ctx.org_id, params.code, lock=True)
     if params.name is not None:
         role.name = params.name
@@ -212,18 +212,18 @@ def update(params: UpdateIn, ctx: ActionContext) -> RoleOut:
     return _custom_out(role)
 
 
-class GetIn(BaseModel):
+class RoleGetIn(BaseModel):
     code: str = Field(min_length=1, max_length=60)
 
 
 @action(
     name="role.get",
     summary="One role with its permissions and page access.",
-    schema=GetIn,
+    schema=RoleGetIn,
     output=RoleOut,
     permission="role.view",
     read_only=True,
     example={"code": "admin"},
 )
-def get_role(params: GetIn, ctx: ActionContext) -> RoleOut:
+def get_role(params: RoleGetIn, ctx: ActionContext) -> RoleOut:
     return role_out(ctx.org_id, params.code)

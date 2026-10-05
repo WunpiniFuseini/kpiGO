@@ -152,7 +152,7 @@ def resend(params: ResendIn, ctx: ActionContext) -> InviteOut:
 # ── user.update ─────────────────────────────────────────────────────────────
 
 
-class UpdateIn(BaseModel):
+class UserUpdateIn(BaseModel):
     user_id: uuid.UUID
     display_name: Name | None = None
     role_codes: list[str] | None = Field(default=None, max_length=20)
@@ -165,7 +165,7 @@ class UpdateIn(BaseModel):
 @action(
     name="user.update",
     summary="Change a user's name, roles, subject link or sign-in method, or unlock them.",
-    schema=UpdateIn,
+    schema=UserUpdateIn,
     output=UserOut,
     permission="user.manage",
     read_only=False,
@@ -173,7 +173,7 @@ class UpdateIn(BaseModel):
     audit="user.updated",
     example={"user_id": EXAMPLE_ID, "role_codes": ["line_manager", "metric_owner"]},
 )
-def update(params: UpdateIn, ctx: ActionContext) -> UserOut:
+def update(params: UserUpdateIn, ctx: ActionContext) -> UserOut:
     account = _account(ctx.org_id, params.user_id, lock=True)
     if params.subject_id and params.unlink_subject:
         raise InvalidInput("Give a subject to link, or unlink; not both.")
@@ -334,27 +334,27 @@ def reassign(params: ReassignIn, ctx: ActionContext) -> ReassignOut:
 # ── user.list / user.get ───────────────────────────────────────────────────
 
 
-class ListIn(BaseModel):
+class UserListIn(BaseModel):
     status: Literal["invited", "active", "disabled"] | None = None
     role_code: str | None = Field(default=None, max_length=60)
     search: str | None = Field(default=None, max_length=100)
 
 
-class ListOut(BaseModel):
+class UserListOut(BaseModel):
     users: list[UserOut]
 
 
 @action(
     name="user.list",
     summary="List users, by status, role or a search on name and email.",
-    schema=ListIn,
-    output=ListOut,
+    schema=UserListIn,
+    output=UserListOut,
     permission="user.view",
     read_only=True,
     http={"method": "GET", "path": "/users"},
     example={"status": "active"},
 )
-def list_users(params: ListIn, ctx: ActionContext) -> ListOut:
+def list_users(params: UserListIn, ctx: ActionContext) -> UserListOut:
     query = AppUser.objects.filter(org_id=ctx.org_id).prefetch_related("roles")
     if params.status:
         query = query.filter(status=params.status)
@@ -364,21 +364,21 @@ def list_users(params: ListIn, ctx: ActionContext) -> ListOut:
         query = query.filter(
             Q(email__icontains=params.search) | Q(display_name__icontains=params.search)
         )
-    return ListOut(users=[user_out(a) for a in query.order_by("display_name", "email")])
+    return UserListOut(users=[user_out(a) for a in query.order_by("display_name", "email")])
 
 
-class GetIn(BaseModel):
+class UserGetIn(BaseModel):
     user_id: uuid.UUID
 
 
 @action(
     name="user.get",
     summary="One user.",
-    schema=GetIn,
+    schema=UserGetIn,
     output=UserOut,
     permission="user.view",
     read_only=True,
     example={"user_id": EXAMPLE_ID},
 )
-def get_user(params: GetIn, ctx: ActionContext) -> UserOut:
+def get_user(params: UserGetIn, ctx: ActionContext) -> UserOut:
     return user_out(_account(ctx.org_id, params.user_id))
