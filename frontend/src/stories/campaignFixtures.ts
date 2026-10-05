@@ -1,5 +1,5 @@
 import type { Me } from "../session/Session";
-import type { Campaign, CampaignEvent, CampaignList, CampaignSummary, Estimate, EventReach, EventValue, Reach, Reference, ValueReport, Winbacks } from "../pages/campaigns/model";
+import type { Board, BoardMoney, BoardRow, Campaign, CampaignEvent, CampaignList, CampaignSummary, Estimate, EventReach, EventValue, Reach, Reconciliation, Reference, ValueReport, Winbacks } from "../pages/campaigns/model";
 import { adminMe } from "./fixtures";
 
 export const campaignManagerMe: Me = {
@@ -385,3 +385,97 @@ export const campaignWinbacksNothingFed: Winbacks = {
   fed: false,
   events: campaignWinbacks.events.map((e) => ({ ...e, counts: null })),
 };
+
+// ── tracking board ──────────────────────────────────────────────────────────
+
+function boardMoney(over: Partial<BoardMoney> = {}): BoardMoney {
+  return {
+    currency: "GHS",
+    budget: "118000.00",
+    spend: "86400.00",
+    gross: "412300.0000",
+    incremental: "198600.0000",
+    roi: "0.6831",
+    gross_roi: "2.4941",
+    measured_events: 3,
+    withheld_events: 0,
+    ...over,
+  };
+}
+
+function boardRow(campaign_id: string, over: Partial<BoardRow> = {}): BoardRow {
+  return { campaign_id, events_in_play: 1, contacted: 41200, converted: 3180, money: [boardMoney()], winbacks: null, ...over };
+}
+
+/** Q4 to date: three events in play, the win-back campaign's counts, and a USD budget summed apart. */
+export const campaignBoard: Board = {
+  start: "2026-10-01",
+  end: "2026-10-05",
+  basis: "incremental",
+  outcomes_fed: true,
+  contacts_fed: true,
+  money: [boardMoney(), boardMoney({ currency: "USD", budget: "5000.00", spend: null, gross: "7200.0000", incremental: "2100.0000", roi: "-0.5800", gross_roi: "0.4400", measured_events: 1 })],
+  winbacks: { qualified: 754, provisional: 558, confirmed: 184, lapsed: 12, next_confirmation: "2026-10-09" },
+  campaigns: [
+    boardRow("c1000000-0000-4000-8000-000000000001", { events_in_play: 2 }),
+    boardRow("c1000000-0000-4000-8000-000000000002", {
+      contacted: 2900,
+      converted: 754,
+      money: [boardMoney({ budget: "18000.00", spend: "12100.00", gross: "96400.0000", incremental: null, roi: null, gross_roi: "4.3556", measured_events: 1, withheld_events: 1 })],
+      winbacks: { qualified: 754, provisional: 558, confirmed: 184, lapsed: 12, next_confirmation: "2026-10-09" },
+    }),
+    boardRow("c1000000-0000-4000-8000-000000000003", { events_in_play: 0, contacted: null, converted: null, money: [] }),
+    boardRow("c1000000-0000-4000-8000-000000000004", { events_in_play: 0, contacted: null, converted: null, money: [] }),
+  ],
+};
+
+/** One event's baseline is contaminated, so the quarter's incremental value is withheld. */
+export const campaignBoardWithheld: Board = {
+  ...campaignBoard,
+  money: [boardMoney({ incremental: null, roi: null, withheld_events: 1 })],
+  winbacks: null,
+};
+
+/** Nothing runs or attributes this quarter. */
+export const campaignBoardEmpty: Board = {
+  ...campaignBoard,
+  money: [],
+  winbacks: null,
+  campaigns: campaignBoard.campaigns.map((r) => ({ ...r, events_in_play: 0, contacted: null, converted: null, money: [], winbacks: null })),
+};
+
+// ── reconciliation ──────────────────────────────────────────────────────────
+
+/** Event 1 won most of what it matched and lost some to another campaign under last touch. */
+export const campaignReconciliation: Reconciliation = {
+  campaign_id: campaignDetail.campaign_id,
+  span_start: "2026-10-01",
+  span_end: "2026-11-30",
+  lines: [
+    { metric_code: "deposit_value", currency: "GHS", source_total: "1284000.0000", source_outcomes: 9120, credited_here: "412300.0000", credited_elsewhere: "96400.0000", unattributed: "775300.0000" },
+    { metric_code: "new_accounts", currency: null, source_total: "2210.0000", source_outcomes: 2210, credited_here: "640.0000", credited_elsewhere: "112.0000", unattributed: "1458.0000" },
+  ],
+  events: [
+    {
+      event_id: "e1000000-0000-4000-8000-000000000001",
+      credited: "412940.0000",
+      credited_outcomes: 3180,
+      lost: "38200.0000",
+      lost_outcomes: 214,
+      held_out_outcomes: 162,
+      by_rule: { single: 2961, last_touch: 433, holdout: 162 },
+    },
+  ],
+  contaminated: [
+    { customer_ref: "CUST-004812", event_id: "e1000000-0000-4000-8000-000000000001", contaminated_by: "e9000000-0000-4000-8000-000000000001" },
+    { customer_ref: "CUST-019377", event_id: "e1000000-0000-4000-8000-000000000001", contaminated_by: null },
+  ],
+  contaminated_total: 2,
+  invariant_holds: true,
+};
+
+/** Published, but no outcome of the objective's metrics has loaded for its span. */
+export const campaignReconciliationNoOutcomes: Reconciliation = { ...campaignReconciliation, lines: [], contaminated: [], contaminated_total: 0, events: campaignReconciliation.events.map((e) => ({ ...e, credited: "0.0000", credited_outcomes: 0, lost: "0.0000", lost_outcomes: 0, held_out_outcomes: 0, by_rule: {} })) };
+
+/** Nothing published, so there is no span to reconcile. */
+export const campaignReconciliationNothingPublished: Reconciliation = { ...campaignReconciliationNoOutcomes, span_start: null, span_end: null, events: [] };

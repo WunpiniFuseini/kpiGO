@@ -21,6 +21,10 @@ export type EventValue = ValueReport["events"][number];
 export type Basis = ValueReport["basis"];
 export type Winbacks = Output<"campaign.winbacks">;
 export type WinbackCounts = NonNullable<Winbacks["events"][number]["counts"]>;
+export type Board = Output<"campaign.board">;
+export type BoardRow = Board["campaigns"][number];
+export type BoardMoney = Board["money"][number];
+export type Reconciliation = Output<"campaign.reconciliation">;
 
 export const OBJECTIVES: { value: Objective; label: string }[] = [
   { value: "deposit_growth", label: "Deposit growth" },
