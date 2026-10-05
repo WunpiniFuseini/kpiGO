@@ -88,6 +88,7 @@ class RunOut(BaseModel):
     error: str | None
     registered_members: list[str] = []
     registered_product_lines: list[str] = []
+    registered_widget_keys: list[str] = []
     findings: list[Finding] = []
     findings_total: int = 0
 
@@ -147,6 +148,7 @@ def run_out(run: FeedRun, *, idempotent: bool = False, result: RunResult | None 
         error=run.error_text,
         registered_members=registered.get("members", []),
         registered_product_lines=registered.get("product_lines", []),
+        registered_widget_keys=registered.get("widget_keys", []),
         findings=findings,
         findings_total=total,
     )

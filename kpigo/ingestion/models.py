@@ -11,7 +11,13 @@ import uuid
 from django.db import models
 
 from kpigo.hierarchy.models import Assignment, Subject
-from kpigo.ingestion.validator import DRIVERS, GATES, LOADABLE_TEMPLATES, TEMPLATES
+from kpigo.ingestion.validator import (
+    DRIVERS,
+    GATES,
+    LOADABLE_TEMPLATES,
+    TEMPLATES,
+    WIDGET_SERIES,
+)
 from kpigo.metrics.models import Metric
 from kpigo.platform.db import Stamped, Tracked, one_of
 from kpigo.platform.vocab import PERIOD_KEY_PATTERN
@@ -324,6 +330,7 @@ class TmplWidgetData(Landing):
     member_code = _text()
     series_type = _text()
     value = _text()
+    currency_code = _text()
 
     class Meta:
         db_table = "tmpl_widget_data"
@@ -463,6 +470,58 @@ class FactActualDimensional(Stamped):
 
     def __str__(self) -> str:
         return f"{self.metric_id} {self.dimension_type}:{self.member_code} {self.period_key}"
+
+
+class FactWidgetData(Stamped):
+    """One series value for one metric of one Executive widget (Scope §10.5).
+
+    Pre-shaped by the client's DE team and read as it is. ``dimension_type`` and
+    ``member_code`` are both '' for an organisation-level value.
+    """
+
+    fact_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    widget_key = models.TextField()
+    metric = models.ForeignKey(Metric, on_delete=models.PROTECT, related_name="+")
+    period_key = models.CharField(max_length=6)
+    dimension_type = models.TextField(db_default="")
+    member_code = models.TextField(db_default="")
+    series_type = models.TextField()
+    value = models.DecimalField(max_digits=18, decimal_places=4)
+    currency_code = models.CharField(max_length=3, null=True)
+    run_id = models.UUIDField(null=True)
+    loaded_at = models.DateTimeField()
+
+    class Meta:
+        db_table = "fact_widget_data"
+        constraints = [
+            _period_check("fact_widget_data_period_key_valid"),
+            one_of("series_type", WIDGET_SERIES, "fact_widget_data_series_valid"),
+            models.CheckConstraint(
+                condition=models.Q(dimension_type="", member_code="")
+                | (~models.Q(dimension_type="") & ~models.Q(member_code="")),
+                name="fact_widget_data_whole_dimension",
+            ),
+            models.UniqueConstraint(
+                fields=[
+                    "org_id",
+                    "widget_key",
+                    "metric",
+                    "period_key",
+                    "dimension_type",
+                    "member_code",
+                    "series_type",
+                ],
+                name="fact_widget_data_grain",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["org_id", "widget_key", "period_key"], name="fact_widget_key"),
+            models.Index(fields=["run_id"], name="fact_widget_run"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.widget_key} {self.metric_id} {self.period_key} {self.series_type}"
 
 
 # ── daily retention (PRD AP-12, Scope §8.4) ─────────────────────────────────

@@ -26,9 +26,16 @@ from kpigo.campaigns.models import (
     CampaignPopulation,
     CampaignWinback,
 )
+from kpigo.executive.models import WidgetDefinition
 from kpigo.hierarchy.models import DimMember, ProductLine
 from kpigo.ingestion import validator as v
-from kpigo.ingestion.models import FactActualDimensional, FactActualMonthly, Feed, FeedRun
+from kpigo.ingestion.models import (
+    FactActualDimensional,
+    FactActualMonthly,
+    FactWidgetData,
+    Feed,
+    FeedRun,
+)
 
 BATCH = 5000
 
@@ -53,7 +60,10 @@ def register_unmapped(
     """Codes the feed carried that kpiGo did not know, registered as ``available`` (IN-11)."""
     members: set[tuple[str, str]] = set()
     lines: dict[str, date] = {}
+    widget_keys: set[str] = set()
     for row in rows:
+        if "widget_key" in row.unmapped:
+            widget_keys.add(row.unmapped["widget_key"])
         if "member" in row.unmapped:
             members.add((str(row.values["dimension_type"]), row.unmapped["member"]))
         if "product_line" in row.unmapped:
@@ -95,9 +105,28 @@ def register_unmapped(
             ],
             ignore_conflicts=True,
         )
+    if widget_keys:
+        # Available, untyped: the Admin places it and chooses how it renders (App Flow §6.1).
+        WidgetDefinition.objects.bulk_create(
+            [
+                WidgetDefinition(
+                    org_id=org_id,
+                    widget_key=key,
+                    version=1,
+                    is_current=True,
+                    state="available",
+                    change="detected",
+                    first_detected_at=now,
+                    created_by=user_id,
+                )
+                for key in sorted(widget_keys)
+            ],
+            ignore_conflicts=True,
+        )
     return {
         "members": [f"{dim}:{code}" for dim, code in sorted(members)],
         "product_lines": sorted(lines),
+        "widget_keys": sorted(widget_keys),
     }
 
 
@@ -186,6 +215,55 @@ def write_dimensional(
             update_conflicts=True,
             unique_fields=["metric", "dimension_type", "member_code", "period_key"],
             update_fields=["actual_value", "currency_code", "run_id", "loaded_at"],
+        )
+
+
+def write_widget_data(
+    feed: Feed, run: FeedRun, rows: list[v.Row], previous: list[str], now: datetime
+) -> None:
+    """A changed reload replaces what earlier runs wrote for the same widget, metric and month."""
+    slices: dict[tuple[str, str], set[str]] = defaultdict(set)
+    for row in rows:
+        key = (str(row.values["widget_key"]), row.resolved["metric_id"])
+        slices[key].add(str(row.values["period_key"]))
+    if previous:
+        match = Q()
+        for (widget_key, metric_id), periods in slices.items():
+            match |= Q(widget_key=widget_key, metric_id=metric_id, period_key__in=sorted(periods))
+        FactWidgetData.objects.filter(org_id=feed.org_id, run_id__in=previous).filter(
+            match
+        ).delete()
+    facts = [
+        FactWidgetData(
+            org_id=feed.org_id,
+            widget_key=str(row.values["widget_key"]),
+            metric_id=row.resolved["metric_id"],
+            period_key=str(row.values["period_key"]),
+            dimension_type=str(row.values.get("dimension_type") or ""),
+            member_code=str(row.values.get("member_code") or ""),
+            series_type=str(row.values["series_type"]),
+            value=row.values["value"],
+            currency_code=row.values.get("currency_code"),
+            run_id=run.run_id,
+            loaded_at=now,
+            created_by=run.created_by,
+        )
+        for row in rows
+    ]
+    for chunk in _chunks(facts):
+        FactWidgetData.objects.bulk_create(
+            chunk,
+            update_conflicts=True,
+            unique_fields=[
+                "org_id",
+                "widget_key",
+                "metric",
+                "period_key",
+                "dimension_type",
+                "member_code",
+                "series_type",
+            ],
+            update_fields=["value", "currency_code", "run_id", "loaded_at"],
         )
 
 
@@ -465,5 +543,6 @@ WRITERS = {
     "campaign_population": write_campaign_population,
     "campaign_contact": write_campaign_contact,
     "campaign_winback": write_campaign_winback,
+    "widget_data": write_widget_data,
 }
 assert set(WRITERS) == set(v.LOADABLE_TEMPLATES), "every loadable template needs a writer"

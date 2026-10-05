@@ -237,7 +237,7 @@ def execute(
     feed.last_success_at = run.finished_at
     _after_live(feed, run, dry_run)
     freshness.refresh(feed, timezone.now())
-    if registered.get("members") or registered.get("product_lines"):
+    if any(registered.values()):
         ctx.audit("feed.unmapped_registered", feed=feed.name, run_id=str(run.run_id), **registered)
     ctx.audit(
         "feed.loaded",

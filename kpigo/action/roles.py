@@ -99,6 +99,10 @@ CAMPAIGN_CONFIG = "campaign.config.manage"
 # Publishing a campaign result into the shared registry as a metric (PRD CM-19);
 # weightier than authoring a campaign, so a distinct grant alongside the author's.
 CAMPAIGN_PUBLISH = "campaign.metric.publish"
+# Executive Dashboard (PRD EX-*): reading it (data scope narrows what each reader
+# sees); placing widgets and choosing their types is an Admin's (Scope §13.3).
+EXECUTIVE_VIEW = "executive.view"
+WIDGET_MANAGE = "widget.manage"
 
 SYSTEM_ROLES: dict[str, RoleSpec] = {
     r.code: r
@@ -130,6 +134,8 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *CAMPAIGN_AUTHOR,
             CAMPAIGN_CONFIG,
             CAMPAIGN_PUBLISH,
+            EXECUTIVE_VIEW,
+            WIDGET_MANAGE,
         ),
         _role(
             "executive",
@@ -139,6 +145,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *SCORECARD_READER,
             INPUT_FOLLOWUP,
             AGENT_VIEW,
+            EXECUTIVE_VIEW,
         ),
         _role(
             "line_manager",

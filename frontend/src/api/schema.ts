@@ -3387,6 +3387,125 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/widget.dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Executive dashboard's placed widgets, in grid order. */
+        get: operations["widget_dashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/widget.history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every version of a widget's definition, newest first. */
+        get: operations["widget_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/widget.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every widget key: placed, available from a feed, and optionally removed. */
+        get: operations["widget_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/widget.place": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Place a widget on the Executive dashboard: metrics, type, breakdown and series. */
+        post: operations["widget_place"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/widget.remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Take a widget off the dashboard for everyone; its history is kept. */
+        post: operations["widget_remove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/widget.thresholds.set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Override a widget's threshold bands, or return them to the metric's. */
+        post: operations["widget_thresholds_set"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/widget.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change a placed widget: its type, metrics, breakdown, series, title or position. */
+        post: operations["widget_update"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/approval-policies": {
         parameters: {
             query?: never;
@@ -5705,7 +5824,7 @@ export interface components {
             /** Source Object */
             source_object?: string | null;
             /** Template */
-            template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback") | null;
+            template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback" | "widget_data") | null;
         };
         /** ConnectionTestOut */
         ConnectionTestOut: {
@@ -6503,7 +6622,7 @@ export interface components {
             /** Freshness State */
             freshness_state?: ("never_loaded" | "fresh" | "stale") | null;
             /** Template */
-            template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback") | null;
+            template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback" | "widget_data") | null;
         };
         /** FeedListOut */
         FeedListOut: {
@@ -6596,7 +6715,7 @@ export interface components {
              * Template
              * @enum {string}
              */
-            template: "actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback";
+            template: "actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback" | "widget_data";
             /**
              * Volume Reject Pct
              * @default 75
@@ -8366,6 +8485,29 @@ export interface components {
             /** Value Metric Code */
             value_metric_code?: string | null;
         };
+        /** PlaceWidgetIn */
+        PlaceWidgetIn: {
+            /** Dimension */
+            dimension?: string | null;
+            layout?: components["schemas"]["WidgetLayoutIn"] | null;
+            /** Metrics */
+            metrics: components["schemas"]["WidgetMetricIn"][];
+            options?: components["schemas"]["WidgetOptionsIn"];
+            /** Series */
+            series?: ("actual" | "target" | "forecast" | "budget" | "prior" | "prior_year")[];
+            /**
+             * Title
+             * @default
+             */
+            title?: string;
+            /** Widget Key */
+            widget_key: string;
+            /**
+             * Widget Type
+             * @enum {string}
+             */
+            widget_type: "kpi_card" | "bullet" | "gauge" | "bar" | "line" | "pie" | "ranked_list" | "table" | "funnel";
+        };
         /** PlacementClearIn */
         PlacementClearIn: {
             /** Metric Code */
@@ -9119,6 +9261,13 @@ export interface components {
             /** Unlicensed */
             unlicensed: string[];
         };
+        /** RemoveWidgetIn */
+        RemoveWidgetIn: {
+            /** Expected Version */
+            expected_version?: number | null;
+            /** Widget Key */
+            widget_key: string;
+        };
         /** ResendIn */
         ResendIn: {
             /**
@@ -9282,6 +9431,11 @@ export interface components {
              * @default []
              */
             registered_product_lines?: string[];
+            /**
+             * Registered Widget Keys
+             * @default []
+             */
+            registered_widget_keys?: string[];
             /** Restatement */
             restatement: boolean;
             /** Rows Accepted */
@@ -9565,6 +9719,14 @@ export interface components {
              * @enum {string}
              */
             status: "draft" | "active" | "inactive" | "deprecated";
+        };
+        /** SetThresholdsIn */
+        SetThresholdsIn: {
+            /** Expected Version */
+            expected_version?: number | null;
+            thresholds: components["schemas"]["WidgetThresholdsIn"];
+            /** Widget Key */
+            widget_key: string;
         };
         /** SettingsOut */
         SettingsOut: {
@@ -10126,6 +10288,20 @@ export interface components {
             /** Ok */
             ok: boolean;
         };
+        /** ThresholdBandIn */
+        ThresholdBandIn: {
+            /** Label */
+            label: string;
+            /** Threshold */
+            threshold: number | string;
+        };
+        /** ThresholdBandOut */
+        ThresholdBandOut: {
+            /** Label */
+            label: string;
+            /** Threshold */
+            threshold: string;
+        };
         /** TickIn */
         TickIn: Record<string, never>;
         /** TickOut */
@@ -10172,6 +10348,30 @@ export interface components {
             /** New Period */
             new_period: boolean;
             superseded?: components["schemas"]["MetricOut"] | null;
+        };
+        /** UpdateWidgetIn */
+        UpdateWidgetIn: {
+            /**
+             * Clear Dimension
+             * @default false
+             */
+            clear_dimension?: boolean;
+            /** Dimension */
+            dimension?: string | null;
+            /** Expected Version */
+            expected_version?: number | null;
+            layout?: components["schemas"]["WidgetLayoutIn"] | null;
+            /** Metrics */
+            metrics?: components["schemas"]["WidgetMetricIn"][] | null;
+            options?: components["schemas"]["WidgetOptionsIn"] | null;
+            /** Series */
+            series?: ("actual" | "target" | "forecast" | "budget" | "prior" | "prior_year")[] | null;
+            /** Title */
+            title?: string | null;
+            /** Widget Key */
+            widget_key: string;
+            /** Widget Type */
+            widget_type?: ("kpi_card" | "bullet" | "gauge" | "bar" | "line" | "pie" | "ranked_list" | "table" | "funnel") | null;
         };
         /** Upload */
         Upload: {
@@ -10416,6 +10616,218 @@ export interface components {
             }[];
             /** Weight Sum */
             weight_sum: string;
+        };
+        /** WidgetDashboardOut */
+        WidgetDashboardOut: {
+            /** Types */
+            types: components["schemas"]["WidgetTypeOut"][];
+            /** Widgets */
+            widgets: components["schemas"]["WidgetOut"][];
+        };
+        /** WidgetHistoryInQuery */
+        WidgetHistoryInQuery: {
+            /** Widget Key */
+            widget_key: string;
+        };
+        /** WidgetHistoryOut */
+        WidgetHistoryOut: {
+            /** Versions */
+            versions: components["schemas"]["WidgetOut"][];
+            /** Widget Key */
+            widget_key: string;
+        };
+        /**
+         * WidgetLayoutIn
+         * @description Position on the dashboard's twelve-column grid.
+         */
+        WidgetLayoutIn: {
+            /** H */
+            h: number;
+            /** W */
+            w: number;
+            /** X */
+            x: number;
+            /** Y */
+            y: number;
+        };
+        /** WidgetLayoutOut */
+        WidgetLayoutOut: {
+            /** H */
+            h: number;
+            /** W */
+            w: number;
+            /** X */
+            x: number;
+            /** Y */
+            y: number;
+        };
+        /** WidgetListInQuery */
+        WidgetListInQuery: {
+            /**
+             * Include Removed
+             * @default false
+             */
+            include_removed?: boolean;
+        };
+        /** WidgetListOut */
+        WidgetListOut: {
+            /** Types */
+            types: components["schemas"]["WidgetTypeOut"][];
+            /** Widgets */
+            widgets: components["schemas"]["WidgetOut"][];
+        };
+        /** WidgetMetricIn */
+        WidgetMetricIn: {
+            /** Metric Code */
+            metric_code: string;
+            /** Source */
+            source?: ("independent" | "rollup" | "campaign") | null;
+        };
+        /** WidgetMetricOut */
+        WidgetMetricOut: {
+            /** Metric Code */
+            metric_code: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "independent" | "rollup" | "campaign";
+        };
+        /** WidgetOptionsIn */
+        WidgetOptionsIn: {
+            /**
+             * Sparkline
+             * @default false
+             */
+            sparkline?: boolean;
+            /**
+             * Top N
+             * @default 10
+             */
+            top_n?: number;
+        };
+        /** WidgetOptionsOut */
+        WidgetOptionsOut: {
+            /** Sparkline */
+            sparkline: boolean;
+            /** Top N */
+            top_n: number;
+        };
+        /** WidgetOut */
+        WidgetOut: {
+            /** Approval Request Id */
+            approval_request_id: string | null;
+            /** Change */
+            change: string;
+            /**
+             * Changed At
+             * Format: date-time
+             */
+            changed_at: string;
+            /** Changed By */
+            changed_by: number | null;
+            /** Dimension */
+            dimension: string | null;
+            /** First Detected At */
+            first_detected_at: string | null;
+            layout: components["schemas"]["WidgetLayoutOut"] | null;
+            /** Metrics */
+            metrics: components["schemas"]["WidgetMetricOut"][];
+            options: components["schemas"]["WidgetOptionsOut"];
+            /** Series */
+            series: ("actual" | "target" | "forecast" | "budget" | "prior" | "prior_year")[];
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "available" | "placed" | "removed";
+            thresholds: components["schemas"]["WidgetThresholdsOut"];
+            /** Title */
+            title: string;
+            /** Version */
+            version: number;
+            /** Widget Key */
+            widget_key: string;
+            /** Widget Type */
+            widget_type: ("kpi_card" | "bullet" | "gauge" | "bar" | "line" | "pie" | "ranked_list" | "table" | "funnel") | null;
+        };
+        /**
+         * WidgetThresholdsIn
+         * @description ``metric``: the metric's target and the client's rating bands. ``override``: these bands.
+         */
+        WidgetThresholdsIn: {
+            /** Bands */
+            bands?: components["schemas"]["ThresholdBandIn"][];
+            /** Basis */
+            basis?: ("achievement" | "value") | null;
+            /**
+             * Note
+             * @default
+             */
+            note?: string;
+            /**
+             * Source
+             * @default metric
+             * @enum {string}
+             */
+            source?: "metric" | "override";
+        };
+        /** WidgetThresholdsOut */
+        WidgetThresholdsOut: {
+            /** Bands */
+            bands: components["schemas"]["ThresholdBandOut"][];
+            /** Basis */
+            basis: ("achievement" | "value") | null;
+            /** Note */
+            note: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "metric" | "override";
+        };
+        /**
+         * WidgetTypeOut
+         * @description What one type in the bundle can draw, so the UI greys out what it cannot.
+         */
+        WidgetTypeOut: {
+            /** Additive Only */
+            additive_only: boolean;
+            /** Comparisons */
+            comparisons: boolean;
+            /** Default H */
+            default_h: number;
+            /** Default W */
+            default_w: number;
+            /**
+             * Dimension Multi
+             * @enum {string}
+             */
+            dimension_multi: "never" | "optional" | "required";
+            /**
+             * Dimension Single
+             * @enum {string}
+             */
+            dimension_single: "never" | "optional" | "required";
+            /** Label */
+            label: string;
+            /** Max Metrics */
+            max_metrics: number;
+            /** Min Metrics */
+            min_metrics: number;
+            /** Needs Comparison */
+            needs_comparison: boolean;
+            /** One Unit */
+            one_unit: boolean;
+            /** Renders */
+            renders: string;
+            /** Thresholds */
+            thresholds: boolean;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "kpi_card" | "bullet" | "gauge" | "bar" | "line" | "pie" | "ranked_list" | "table" | "funnel";
         };
         /** WindowOut */
         WindowOut: {
@@ -14998,7 +15410,7 @@ export interface operations {
             query: {
                 name: string;
                 source_object?: string | null;
-                template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback") | null;
+                template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback" | "widget_data") | null;
             };
             header?: never;
             path?: never;
@@ -16435,7 +16847,7 @@ export interface operations {
         parameters: {
             query?: {
                 freshness_state?: ("never_loaded" | "fresh" | "stale") | null;
-                template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback") | null;
+                template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback" | "widget_data") | null;
             };
             header?: never;
             path?: never;
@@ -25634,6 +26046,526 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RebuildOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    widget_dashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WidgetDashboardOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    widget_history: {
+        parameters: {
+            query: {
+                widget_key: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WidgetHistoryOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    widget_list: {
+        parameters: {
+            query?: {
+                include_removed?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WidgetListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    widget_place: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceWidgetIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WidgetOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    widget_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemoveWidgetIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WidgetOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    widget_thresholds_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetThresholdsIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WidgetOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    widget_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateWidgetIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WidgetOut"];
                 };
             };
             /** @description Unauthorized */
