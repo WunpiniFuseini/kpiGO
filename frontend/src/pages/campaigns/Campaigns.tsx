@@ -333,8 +333,10 @@ export function CampaignPage() {
   const [value, reloadValue] = useQuery("campaign.value", { campaign_id: campaignId });
   const [winbacks, reloadWinbacks] = useQuery("campaign.winbacks", { campaign_id: campaignId });
   const [reconciliation, reloadReconciliation] = useQuery("campaign.reconciliation", { campaign_id: campaignId });
+  const [published, reloadPublished] = useQuery("campaign.metrics", { campaign_id: campaignId });
   const reload = () => {
     reloadReconciliation();
+    reloadPublished();
     reloadCampaign();
     reloadReach();
     reloadValue();
@@ -363,9 +365,9 @@ export function CampaignPage() {
           <ErrorPanel error={data.error} retry={reload} what="The campaign" />
         )
       ) : canManage ? (
-        <ManagedCampaign campaign={data.data} onChanged={reload} reach={reach} value={value} winbacks={winbacks} reconciliation={reconciliation} />
+        <ManagedCampaign campaign={data.data} onChanged={reload} reach={reach} value={value} winbacks={winbacks} reconciliation={reconciliation} published={published} />
       ) : (
-        <CampaignDetailView campaign={data.data} canManage={false} reach={reach} value={value} winbacks={winbacks} reconciliation={reconciliation} />
+        <CampaignDetailView campaign={data.data} canManage={false} reach={reach} value={value} winbacks={winbacks} reconciliation={reconciliation} published={published} />
       )}
     </Page>
   );
@@ -373,7 +375,7 @@ export function CampaignPage() {
 
 type DetailProps = Parameters<typeof CampaignDetailView>[0];
 
-function ManagedCampaign({ campaign, onChanged, reach, value, winbacks, reconciliation }: { campaign: DetailProps["campaign"]; onChanged: () => void; reach: DetailProps["reach"]; value: DetailProps["value"]; winbacks: DetailProps["winbacks"]; reconciliation: DetailProps["reconciliation"] }) {
+function ManagedCampaign({ campaign, onChanged, reach, value, winbacks, reconciliation, published }: { campaign: DetailProps["campaign"]; onChanged: () => void; reach: DetailProps["reach"]; value: DetailProps["value"]; winbacks: DetailProps["winbacks"]; reconciliation: DetailProps["reconciliation"]; published: DetailProps["published"] }) {
   const [ref, reload] = useQuery("campaign.builder.reference", {});
   if (ref.status === "loading") {
     return (
@@ -383,6 +385,6 @@ function ManagedCampaign({ campaign, onChanged, reach, value, winbacks, reconcil
     );
   }
   if (ref.status === "error") return <ErrorPanel error={ref.error} retry={reload} what="The campaign builder" />;
-  return <CampaignDetailView campaign={campaign} reference={ref.data} canManage onChanged={onChanged} reach={reach} value={value} winbacks={winbacks} reconciliation={reconciliation} />;
+  return <CampaignDetailView campaign={campaign} reference={ref.data} canManage onChanged={onChanged} reach={reach} value={value} winbacks={winbacks} reconciliation={reconciliation} published={published} />;
 }
 

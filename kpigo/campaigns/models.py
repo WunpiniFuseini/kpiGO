@@ -46,6 +46,16 @@ DEFAULT_RETENTION_DAYS = 90
 RULES_APPLIED = ("single", "holdout", *ATTRIBUTION_RULES)
 # Campaign value headline (Scope §9.2): incremental by default, gross always beside it.
 VALUE_BASES = ("incremental", "gross")
+# Campaign results a client may publish into the registry as a metric (Scope §9.5, CM-19).
+RESULT_KINDS = (
+    "attributed_value",
+    "incremental_value",
+    "conversions",
+    "conversion_rate",
+    "winbacks_confirmed",
+)
+# A published metric is live until it is withdrawn; a withdrawn one frees the slot to re-publish.
+PUBLISHED_STATUSES = ("active", "withdrawn")
 # A customer's baseline: clean, absent because they have no history (new to bank),
 # or contaminated by an earlier event that reached them in the baseline window.
 BASELINE_CONFIDENCE = ("high", "new_customer", "low_contaminated_baseline")
@@ -527,3 +537,41 @@ class CampaignBaseline(Stamped):
 
     def __str__(self) -> str:
         return f"{self.event_id} {self.customer_ref} {self.confidence}"
+
+
+class CampaignPublishedMetric(Tracked):
+    """A campaign result exposed in the registry as a metric (Scope §9.5, PRD CM-19).
+
+    Publishing is explicit, never automatic: a client chooses a result (an RM's
+    attributed campaign revenue, a campaign's conversion rate) and registers it as
+    a metric bound to ``scorecards``, ``agent_sales`` or ``executive`` like any
+    other. This row is the lineage link the published metric carries, so every
+    surface that shows the metric can badge which campaign it derives from.
+    """
+
+    published_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    campaign = models.ForeignKey(
+        Campaign, on_delete=models.PROTECT, related_name="published_metrics"
+    )
+    # The registry metric this result was published as.
+    metric = models.ForeignKey("metrics.Metric", on_delete=models.PROTECT, related_name="+")
+    result_kind = models.TextField()
+    status = models.TextField(db_default="active")
+    withdrawn_at = models.DateTimeField(null=True)
+
+    class Meta:
+        db_table = "campaign_published_metric"
+        constraints = [
+            one_of("result_kind", RESULT_KINDS, "campaign_published_result_kind_valid"),
+            one_of("status", PUBLISHED_STATUSES, "campaign_published_status_valid"),
+            # One lineage row per result per campaign; withdraw/re-publish reactivates it,
+            # so the registry metric is created once and its code stays stable.
+            models.UniqueConstraint(
+                fields=["campaign", "result_kind"],
+                name="campaign_published_one_per_result",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.campaign_id} → {self.result_kind} ({self.status})"

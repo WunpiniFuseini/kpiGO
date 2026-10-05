@@ -6,6 +6,7 @@ import { ROUTES, type ActionName } from "../api/actions";
 import { setTransport } from "../api/client";
 import { formatDate } from "../lib/format";
 import { BoardSummary, ReconciliationPanel } from "../pages/campaigns/Board";
+import { PublishPanel } from "../pages/campaigns/Publish";
 import { CampaignBuilder, CampaignListView } from "../pages/campaigns/Campaigns";
 import { CampaignDetailView } from "../pages/campaigns/Detail";
 import { blankEvent, describeAudience, describeEstimate, percent, validateEvent } from "../pages/campaigns/model";
@@ -22,6 +23,8 @@ import {
   campaignReconciliation,
   campaignReconciliationNoOutcomes,
   campaignReconciliationNothingPublished,
+  campaignPublished,
+  campaignPublishedNone,
   campaignValue,
   campaignValueGross,
   campaignWinbackDetail,
@@ -378,5 +381,44 @@ describe("reconciliation", () => {
     unmount();
     routed(<ReconciliationPanel campaign={campaignAllDrafts} reconciliation={ready(campaignReconciliationNothingPublished)} />);
     expect(screen.getByText("Nothing is published yet, so there is nothing to reconcile.")).toBeInTheDocument();
+  });
+});
+
+describe("publish as metric", () => {
+  const ready = <T,>(data: T) => ({ status: "ready" as const, data, refreshing: false });
+
+  it("lists published metrics with their lineage and state", () => {
+    const act = vi.fn(async () => true);
+    routed(<PublishPanel campaign={campaignDetail} published={ready(campaignPublished)} canManage={false} busy={false} act={act} />);
+    const panel = screen.getByRole("region", { name: "Published as metrics" });
+    const list = within(panel).getByRole("list", { name: "Published metrics" });
+    expect(within(list).getByText("RM campaign revenue")).toBeInTheDocument();
+    expect(within(list).getByText("Live")).toBeInTheDocument();
+    expect(within(list).getByText("Withdrawn")).toBeInTheDocument();
+    expect(within(list).getAllByText(/Lineage · SAVE-Q4/).length).toBe(2);
+    // A viewer gets no controls.
+    expect(within(panel).queryByRole("button", { name: "Withdraw" })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("button", { name: "Publish" })).not.toBeInTheDocument();
+  });
+
+  it("lets a manager withdraw a live metric and publish a free result", async () => {
+    const act = vi.fn(async () => true);
+    routed(<PublishPanel campaign={campaignDetail} published={ready(campaignPublished)} canManage busy={false} act={act} />);
+    fireEvent.click(screen.getByRole("button", { name: "Withdraw" }));
+    expect(act).toHaveBeenCalledTimes(1);
+    // The form offers the results not already live (attributed_value is taken).
+    const result = screen.getByLabelText("Result") as HTMLSelectElement;
+    const options = Array.from(result.options).map((o) => o.textContent);
+    expect(options).toContain("Conversions");
+    expect(options).not.toContain("Attributed value");
+    fireEvent.click(screen.getByRole("button", { name: "Publish" }));
+    expect(act).toHaveBeenCalledTimes(2);
+  });
+
+  it("invites a manager to publish when nothing is published yet", () => {
+    const act = vi.fn(async () => true);
+    routed(<PublishPanel campaign={campaignDetail} published={ready(campaignPublishedNone)} canManage busy={false} act={act} />);
+    expect(screen.getByText("Nothing from this campaign is published as a metric yet.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Publish" })).toBeInTheDocument();
   });
 });

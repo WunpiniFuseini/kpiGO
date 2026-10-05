@@ -25,6 +25,10 @@ export type Board = Output<"campaign.board">;
 export type BoardRow = Board["campaigns"][number];
 export type BoardMoney = Board["money"][number];
 export type Reconciliation = Output<"campaign.reconciliation">;
+export type PublishedMetrics = Output<"campaign.metrics">;
+export type PublishedMetric = PublishedMetrics["published"][number];
+export type ResultKind = Input<"campaign.metric.publish">["result_kind"];
+export type MetricProduct = NonNullable<Input<"campaign.metric.publish">["products"]>[number];
 
 export const OBJECTIVES: { value: Objective; label: string }[] = [
   { value: "deposit_growth", label: "Deposit growth" },
@@ -294,3 +298,20 @@ export function controlText(v: EventValue): string {
       return c.small ? "The control group has fewer than 30 customers, so read the lift as indicative only." : "";
   }
 }
+
+// Campaign results a client can publish into the registry as a metric (CM-19).
+export const RESULT_KINDS: { value: ResultKind; label: string; hint: string }[] = [
+  { value: "attributed_value", label: "Attributed value", hint: "Value credited to the campaign, summed in its currency." },
+  { value: "incremental_value", label: "Incremental value", hint: "Value above the baseline, where it is measured." },
+  { value: "conversions", label: "Conversions", hint: "Customers the campaign converted, counted." },
+  { value: "conversion_rate", label: "Conversion rate", hint: "Converted as a share of those reached, averaged." },
+  { value: "winbacks_confirmed", label: "Confirmed win-backs", hint: "Win-backs past their retention window." },
+];
+
+export const METRIC_PRODUCTS: { value: MetricProduct; label: string }[] = [
+  { value: "scorecards", label: "Scorecards" },
+  { value: "agent_sales", label: "Agent Sales" },
+  { value: "agent_service", label: "Agent Service" },
+  { value: "executive", label: "Executive" },
+  { value: "campaign", label: "Campaign" },
+];

@@ -96,6 +96,9 @@ PRODUCT_LINES = "product_line.manage"
 CAMPAIGN_VIEW = "campaign.view"
 CAMPAIGN_AUTHOR = ("campaign.view", "campaign.manage")
 CAMPAIGN_CONFIG = "campaign.config.manage"
+# Publishing a campaign result into the shared registry as a metric (PRD CM-19);
+# weightier than authoring a campaign, so a distinct grant alongside the author's.
+CAMPAIGN_PUBLISH = "campaign.metric.publish"
 
 SYSTEM_ROLES: dict[str, RoleSpec] = {
     r.code: r
@@ -126,6 +129,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             PRODUCT_LINES,
             *CAMPAIGN_AUTHOR,
             CAMPAIGN_CONFIG,
+            CAMPAIGN_PUBLISH,
         ),
         _role(
             "executive",
@@ -155,6 +159,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "dimension.view",
             AGENT_VIEW,
             *CAMPAIGN_AUTHOR,
+            CAMPAIGN_PUBLISH,
         ),
         _role(
             "metric_owner",
