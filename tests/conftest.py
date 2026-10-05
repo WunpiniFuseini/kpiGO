@@ -2,8 +2,9 @@ from collections.abc import Callable, Iterator
 from typing import Any
 
 import pytest
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 
+from kpigo.access.models import AppUser, UserRole
 from kpigo.action import ActionContext, invoke, registry
 from kpigo.action.definition import ActionDefinition
 from kpigo.action.roles import SYSTEM_ROLES
@@ -13,10 +14,26 @@ from kpigo.action.roles import SYSTEM_ROLES
 def make_user(db: None) -> Callable[..., User]:
     counter = iter(range(10_000))
 
-    def make(*roles: str, username: str | None = None, **extra: Any) -> User:
-        user = User.objects.create_user(username=username or f"user{next(counter)}", **extra)
+    def make(
+        *roles: str, username: str | None = None, status: str = "active", **extra: Any
+    ) -> User:
+        """A signed-in-able user: Django user plus kpiGo account, linked by email."""
+        from kpigo.hierarchy.models import Subject
+
+        username = username or f"user{next(counter)}"
+        email = extra.pop("email", None) or f"{username}@test.example"
+        user = User.objects.create_user(username=username, email=email, **extra)
+        account = AppUser.objects.create(
+            org_id=ORG_ID,
+            auth_user=user,
+            email=email.lower(),
+            display_name=username,
+            subject=Subject.objects.filter(org_id=ORG_ID, email=email, status="active").first(),
+            auth_provider="local",
+            status=status,
+        )
         for role in roles:
-            user.groups.add(Group.objects.get_or_create(name=role)[0])
+            UserRole.objects.create(org_id=ORG_ID, app_user=account, role_code=role)
         return user
 
     return make

@@ -26,6 +26,33 @@ scripts/smoke.sh              # hello over HTTP, CLI and a worker job, plus audi
 Services: `postgres` (16), `redis`, `migrate` (one-shot), `app` (ASGI on :8000),
 `worker` and `beat` (Celery). nginx with TLS joins at R5 packaging.
 
+## First run, sign-in and the licence
+
+1. Set `KPIGO_SETUP_TOKEN` in `.env`, start the stack, and create the first
+   Admin: `docker compose exec app python manage.py action setup.bootstrap --json
+   '{"setup_token": "...", "email": "...", "display_name": "...", "password": "..."}'`
+   (or the setup screen). It works only while no Admin exists.
+2. `setup.status` shows the **install fingerprint**. kpiGo issues a signed
+   licence for it; the Admin activates it with `licence.activate`, offline.
+   Modules load from the licence file on the next restart. A production install
+   without a licence runs only setup, sign-in, the licence screen and health.
+   `KPIGO_DEBUG=true` is a development install: no licence, modules from
+   `KPIGO_ENTITLED_MODULES`.
+3. Users are invited (`user.invite`), never self-registered. Sign-in is local
+   (Argon2id), an LDAP bind, OIDC or SAML; configure the providers in `.env`.
+   MFA is the identity provider's job (`KPIGO_OIDC_REQUIRE_MFA` and
+   `KPIGO_SAML_REQUIRED_AUTHN_CONTEXT` refuse sign-ins that skipped it).
+4. Import the roster from LDAP, Entra ID or a CSV with
+   `directory.import.preview`; review the diff; `directory.import.apply`.
+
+After expiry a licence gives 30 days of full function, then 45 days read-only,
+then locks to the licence screen. Data is never touched at any stage. The
+licence heartbeat (`KPIGO_LICENCE_HEARTBEAT_URL`) is the only outbound call and
+sends the licence key, install fingerprint and product version, nothing else.
+
+Licences are signed with `tools/licence_vendor.py` (vendor side, offline). The
+public keys a build trusts are in `kpigo/licence/document.py`.
+
 ## Develop
 
 Python 3.12 with [uv](https://docs.astral.sh/uv/), Postgres 16 and Redis on
@@ -93,6 +120,10 @@ kpigo/
   metrics/           metric registry
   ingestion/         connections, feeds, runs, tmpl_* landing, fact_* tables
     validator.py     the feed contract and six gates; also the standalone validator
+  access/            users, roles, page access, data scope grants, sign-in, directory import
+    auth/            local + LDAP, OIDC, SAML, Entra Graph
+  licence/           signed licence, fingerprint, grace states, the pipeline's licence gate
+tools/licence_vendor.py  vendor-side key generation and licence signing
 tests/               pipeline, permission matrix, surfaces, governing rule
 ```
 

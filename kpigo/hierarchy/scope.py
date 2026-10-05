@@ -7,7 +7,6 @@ error reading it yields an empty scope, never an unfiltered one.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -40,21 +39,9 @@ def current_period_key(org_id: str) -> str:
     return period_key_for(timezone.now().astimezone(reporting_zone(org_id)).date())
 
 
-def scope_for_user(user: Any, org_id: str) -> SubjectScope:
-    """The closure scope of the subject whose email matches the user's.
-
-    Email is the directory join key (Schema §1) until ``app_user.subject_id``
-    lands with Workstream D.
-    """
-    email = str(getattr(user, "email", "") or "").strip()
-    if not email:
-        return NoSubjects()
-    subject_id = (
-        Subject.objects.filter(org_id=org_id, email=email, status="active")
-        .values_list("subject_id", flat=True)
-        .first()
-    )
-    if subject_id is None:
+def scope_for_subject(subject_id: str, org_id: str) -> SubjectScope:
+    """The closure scope of a viewer subject this period. An inactive subject sees nothing."""
+    if not Subject.objects.filter(org_id=org_id, subject_id=subject_id, status="active").exists():
         return NoSubjects()
     return ClosureScope(
         org_id=org_id, viewer_subject_id=str(subject_id), period_key=current_period_key(org_id)

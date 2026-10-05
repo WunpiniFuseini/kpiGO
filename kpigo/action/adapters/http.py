@@ -3,31 +3,42 @@
 The Pydantic schema is the request model and the output model is the response
 model, so the OpenAPI document is generated from the same definitions the CLI
 and jobs use. Authentication is the Django session; the frontend has no API
-surface of its own.
+surface of its own. Public actions (login, SSO, first-run setup) are the only
+routes without session auth; an action asks for a login or logout through
+``ctx.session`` and this adapter applies it once the action has succeeded.
 
 No `from __future__ import annotations` here: Ninja reads the endpoint annotations
 at runtime to build request models.
 """
 
 import re
+import time
 from collections.abc import Callable
 from functools import wraps
 from typing import Any
 
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
-from ninja import Body, NinjaAPI, Path, Query, Schema, Status
+from django.conf import settings
+from django.contrib.auth import login as django_login
+from django.contrib.auth import logout as django_logout
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.middleware.csrf import get_token
+from ninja import Body, Form, NinjaAPI, Path, Query, Schema, Status
 from ninja.errors import ValidationError as NinjaValidationError
 from ninja.security import django_auth
 from pydantic import BaseModel, create_model
 
+from kpigo.action.context import ActionContext, SessionBridge
 from kpigo.action.definition import ActionDefinition
-from kpigo.action.errors import ActionError
-from kpigo.action.identity import build_context
+from kpigo.action.errors import ActionError, InvalidInput, SessionExpired
+from kpigo.action.identity import anonymous_context, build_context
 from kpigo.action.pipeline import Proposal, invoke
 from kpigo.action.registry import Registry
 
 API_TITLE = "kpiGo"
 _PATH_PARAM = re.compile(r"{(\w+)}")
+# When the session signed in; the absolute session lifetime counts from here.
+AUTH_AT_KEY = "kpigo_auth_at"
+AUTH_BACKEND = "django.contrib.auth.backends.ModelBackend"
 
 
 class ErrorOut(Schema):
@@ -73,16 +84,62 @@ def _dump(model: Any) -> dict[str, Any]:
     return dumped
 
 
-def _call(definition: ActionDefinition, request: HttpRequest, raw: dict[str, Any]) -> Any:
-    ctx = build_context(
+def _check_session_age(request: HttpRequest) -> None:
+    """Idle expiry is the cookie's; this is the absolute cap on one sign-in."""
+    started = request.session.get(AUTH_AT_KEY)
+    if started is None:
+        request.session[AUTH_AT_KEY] = time.time()
+        return
+    limit = float(getattr(settings, "KPIGO_SESSION_MAX_SECONDS", 12 * 3600))
+    if time.time() - float(started) > limit:
+        django_logout(request)
+        raise SessionExpired("Your session has expired. Sign in again.")
+
+
+def _context(definition: ActionDefinition, request: HttpRequest) -> ActionContext:
+    bridge = SessionBridge(request.session)
+    if definition.public:
+        # A cross-site form cannot send JSON without a CORS preflight, so this
+        # keeps login and setup out of reach of forged form posts.
+        spec = definition.http_spec
+        if spec.method != "GET" and not spec.form and request.content_type != "application/json":
+            raise InvalidInput("Send this request as application/json.")
+        return anonymous_context(
+            caller="http",
+            request_id=_request_id(request),
+            ip_address=_client_ip(request),
+            session=bridge,
+        )
+    if request.user.is_authenticated:
+        _check_session_age(request)
+    return build_context(
         request.user,
         caller="http",
         request_id=_request_id(request),
         ip_address=_client_ip(request),
+        session=bridge,
     )
+
+
+def _apply_session(request: HttpRequest, bridge: SessionBridge) -> None:
+    if bridge.logout_requested:
+        django_logout(request)
+    elif bridge.login_user is not None:
+        django_login(request, bridge.login_user, backend=AUTH_BACKEND)  # type: ignore[arg-type]
+        request.session[AUTH_AT_KEY] = time.time()
+
+
+def _call(definition: ActionDefinition, request: HttpRequest, raw: dict[str, Any]) -> Any:
+    ctx = _context(definition, request)
     result = invoke(definition, raw, ctx)
+    _apply_session(request, ctx.session)
+    # Session-authenticated writes need the CSRF token: every response carries
+    # the cookie so the frontend can echo it in X-CSRFToken.
+    get_token(request)
     if isinstance(result, Proposal):
         return Status(202, result)
+    if definition.http_spec.redirect:
+        return HttpResponseRedirect(str(getattr(result, "redirect_to", "/")), status=303)
     return Status(200, result)
 
 
@@ -105,13 +162,24 @@ def _make_endpoint(definition: ActionDefinition) -> Callable[..., Any]:
                 query: Query[query_model],  # type: ignore[valid-type]
             ) -> Any:
                 return _call(definition, request, {**_dump(path), **_dump(query)})
-        else:
+        elif rest:
 
             def endpoint(  # type: ignore[misc]
                 request: HttpRequest,
                 query: Query[query_model],  # type: ignore[valid-type]
             ) -> Any:
                 return _call(definition, request, _dump(query))
+        else:
+
+            def endpoint(request: HttpRequest) -> Any:  # type: ignore[misc]
+                return _call(definition, request, {})
+    elif spec.form:
+
+        def endpoint(  # type: ignore[misc]
+            request: HttpRequest,
+            payload: Form[definition.schema],  # type: ignore[name-defined]
+        ) -> Any:
+            return _call(definition, request, _dump(payload))
     else:
         body_model = definition.schema
         if path_fields:
@@ -178,7 +246,7 @@ def build_api(registry: Registry, *, urls_namespace: str = "kpigo-api") -> Ninja
             operation_id=definition.name.replace(".", "_"),
             summary=definition.summary or definition.name,
             tags=[definition.module],
-            auth=django_auth,
+            auth=None if definition.public else django_auth,
             url_name=definition.name.replace(".", "-"),
         )
     return api
