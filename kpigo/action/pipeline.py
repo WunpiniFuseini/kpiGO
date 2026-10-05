@@ -49,21 +49,25 @@ class _DryRunRollback(Exception):
 def approval_enabled(approval_class: str, org_id: str | None = None) -> bool:
     """Maker-checker is per action class and off by default (PRD AD-3).
 
+    ``APPROVAL_DEFAULT_ON`` classes (campaign budgets) ship on instead.
+
     An Admin turns a class on with ``approval.policy.set``; an install may also
     force classes on in settings, which the database cannot turn off.
     """
     enabled: Any = getattr(settings, "KPIGO_APPROVAL_CLASSES_ENABLED", ())
     if approval_class in set(enabled):
         return True
-    if org_id is None:
-        return False
-    from kpigo.platform.models import ApprovalPolicy
+    from kpigo.platform.models import APPROVAL_DEFAULT_ON, ApprovalPolicy
 
-    return bool(
-        ApprovalPolicy.objects.filter(
-            org_id=org_id, approval_class=approval_class, enabled=True
-        ).exists()
+    default = approval_class in APPROVAL_DEFAULT_ON
+    if org_id is None:
+        return default
+    stored = (
+        ApprovalPolicy.objects.filter(org_id=org_id, approval_class=approval_class)
+        .values_list("enabled", flat=True)
+        .first()
     )
+    return default if stored is None else bool(stored)
 
 
 def maintenance_mode() -> bool:

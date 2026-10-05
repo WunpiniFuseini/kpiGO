@@ -201,11 +201,18 @@ APPROVAL_CLASSES = (
     "access_change",
     "target_publish",
     "manual_input",
+    "budget",
 )
+# Classes that ship switched on: no policy row means on, and an Admin may turn
+# them off. Campaign budgets are money, so a change waits for a checker (CM-5).
+APPROVAL_DEFAULT_ON = ("budget",)
 
 
 class ApprovalPolicy(Tracked):
-    """Maker-checker on or off for one action class (PRD AD-3). No row means off."""
+    """Maker-checker on or off for one action class (PRD AD-3).
+
+    No row means off, except for the classes in ``APPROVAL_DEFAULT_ON``.
+    """
 
     pk = models.CompositePrimaryKey("org_id", "approval_class")
     org_id = models.UUIDField()

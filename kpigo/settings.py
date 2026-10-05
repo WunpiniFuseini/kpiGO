@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "kpigo.licence",
     "kpigo.scorecards",
     "kpigo.agents",
+    "kpigo.campaigns",
 ]
 
 MIDDLEWARE = [

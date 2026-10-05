@@ -1,4 +1,4 @@
-"""Maker-checker per action class (PRD AD-3): configurable, off by default."""
+"""Maker-checker per action class (PRD AD-3): configurable, off by default (budgets on)."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from django.utils import timezone
 from pydantic import BaseModel
 
 from kpigo.action import ActionContext, action
-from kpigo.platform.models import APPROVAL_CLASSES, ApprovalPolicy
+from kpigo.platform.models import APPROVAL_CLASSES, APPROVAL_DEFAULT_ON, ApprovalPolicy
 
 
 class ApprovalPolicyOut(BaseModel):
@@ -32,7 +32,7 @@ def _policies(org_id: str) -> list[ApprovalPolicyOut]:
     return [
         ApprovalPolicyOut(
             approval_class=c,
-            enabled=c in forced or bool(stored.get(c, False)),
+            enabled=c in forced or bool(stored.get(c, c in APPROVAL_DEFAULT_ON)),
             forced_by_install=c in forced,
         )
         for c in APPROVAL_CLASSES
