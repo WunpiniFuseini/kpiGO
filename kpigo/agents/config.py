@@ -10,6 +10,7 @@ from kpigo.agents.models import AgentSettings
 
 AgentProduct = Literal["agent_sales", "agent_service"]
 Grain = Literal["daily", "weekly"]
+CohortType = Literal["all", "profile", "branch", "region", "cohort"]
 
 
 @dataclass(frozen=True)
@@ -19,6 +20,10 @@ class Settings:
     pace_cap: Decimal = Decimal(2)
     rag_green: Decimal = Decimal(1)
     rag_amber: Decimal = Decimal("0.85")
+    # None ranks by the composite: the mean of each metric's capped pace.
+    rank_metric_code: str | None = None
+    tiebreak_metric_code: str | None = None
+    cohort_type: str = "profile"
 
     @property
     def window(self) -> Literal["month", "week"]:
@@ -35,6 +40,9 @@ def settings_for(org_id: str, product: str) -> Settings:
         pace_cap=Decimal(row.pace_cap),
         rag_green=Decimal(row.rag_green),
         rag_amber=Decimal(row.rag_amber),
+        rank_metric_code=row.rank_metric_code,
+        tiebreak_metric_code=row.tiebreak_metric_code,
+        cohort_type=row.cohort_type,
     )
 
 

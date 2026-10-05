@@ -201,6 +201,15 @@ def ensure_daily_partitions(days: Iterable[date]) -> list[str]:
     return names
 
 
+def refresh_daily_totals() -> None:
+    """Bring ``mv_leaderboard_daily`` up to date with ``fact_actual_daily``.
+
+    Concurrently, so readers keep the previous contents until the new ones are in.
+    """
+    with connection.cursor() as cur:
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_leaderboard_daily")
+
+
 def write_daily(
     feed: Feed, run: FeedRun, rows: list[v.Row], previous: list[str], now: datetime
 ) -> None:
@@ -253,6 +262,7 @@ def write_daily(
                     [r.values.get("currency_code") for r in chunk],
                 ],
             )
+    refresh_daily_totals()
 
 
 WRITERS = {

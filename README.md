@@ -260,6 +260,21 @@ moved to the `kpigo_archive` schema (`agent.daily.archive`; set
 `KPIGO_RETENTION_USER` to run it daily). Nothing is deleted: `agent.daily.restore`
 brings a month back, and a feed cannot load into an archived month until then.
 
+### Leaderboard
+
+`agent.leaderboard` ranks the agents of one cohort (everyone, a profile, a branch, a
+region, or a custom cohort from `agent.cohort.set`, effective-dated) by one metric's
+value to date, direction-aware, or by overall pace: the mean of each metric's pace,
+each capped at `pace_cap` so one runaway metric cannot carry an agent. A tie is
+broken by the declared second metric; agents still level share a rank (1, 2, 2, 4).
+An agent with nothing reported on the ranking metric is listed unranked, never
+ranked last on a zero. The default cohort is the viewer's own; the ranking metric,
+tie-break and default cohort type are module settings (`agent.settings.set`).
+
+It reads `mv_leaderboard_daily` (one row per agent, metric and day, summed across
+product lines), which every daily load refreshes in its own transaction, as do
+archive and restore; `agent.leaderboard.refresh` refreshes it on demand.
+
 ## Layout
 
 ```
@@ -279,7 +294,8 @@ kpigo/
   scorecards/        taxonomy, profile metrics, bands, target workbench, overrides,
                      scoring engine (engine.py rules, scoring.py per subject, bulk.py Polars),
                      close.py (pre-checks, snapshots, restatement)
-  agents/            Agent Performance: pace.py (pace to target), daily.py (read model)
+  agents/            Agent Performance: pace.py (pace to target), daily.py (read model),
+                     leaderboard.py (cohorts and ranking)
   licence/           signed licence, fingerprint, grace states, the pipeline's licence gate
 tools/licence_vendor.py  vendor-side key generation and licence signing
 frontend/

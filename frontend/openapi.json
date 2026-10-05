@@ -304,6 +304,10 @@
       },
       "AgentSettingsOut": {
         "properties": {
+          "cohort_type": {
+            "title": "Cohort Type",
+            "type": "string"
+          },
           "grain": {
             "title": "Grain",
             "type": "string"
@@ -326,6 +330,28 @@
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Rag Green",
             "type": "string"
+          },
+          "rank_metric_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank Metric Code"
+          },
+          "tiebreak_metric_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tiebreak Metric Code"
           }
         },
         "required": [
@@ -333,13 +359,28 @@
           "grain",
           "pace_cap",
           "rag_green",
-          "rag_amber"
+          "rag_amber",
+          "rank_metric_code",
+          "tiebreak_metric_code",
+          "cohort_type"
         ],
         "title": "AgentSettingsOut",
         "type": "object"
       },
       "AgentSettingsSetIn": {
         "properties": {
+          "cohort_type": {
+            "default": "profile",
+            "enum": [
+              "all",
+              "profile",
+              "branch",
+              "region",
+              "cohort"
+            ],
+            "title": "Cohort Type",
+            "type": "string"
+          },
           "grain": {
             "default": "daily",
             "enum": [
@@ -401,6 +442,32 @@
             ],
             "default": "1",
             "title": "Rag Green"
+          },
+          "rank_metric_code": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank Metric Code"
+          },
+          "tiebreak_metric_code": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tiebreak Metric Code"
           }
         },
         "required": [
@@ -1529,6 +1596,216 @@
           "owed_by"
         ],
         "title": "CloseIssueOut",
+        "type": "object"
+      },
+      "CohortListInQuery": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "title": "CohortListInQuery",
+        "type": "object"
+      },
+      "CohortListOut": {
+        "properties": {
+          "cohorts": {
+            "items": {
+              "$ref": "#/components/schemas/CohortOut"
+            },
+            "title": "Cohorts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "cohorts"
+        ],
+        "title": "CohortListOut",
+        "type": "object"
+      },
+      "CohortMemberOut": {
+        "properties": {
+          "effective_from": {
+            "format": "date",
+            "title": "Effective From",
+            "type": "string"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "staff_no": {
+            "title": "Staff No",
+            "type": "string"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject_id",
+          "staff_no",
+          "full_name",
+          "effective_from",
+          "effective_to"
+        ],
+        "title": "CohortMemberOut",
+        "type": "object"
+      },
+      "CohortOptionOut": {
+        "properties": {
+          "agents": {
+            "title": "Agents",
+            "type": "integer"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "agents"
+        ],
+        "title": "CohortOptionOut",
+        "type": "object"
+      },
+      "CohortOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "cohort_id": {
+            "format": "uuid",
+            "title": "Cohort Id",
+            "type": "string"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/CohortMemberOut"
+            },
+            "title": "Members",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cohort_id",
+          "product",
+          "code",
+          "name",
+          "status",
+          "members"
+        ],
+        "title": "CohortOut",
+        "type": "object"
+      },
+      "CohortSetIn": {
+        "properties": {
+          "code": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+            "title": "Code",
+            "type": "string"
+          },
+          "effective_from": {
+            "format": "date",
+            "title": "Effective From",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          },
+          "status": {
+            "default": "active",
+            "enum": [
+              "active",
+              "retired"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "subject_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 5000,
+            "title": "Subject Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "product",
+          "code",
+          "name",
+          "subject_ids",
+          "effective_from"
+        ],
+        "title": "CohortSetIn",
         "type": "object"
       },
       "CommentAddIn": {
@@ -6801,6 +7078,290 @@
         "title": "InviteOut",
         "type": "object"
       },
+      "LeaderboardInQuery": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "cohort_code": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cohort Code"
+          },
+          "cohort_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "all",
+                  "profile",
+                  "branch",
+                  "region",
+                  "cohort"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cohort Type"
+          },
+          "limit": {
+            "default": 100,
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          },
+          "rank_by": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank By"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "enum": [
+                  "month",
+                  "week"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "title": "LeaderboardInQuery",
+        "type": "object"
+      },
+      "LeaderboardOut": {
+        "properties": {
+          "cohort": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CohortOptionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cohort_type": {
+            "title": "Cohort Type",
+            "type": "string"
+          },
+          "cohorts": {
+            "items": {
+              "$ref": "#/components/schemas/CohortOptionOut"
+            },
+            "title": "Cohorts",
+            "type": "array"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "rank_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RankKeyOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rank_options": {
+            "items": {
+              "$ref": "#/components/schemas/RankKeyOut"
+            },
+            "title": "Rank Options",
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/LeaderboardRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/SummaryOut"
+          },
+          "tiebreak": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RankKeyOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "window": {
+            "$ref": "#/components/schemas/WindowOut"
+          }
+        },
+        "required": [
+          "product",
+          "window",
+          "cohort_type",
+          "cohort",
+          "cohorts",
+          "rank_by",
+          "tiebreak",
+          "rank_options",
+          "summary",
+          "rows",
+          "total"
+        ],
+        "title": "LeaderboardOut",
+        "type": "object"
+      },
+      "LeaderboardRefreshIn": {
+        "properties": {},
+        "title": "LeaderboardRefreshIn",
+        "type": "object"
+      },
+      "LeaderboardRefreshOut": {
+        "properties": {
+          "refreshed_at": {
+            "title": "Refreshed At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "refreshed_at"
+        ],
+        "title": "LeaderboardRefreshOut",
+        "type": "object"
+      },
+      "LeaderboardRowOut": {
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/AgentOut"
+          },
+          "band": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaceBandOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_you": {
+            "title": "Is You",
+            "type": "boolean"
+          },
+          "pace": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pace"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "tiebreak_value": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tiebreak Value"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "rank",
+          "agent",
+          "is_you",
+          "state",
+          "value",
+          "pace",
+          "band",
+          "tiebreak_value"
+        ],
+        "title": "LeaderboardRowOut",
+        "type": "object"
+      },
       "LicenceBanner": {
         "properties": {
           "days_left": {
@@ -10045,6 +10606,46 @@
         "title": "QueryResolveIn",
         "type": "object"
       },
+      "RankKeyOut": {
+        "properties": {
+          "decimal_places": {
+            "title": "Decimal Places",
+            "type": "integer"
+          },
+          "direction": {
+            "title": "Direction",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "key",
+          "display_name",
+          "unit",
+          "decimal_places",
+          "direction"
+        ],
+        "title": "RankKeyOut",
+        "type": "object"
+      },
       "RateIn": {
         "properties": {
           "from_currency": {
@@ -12754,6 +13355,101 @@
         "title": "SubjectUpdateIn",
         "type": "object"
       },
+      "SummaryOut": {
+        "properties": {
+          "agents": {
+            "title": "Agents",
+            "type": "integer"
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
+          "day_value": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day Value"
+          },
+          "on_pace": {
+            "title": "On Pace",
+            "type": "integer"
+          },
+          "pace": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pace"
+          },
+          "short_of_pace": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Of Pace"
+          },
+          "target_to_date": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target To Date"
+          },
+          "value_to_date": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value To Date"
+          }
+        },
+        "required": [
+          "agents",
+          "on_pace",
+          "value_to_date",
+          "target_to_date",
+          "pace",
+          "short_of_pace",
+          "day_value",
+          "currency_code"
+        ],
+        "title": "SummaryOut",
+        "type": "object"
+      },
       "TableImpact": {
         "properties": {
           "estimated_rows": {
@@ -14120,6 +14816,213 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/actions/agent.cohort.list": {
+      "get": {
+        "operationId": "agent_cohort_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product",
+            "required": true,
+            "schema": {
+              "enum": [
+                "agent_sales",
+                "agent_service"
+              ],
+              "title": "Product",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohortListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Custom leaderboard cohorts and who is in them on a day.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.cohort.list"
+      }
+    },
+    "/api/v1/actions/agent.cohort.set": {
+      "post": {
+        "operationId": "agent_cohort_set",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CohortSetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CohortOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Create or change a custom leaderboard cohort and its members from a date.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.cohort.set"
+      }
+    },
     "/api/v1/actions/agent.daily.archive": {
       "post": {
         "operationId": "agent_daily_archive",
@@ -14411,6 +15314,303 @@
         "x-kpigo-action": "agent.daily.restore"
       }
     },
+    "/api/v1/actions/agent.leaderboard": {
+      "get": {
+        "operationId": "agent_leaderboard",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product",
+            "required": true,
+            "schema": {
+              "enum": [
+                "agent_sales",
+                "agent_service"
+              ],
+              "title": "Product",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "in": "query",
+            "name": "window",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "month",
+                    "week"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Window"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cohort_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "all",
+                    "profile",
+                    "branch",
+                    "region",
+                    "cohort"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cohort Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cohort_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cohort Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "rank_by",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "pattern": "^[a-z][a-z0-9_]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rank By"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaderboardOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Agents ranked within a cohort, with the summary cards (month or week to date).",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.leaderboard"
+      }
+    },
+    "/api/v1/actions/agent.leaderboard.refresh": {
+      "post": {
+        "operationId": "agent_leaderboard_refresh",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaderboardRefreshIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaderboardRefreshOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Refresh the daily totals the leaderboard reads (done after every daily load).",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.leaderboard.refresh"
+      }
+    },
     "/api/v1/actions/agent.pace": {
       "get": {
         "operationId": "agent_pace",
@@ -14642,7 +15842,7 @@
             "SessionAuth": []
           }
         ],
-        "summary": "An Agent Performance module's grain, pace cap and RAG thresholds.",
+        "summary": "An Agent Performance module's grain, thresholds and leaderboard ranking.",
         "tags": [
           "agent_performance"
         ],
