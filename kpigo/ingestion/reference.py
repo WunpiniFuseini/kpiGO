@@ -14,6 +14,7 @@ from django.db.models import Avg, Q
 from django.utils import timezone
 
 from kpigo.campaigns.models import Campaign, CampaignEvent
+from kpigo.executive.models import WidgetDefinition
 from kpigo.hierarchy.models import Assignment, Dimension, DimMember, ProductLine, Subject
 from kpigo.ingestion import validator as v
 from kpigo.ingestion.models import Feed, FeedRun
@@ -62,6 +63,22 @@ def campaign_windows(org_id: str) -> dict[str, tuple[v.EventWindow, ...]]:
     ):
         found[code].append(v.EventWindow(str(event_id), start, end))
     return {code: tuple(events) for code, events in found.items()}
+
+
+def widget_refs(org_id: str) -> dict[str, v.WidgetRef]:
+    """Every widget key the org knows, with what a placed widget shows and breaks down by."""
+    found: dict[str, v.WidgetRef] = {}
+    for key, state, definition in WidgetDefinition.objects.filter(
+        org_id=org_id, is_current=True
+    ).values_list("widget_key", "state", "definition"):
+        d = definition or {}
+        found[key] = v.WidgetRef(
+            widget_key=key,
+            state=state,
+            metric_codes=frozenset(m["metric_code"] for m in d.get("metrics", [])),
+            dimension=d.get("dimension"),
+        )
+    return found
 
 
 def staff_nos_in(table: v.RawTable) -> set[str]:
@@ -175,6 +192,9 @@ def build_reference(
 
     if "campaign_code" in template.column_names:
         ref.campaigns = campaign_windows(org_id)
+
+    if "widget_key" in template.column_names:
+        ref.widgets = widget_refs(org_id)
 
     if feed is not None:
         live = FeedRun.objects.filter(feed=feed, is_dry_run=False, outcome="success")

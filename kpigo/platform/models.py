@@ -224,6 +224,7 @@ APPROVAL_CLASSES = (
     "target_publish",
     "manual_input",
     "budget",
+    "widget_change",
 )
 # Classes that ship switched on: no policy row means on, and an Admin may turn
 # them off. Campaign budgets are money, so a change waits for a checker (CM-5).

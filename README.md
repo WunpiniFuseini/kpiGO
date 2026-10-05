@@ -336,6 +336,36 @@ its movement since each agent's first snapshot in the window, and conversion
 from the stage before (deals over deals, otherwise value over value in one
 currency). An agent with no snapshot adds nothing; who-sees-whom applies.
 
+## Executive Dashboard: widgets
+
+The Executive Dashboard is the one surface whose composition the client controls,
+bounded by a fixed bundle of nine widget types (KPI card, bullet, gauge, bar, line,
+pie, ranked list, table, funnel). An Admin (`widget.manage`) places a metric with
+`widget.place`: its type, one or several metrics, an optional dimension breakdown,
+and the comparison series (actual plus target, forecast, budget, prior, prior
+year). Each type declares what it can draw (`widget.list` returns the table), and a
+combination it cannot draw (a gauge with two metrics, a pie of averages, a ranked
+list with no dimension) is refused at placement, never at draw time. Every metric
+must be active and bound to Executive. Its source is a campaign result published
+as a metric, else a roll-up when it is also bound to Scorecards or Agent
+Performance, else fed at executive level; the Admin can choose.
+
+Definitions are versioned config: `widget.update` (type, metrics, breakdown,
+series, title, position), `widget.thresholds.set` (bands from the metric, or an
+override on % achieved or on the value, with a note shown on the widget; maker-checker
+class `widget_change`, off by default) and `widget.remove` each write a new
+version; `widget.history` lists them. A change applies to everyone; viewers read
+`widget.dashboard` (`executive.view`).
+
+Data arrives through one template, `widget_data` (`widget_key, metric_code,
+period_key, dimension_type, member_code, series_type, value, currency_code`), into
+`fact_widget_data`; blank dimension and member mean the whole organisation. A key
+no widget has yet is a warning, not an error: the load lands and the key is
+registered `available`, so the DE team can feed first and the Admin places the
+widget afterwards. For a placed widget the gates warn when a row's metric is not on
+it and when a widget that breaks down by a dimension gets only organisation-level
+rows.
+
 ## Layout
 
 ```
@@ -357,6 +387,8 @@ kpigo/
                      close.py (pre-checks, snapshots, restatement)
   agents/            Agent Performance: pace.py (pace to target), daily.py (read model),
                      leaderboard.py (cohorts and ranking)
+  executive/         Executive Dashboard: widget definitions (models.py), the bundle and its
+                     rules (widgets.py)
   licence/           signed licence, fingerprint, grace states, the pipeline's licence gate
 tools/licence_vendor.py  vendor-side key generation and licence signing
 frontend/

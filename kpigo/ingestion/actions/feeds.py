@@ -25,6 +25,7 @@ Template = Literal[
     "campaign_population",
     "campaign_contact",
     "campaign_winback",
+    "widget_data",
 ]
 Mode = Literal["pull", "drop", "upload"]
 ObjectName = Annotated[str, StringConstraints(strip_whitespace=True, max_length=400)]

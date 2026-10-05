@@ -33,10 +33,13 @@ referential    metric active and bound, subject known,         rows
                member known (unknown members become
                ``available``), no missing rows; campaign
                feeds: the campaign code known, a contact on
-               one of its published events' contact days
+               one of its published events' contact days;
+               widget data: the widget key known (an
+               unknown key becomes ``available``)
 grain          no duplicates at the template's grain           load
 domain         period key well formed, values in bounds,       rows
-               no future activity
+               no future activity; widget data: the key's
+               shape, the series type, a whole dimension
 volume         row count within the expected range             load
 period_status  a closed period refuses loads; a restating one   load
                takes only restatement loads; an archived
@@ -115,6 +118,9 @@ CUSTOMER_DIMENSIONS: dict[str, str] = {
     "branch": "branch_code",
 }
 CAMPAIGN_CHANNELS = ("sms", "email", "call", "ussd", "branch", "app_push", "whatsapp")
+# Executive widget data (Scope §10.5): the series a row carries, and the key's shape.
+WIDGET_SERIES = ("actual", "target", "forecast", "budget", "prior", "prior_year")
+WIDGET_KEY_RE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 
 
 # ── the contract: landing templates ──────────────────────────────────────────
@@ -262,16 +268,20 @@ TEMPLATES: dict[str, Template] = {
             ),
             grain=("metric_code", "scope_type", "scope_code", "period_key", "series_type"),
         ),
+        # Executive widgets (Scope §10.5): one table serves every widget. A row is
+        # one series value for one metric of one widget, for the whole organisation
+        # (dimension_type and member_code blank) or for one dimension member.
         Template(
             "widget_data",
             (
                 _c("widget_key", "code"),
                 _c("metric_code", "code"),
                 _c("period_key", "period"),
-                _c("dimension_type", "code"),
-                _c("member_code", "code"),
+                _c("dimension_type", "code", nullable=True),
+                _c("member_code", "code", nullable=True),
                 _c("series_type", "code"),
                 _c("value", "decimal"),
+                _CURRENCY,
             ),
             grain=(
                 "widget_key",
@@ -281,6 +291,9 @@ TEMPLATES: dict[str, Template] = {
                 "member_code",
                 "series_type",
             ),
+            products=frozenset({"executive"}),
+            loadable=True,
+            value_column="value",
         ),
         # Campaign Manager (Schema §10). Outcomes per customer per day, with the
         # customer's dimensions for audience matching and the client's own campaign
@@ -729,6 +742,17 @@ class EventWindow:
         return self.period_start <= day <= self.period_end
 
 
+@dataclass(frozen=True)
+class WidgetRef:
+    """A widget key kpiGo knows: placed on the dashboard, available from a feed, or removed."""
+
+    widget_key: str
+    state: str
+    metric_codes: frozenset[str] = frozenset()
+    # The dimension a placed widget breaks down by; None for an org-level widget.
+    dimension: str | None = None
+
+
 @dataclass
 class Reference:
     """Everything the gates check a load against, as of ``today``."""
@@ -753,6 +777,8 @@ class Reference:
     restatement: bool = False
     # Campaign code -> its published events. A campaign with none maps to ().
     campaigns: dict[str, tuple[EventWindow, ...]] = field(default_factory=dict)
+    # Widget key -> what kpiGo knows of it (Executive widget data only).
+    widgets: dict[str, WidgetRef] = field(default_factory=dict)
 
     @property
     def current_period(self) -> str:
@@ -865,6 +891,14 @@ def reference_to_json(ref: Reference) -> dict[str, Any]:
             ]
             for code, events in sorted(ref.campaigns.items())
         },
+        "widgets": {
+            key: {
+                "state": wr.state,
+                "metric_codes": sorted(wr.metric_codes),
+                "dimension": wr.dimension,
+            }
+            for key, wr in sorted(ref.widgets.items())
+        },
     }
 
 
@@ -934,6 +968,15 @@ def reference_from_json(data: dict[str, Any], *, today: date | None = None) -> R
                 for e in events
             )
             for code, events in data.get("campaigns", {}).items()
+        },
+        widgets={
+            key: WidgetRef(
+                widget_key=key,
+                state=wr["state"],
+                metric_codes=frozenset(wr.get("metric_codes", [])),
+                dimension=wr.get("dimension"),
+            )
+            for key, wr in data.get("widgets", {}).items()
         },
     )
 
@@ -1497,7 +1540,7 @@ def _referential(template: Template, rows: list[Row], ref: Reference) -> list[Is
             row.resolved["subject_id"] = subject.subject_id
             row.resolved["assignment_id"] = assignment.assignment_id
 
-        if "dimension_type" in v:
+        if v.get("dimension_type") is not None and v.get("member_code") is not None:
             dim = str(v["dimension_type"])
             if dim not in ref.members:
                 issues.append(
@@ -1640,6 +1683,144 @@ def _campaign(template: Template, rows: list[Row], ref: Reference) -> list[Issue
             )
             continue
         row.resolved["event_id"] = event.event_id
+    return issues
+
+
+def _widget_shape(template: Template, rows: list[Row]) -> list[Issue]:
+    """Widget data rows: a well-formed key, a known series, a whole dimension or none."""
+    issues: list[Issue] = []
+    if template.name != "widget_data":
+        return issues
+    for row in rows:
+        v = row.values
+        key = str(v["widget_key"])
+        if not WIDGET_KEY_RE.match(key):
+            issues.append(
+                Issue(
+                    "domain",
+                    "bad_widget_key",
+                    "error",
+                    "widget_key must be lower case letters, digits and underscores, starting "
+                    "with a letter (e.g. cost_to_income).",
+                    row_no=row.row_no,
+                    column="widget_key",
+                    value=key,
+                )
+            )
+        series = str(v["series_type"])
+        if series not in WIDGET_SERIES:
+            issues.append(
+                Issue(
+                    "domain",
+                    "bad_series_type",
+                    "error",
+                    f"series_type must be one of: {', '.join(WIDGET_SERIES)}.",
+                    row_no=row.row_no,
+                    column="series_type",
+                    value=series,
+                )
+            )
+        if (v.get("dimension_type") is None) != (v.get("member_code") is None):
+            issues.append(
+                Issue(
+                    "domain",
+                    "partial_dimension",
+                    "error",
+                    "Give dimension_type and member_code together, or leave both blank for "
+                    "the whole organisation.",
+                    row_no=row.row_no,
+                    column="member_code" if v.get("member_code") is None else "dimension_type",
+                )
+            )
+    return issues
+
+
+def _widget(template: Template, rows: list[Row], ref: Reference) -> list[Issue]:
+    """Widget data: the key known to a widget, the metric on it, the breakdown it expects."""
+    issues: list[Issue] = []
+    if template.name != "widget_data":
+        return issues
+    org_level_only: dict[str, int] = {}
+    broken_down: set[str] = set()
+    reported: set[tuple[str, str]] = set()
+    for row in rows:
+        v = row.values
+        key = str(v["widget_key"])
+        if not WIDGET_KEY_RE.match(key):
+            continue  # the domain gate already rejected it
+        widget = ref.widgets.get(key)
+        if widget is None:
+            row.unmapped["widget_key"] = key
+            if (key, "") not in reported:
+                reported.add((key, ""))
+                issues.append(
+                    Issue(
+                        "referential",
+                        "unknown_widget_key",
+                        "warning",
+                        f"No widget has the key '{key}'. It will be registered as available "
+                        "for an Admin to place on the dashboard.",
+                        row_no=row.row_no,
+                        column="widget_key",
+                        value=key,
+                    )
+                )
+            continue
+        if widget.state == "removed" and (key, "") not in reported:
+            reported.add((key, ""))
+            issues.append(
+                Issue(
+                    "referential",
+                    "widget_removed",
+                    "warning",
+                    f"Widget '{key}' was taken off the dashboard. The rows are kept and show "
+                    "again if it is placed again.",
+                    row_no=row.row_no,
+                    column="widget_key",
+                    value=key,
+                )
+            )
+        code = str(v["metric_code"])
+        if (
+            widget.state == "placed"
+            and code not in widget.metric_codes
+            and (key, code) not in reported
+        ):
+            reported.add((key, code))
+            issues.append(
+                Issue(
+                    "referential",
+                    "metric_not_on_widget",
+                    "warning",
+                    f"Widget '{key}' does not show metric '{code}'. The rows are kept and "
+                    "show if an Admin adds the metric to the widget.",
+                    row_no=row.row_no,
+                    column="metric_code",
+                    value=code,
+                )
+            )
+        if widget.state == "placed" and widget.dimension is not None:
+            if v.get("dimension_type") is None:
+                org_level_only.setdefault(key, row.row_no)
+            else:
+                broken_down.add(key)
+    for key, row_no in sorted(org_level_only.items()):
+        if key in broken_down:
+            continue
+        dimension = ref.widgets[key].dimension
+        issues.append(
+            Issue(
+                "referential",
+                "breakdown_missing",
+                "warning",
+                f"Widget '{key}' breaks down by {dimension}, but this load has only "
+                "organisation-level rows for it. The widget is flagged until rows by "
+                f"{dimension} arrive.",
+                row_no=row_no,
+                column="dimension_type",
+                value=key,
+            )
+        )
     return issues
 
 
@@ -1807,7 +1988,7 @@ def validate(
         issues.append(Issue("volume", "empty_load", "error", "The load has no rows."))
     issues += _grain(template, rows)
     when = ref.today if ref is not None else (today or date.today())
-    domain = _domain(rows, when)
+    domain = _domain(rows, when) + _widget_shape(template, rows)
     issues += domain
     if ref is None:
         skipped = ["referential", "volume", "period_status"]
@@ -1816,6 +1997,7 @@ def validate(
     checkable = [r for r in rows if r.row_no not in bad_period]
     issues += _referential(template, checkable, ref)
     issues += _campaign(template, checkable, ref)
+    issues += _widget(template, checkable, ref)
     issues += _missing_rows(template, checkable, ref)
     issues += _volume(rows_read, ref)
     issues += _period_status(template, checkable, ref)

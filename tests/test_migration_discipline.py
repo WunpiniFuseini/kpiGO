@@ -37,6 +37,7 @@ KPIGO_APPS = {
     "scorecards",
     "agents",
     "campaigns",
+    "executive",
 }
 
 # Destructive operations are deferred a full major version (TDD §12). When one is

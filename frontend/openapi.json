@@ -6244,7 +6244,8 @@
                   "campaign_outcome",
                   "campaign_population",
                   "campaign_contact",
-                  "campaign_winback"
+                  "campaign_winback",
+                  "widget_data"
                 ],
                 "type": "string"
               },
@@ -8350,7 +8351,8 @@
                   "campaign_outcome",
                   "campaign_population",
                   "campaign_contact",
-                  "campaign_winback"
+                  "campaign_winback",
+                  "widget_data"
                 ],
                 "type": "string"
               },
@@ -8738,7 +8740,8 @@
               "campaign_outcome",
               "campaign_population",
               "campaign_contact",
-              "campaign_winback"
+              "campaign_winback",
+              "widget_data"
             ],
             "title": "Template",
             "type": "string"
@@ -14740,6 +14743,97 @@
         "title": "PipelineStageSetIn",
         "type": "object"
       },
+      "PlaceWidgetIn": {
+        "properties": {
+          "dimension": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dimension"
+          },
+          "layout": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WidgetLayoutIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/WidgetMetricIn"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Metrics",
+            "type": "array"
+          },
+          "options": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WidgetOptionsIn"
+              }
+            ]
+          },
+          "series": {
+            "items": {
+              "enum": [
+                "actual",
+                "target",
+                "forecast",
+                "budget",
+                "prior",
+                "prior_year"
+              ],
+              "type": "string"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "title": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Title",
+            "type": "string"
+          },
+          "widget_key": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Widget Key",
+            "type": "string"
+          },
+          "widget_type": {
+            "enum": [
+              "kpi_card",
+              "bullet",
+              "gauge",
+              "bar",
+              "line",
+              "pie",
+              "ranked_list",
+              "table",
+              "funnel"
+            ],
+            "title": "Widget Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "widget_key",
+          "widget_type",
+          "metrics"
+        ],
+        "title": "PlaceWidgetIn",
+        "type": "object"
+      },
       "PlacementClearIn": {
         "properties": {
           "metric_code": {
@@ -16774,6 +16868,32 @@
         "title": "RegistryListOut",
         "type": "object"
       },
+      "RemoveWidgetIn": {
+        "properties": {
+          "expected_version": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          },
+          "widget_key": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Widget Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "widget_key"
+        ],
+        "title": "RemoveWidgetIn",
+        "type": "object"
+      },
       "ResendIn": {
         "properties": {
           "user_id": {
@@ -17219,6 +17339,14 @@
               "type": "string"
             },
             "title": "Registered Product Lines",
+            "type": "array"
+          },
+          "registered_widget_keys": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Registered Widget Keys",
             "type": "array"
           },
           "restatement": {
@@ -18161,6 +18289,36 @@
           "status"
         ],
         "title": "SetStatusIn",
+        "type": "object"
+      },
+      "SetThresholdsIn": {
+        "properties": {
+          "expected_version": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          },
+          "thresholds": {
+            "$ref": "#/components/schemas/WidgetThresholdsIn"
+          },
+          "widget_key": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Widget Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "widget_key",
+          "thresholds"
+        ],
+        "title": "SetThresholdsIn",
         "type": "object"
       },
       "SettingsOut": {
@@ -19853,6 +20011,55 @@
         "title": "TestOut",
         "type": "object"
       },
+      "ThresholdBandIn": {
+        "properties": {
+          "label": {
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "maximum": 100000000000000.0,
+                "minimum": -100000000000000.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Threshold"
+          }
+        },
+        "required": [
+          "label",
+          "threshold"
+        ],
+        "title": "ThresholdBandIn",
+        "type": "object"
+      },
+      "ThresholdBandOut": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "threshold": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Threshold",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "threshold"
+        ],
+        "title": "ThresholdBandOut",
+        "type": "object"
+      },
       "TickIn": {
         "properties": {},
         "title": "TickIn",
@@ -19979,6 +20186,142 @@
           "new_period"
         ],
         "title": "UpdateOut",
+        "type": "object"
+      },
+      "UpdateWidgetIn": {
+        "properties": {
+          "clear_dimension": {
+            "default": false,
+            "title": "Clear Dimension",
+            "type": "boolean"
+          },
+          "dimension": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dimension"
+          },
+          "expected_version": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          },
+          "layout": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WidgetLayoutIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "metrics": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/WidgetMetricIn"
+                },
+                "maxItems": 8,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metrics"
+          },
+          "options": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WidgetOptionsIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "series": {
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "actual",
+                    "target",
+                    "forecast",
+                    "budget",
+                    "prior",
+                    "prior_year"
+                  ],
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Series"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "widget_key": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Widget Key",
+            "type": "string"
+          },
+          "widget_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "kpi_card",
+                  "bullet",
+                  "gauge",
+                  "bar",
+                  "line",
+                  "pie",
+                  "ranked_list",
+                  "table",
+                  "funnel"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Widget Type"
+          }
+        },
+        "required": [
+          "widget_key"
+        ],
+        "title": "UpdateWidgetIn",
         "type": "object"
       },
       "Upload": {
@@ -20637,6 +20980,605 @@
           "subjects_off"
         ],
         "title": "WeightCheckOut",
+        "type": "object"
+      },
+      "WidgetDashboardOut": {
+        "properties": {
+          "types": {
+            "items": {
+              "$ref": "#/components/schemas/WidgetTypeOut"
+            },
+            "title": "Types",
+            "type": "array"
+          },
+          "widgets": {
+            "items": {
+              "$ref": "#/components/schemas/WidgetOut"
+            },
+            "title": "Widgets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "widgets",
+          "types"
+        ],
+        "title": "WidgetDashboardOut",
+        "type": "object"
+      },
+      "WidgetHistoryInQuery": {
+        "properties": {
+          "widget_key": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Widget Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "widget_key"
+        ],
+        "title": "WidgetHistoryInQuery",
+        "type": "object"
+      },
+      "WidgetHistoryOut": {
+        "properties": {
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/WidgetOut"
+            },
+            "title": "Versions",
+            "type": "array"
+          },
+          "widget_key": {
+            "title": "Widget Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "widget_key",
+          "versions"
+        ],
+        "title": "WidgetHistoryOut",
+        "type": "object"
+      },
+      "WidgetLayoutIn": {
+        "description": "Position on the dashboard's twelve-column grid.",
+        "properties": {
+          "h": {
+            "maximum": 12,
+            "minimum": 1,
+            "title": "H",
+            "type": "integer"
+          },
+          "w": {
+            "maximum": 12,
+            "minimum": 1,
+            "title": "W",
+            "type": "integer"
+          },
+          "x": {
+            "maximum": 11,
+            "minimum": 0,
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "maximum": 500,
+            "minimum": 0,
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "w",
+          "h"
+        ],
+        "title": "WidgetLayoutIn",
+        "type": "object"
+      },
+      "WidgetLayoutOut": {
+        "properties": {
+          "h": {
+            "title": "H",
+            "type": "integer"
+          },
+          "w": {
+            "title": "W",
+            "type": "integer"
+          },
+          "x": {
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "w",
+          "h"
+        ],
+        "title": "WidgetLayoutOut",
+        "type": "object"
+      },
+      "WidgetListInQuery": {
+        "properties": {
+          "include_removed": {
+            "default": false,
+            "title": "Include Removed",
+            "type": "boolean"
+          }
+        },
+        "title": "WidgetListInQuery",
+        "type": "object"
+      },
+      "WidgetListOut": {
+        "properties": {
+          "types": {
+            "items": {
+              "$ref": "#/components/schemas/WidgetTypeOut"
+            },
+            "title": "Types",
+            "type": "array"
+          },
+          "widgets": {
+            "items": {
+              "$ref": "#/components/schemas/WidgetOut"
+            },
+            "title": "Widgets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "widgets",
+          "types"
+        ],
+        "title": "WidgetListOut",
+        "type": "object"
+      },
+      "WidgetMetricIn": {
+        "properties": {
+          "metric_code": {
+            "maxLength": 80,
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "enum": [
+                  "independent",
+                  "rollup",
+                  "campaign"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          }
+        },
+        "required": [
+          "metric_code"
+        ],
+        "title": "WidgetMetricIn",
+        "type": "object"
+      },
+      "WidgetMetricOut": {
+        "properties": {
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "independent",
+              "rollup",
+              "campaign"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric_code",
+          "source"
+        ],
+        "title": "WidgetMetricOut",
+        "type": "object"
+      },
+      "WidgetOptionsIn": {
+        "properties": {
+          "sparkline": {
+            "default": false,
+            "title": "Sparkline",
+            "type": "boolean"
+          },
+          "top_n": {
+            "default": 10,
+            "maximum": 50,
+            "minimum": 3,
+            "title": "Top N",
+            "type": "integer"
+          }
+        },
+        "title": "WidgetOptionsIn",
+        "type": "object"
+      },
+      "WidgetOptionsOut": {
+        "properties": {
+          "sparkline": {
+            "title": "Sparkline",
+            "type": "boolean"
+          },
+          "top_n": {
+            "title": "Top N",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sparkline",
+          "top_n"
+        ],
+        "title": "WidgetOptionsOut",
+        "type": "object"
+      },
+      "WidgetOut": {
+        "properties": {
+          "approval_request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval Request Id"
+          },
+          "change": {
+            "title": "Change",
+            "type": "string"
+          },
+          "changed_at": {
+            "format": "date-time",
+            "title": "Changed At",
+            "type": "string"
+          },
+          "changed_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changed By"
+          },
+          "dimension": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dimension"
+          },
+          "first_detected_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Detected At"
+          },
+          "layout": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WidgetLayoutOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/WidgetMetricOut"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "options": {
+            "$ref": "#/components/schemas/WidgetOptionsOut"
+          },
+          "series": {
+            "items": {
+              "enum": [
+                "actual",
+                "target",
+                "forecast",
+                "budget",
+                "prior",
+                "prior_year"
+              ],
+              "type": "string"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "state": {
+            "enum": [
+              "available",
+              "placed",
+              "removed"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "thresholds": {
+            "$ref": "#/components/schemas/WidgetThresholdsOut"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "widget_key": {
+            "title": "Widget Key",
+            "type": "string"
+          },
+          "widget_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "kpi_card",
+                  "bullet",
+                  "gauge",
+                  "bar",
+                  "line",
+                  "pie",
+                  "ranked_list",
+                  "table",
+                  "funnel"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Widget Type"
+          }
+        },
+        "required": [
+          "widget_key",
+          "version",
+          "state",
+          "title",
+          "widget_type",
+          "metrics",
+          "dimension",
+          "series",
+          "thresholds",
+          "layout",
+          "options",
+          "change",
+          "changed_at",
+          "changed_by",
+          "approval_request_id",
+          "first_detected_at"
+        ],
+        "title": "WidgetOut",
+        "type": "object"
+      },
+      "WidgetThresholdsIn": {
+        "description": "``metric``: the metric's target and the client's rating bands. ``override``: these bands.",
+        "properties": {
+          "bands": {
+            "items": {
+              "$ref": "#/components/schemas/ThresholdBandIn"
+            },
+            "maxItems": 6,
+            "title": "Bands",
+            "type": "array"
+          },
+          "basis": {
+            "anyOf": [
+              {
+                "enum": [
+                  "achievement",
+                  "value"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basis"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Note",
+            "type": "string"
+          },
+          "source": {
+            "default": "metric",
+            "enum": [
+              "metric",
+              "override"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "title": "WidgetThresholdsIn",
+        "type": "object"
+      },
+      "WidgetThresholdsOut": {
+        "properties": {
+          "bands": {
+            "items": {
+              "$ref": "#/components/schemas/ThresholdBandOut"
+            },
+            "title": "Bands",
+            "type": "array"
+          },
+          "basis": {
+            "anyOf": [
+              {
+                "enum": [
+                  "achievement",
+                  "value"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basis"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "metric",
+              "override"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "basis",
+          "bands",
+          "note"
+        ],
+        "title": "WidgetThresholdsOut",
+        "type": "object"
+      },
+      "WidgetTypeOut": {
+        "description": "What one type in the bundle can draw, so the UI greys out what it cannot.",
+        "properties": {
+          "additive_only": {
+            "title": "Additive Only",
+            "type": "boolean"
+          },
+          "comparisons": {
+            "title": "Comparisons",
+            "type": "boolean"
+          },
+          "default_h": {
+            "title": "Default H",
+            "type": "integer"
+          },
+          "default_w": {
+            "title": "Default W",
+            "type": "integer"
+          },
+          "dimension_multi": {
+            "enum": [
+              "never",
+              "optional",
+              "required"
+            ],
+            "title": "Dimension Multi",
+            "type": "string"
+          },
+          "dimension_single": {
+            "enum": [
+              "never",
+              "optional",
+              "required"
+            ],
+            "title": "Dimension Single",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "max_metrics": {
+            "title": "Max Metrics",
+            "type": "integer"
+          },
+          "min_metrics": {
+            "title": "Min Metrics",
+            "type": "integer"
+          },
+          "needs_comparison": {
+            "title": "Needs Comparison",
+            "type": "boolean"
+          },
+          "one_unit": {
+            "title": "One Unit",
+            "type": "boolean"
+          },
+          "renders": {
+            "title": "Renders",
+            "type": "string"
+          },
+          "thresholds": {
+            "title": "Thresholds",
+            "type": "boolean"
+          },
+          "type": {
+            "enum": [
+              "kpi_card",
+              "bullet",
+              "gauge",
+              "bar",
+              "line",
+              "pie",
+              "ranked_list",
+              "table",
+              "funnel"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "label",
+          "renders",
+          "min_metrics",
+          "max_metrics",
+          "dimension_single",
+          "dimension_multi",
+          "comparisons",
+          "needs_comparison",
+          "additive_only",
+          "one_unit",
+          "thresholds",
+          "default_w",
+          "default_h"
+        ],
+        "title": "WidgetTypeOut",
         "type": "object"
       },
       "WindowOut": {
@@ -27324,7 +28266,8 @@
                     "campaign_outcome",
                     "campaign_population",
                     "campaign_contact",
-                    "campaign_winback"
+                    "campaign_winback",
+                    "widget_data"
                   ],
                   "type": "string"
                 },
@@ -29239,7 +30182,8 @@
                     "campaign_outcome",
                     "campaign_population",
                     "campaign_contact",
-                    "campaign_winback"
+                    "campaign_winback",
+                    "widget_data"
                   ],
                   "type": "string"
                 },
@@ -41645,6 +42589,664 @@
           "platform"
         ],
         "x-kpigo-action": "visibility.rebuild"
+      }
+    },
+    "/api/v1/actions/widget.dashboard": {
+      "get": {
+        "operationId": "widget_dashboard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetDashboardOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "The Executive dashboard's placed widgets, in grid order.",
+        "tags": [
+          "executive"
+        ],
+        "x-kpigo-action": "widget.dashboard"
+      }
+    },
+    "/api/v1/actions/widget.history": {
+      "get": {
+        "operationId": "widget_history",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "widget_key",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "title": "Widget Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetHistoryOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Every version of a widget's definition, newest first.",
+        "tags": [
+          "executive"
+        ],
+        "x-kpigo-action": "widget.history"
+      }
+    },
+    "/api/v1/actions/widget.list": {
+      "get": {
+        "operationId": "widget_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "include_removed",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Removed",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Every widget key: placed, available from a feed, and optionally removed.",
+        "tags": [
+          "executive"
+        ],
+        "x-kpigo-action": "widget.list"
+      }
+    },
+    "/api/v1/actions/widget.place": {
+      "post": {
+        "operationId": "widget_place",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceWidgetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Place a widget on the Executive dashboard: metrics, type, breakdown and series.",
+        "tags": [
+          "executive"
+        ],
+        "x-kpigo-action": "widget.place"
+      }
+    },
+    "/api/v1/actions/widget.remove": {
+      "post": {
+        "operationId": "widget_remove",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoveWidgetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Take a widget off the dashboard for everyone; its history is kept.",
+        "tags": [
+          "executive"
+        ],
+        "x-kpigo-action": "widget.remove"
+      }
+    },
+    "/api/v1/actions/widget.thresholds.set": {
+      "post": {
+        "operationId": "widget_thresholds_set",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetThresholdsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Override a widget's threshold bands, or return them to the metric's.",
+        "tags": [
+          "executive"
+        ],
+        "x-kpigo-action": "widget.thresholds.set"
+      }
+    },
+    "/api/v1/actions/widget.update": {
+      "post": {
+        "operationId": "widget_update",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWidgetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Change a placed widget: its type, metrics, breakdown, series, title or position.",
+        "tags": [
+          "executive"
+        ],
+        "x-kpigo-action": "widget.update"
       }
     },
     "/api/v1/approval-policies": {
