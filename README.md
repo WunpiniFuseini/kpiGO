@@ -292,6 +292,19 @@ Line targets go through the target workbench: a row with a `product_line_code`
 targets that line (Agent Performance metrics only, no weight). Scorecards and pacing
 read only the metric's own target, the row with no line.
 
+### Product-line matrix
+
+`agent.matrix` shows one level of the drill (regions, a region's branches, a
+branch's RMs) for one sum or count metric: each row × each line, then All products.
+A cell is the actual to date against the line target expected by now (pro-rated by
+working days, like pace), and % achieved with a RAG in words; a line's own
+thresholds override the module's. Every figure is summed from distinct agents: an
+agent with nothing reported on a line adds neither actual nor target, and the cell
+says how many reported. The grouped view sums a group's lines and recomputes % from
+those sums. Expanded or grouped is each user's own preference (`preference.set`
+`agent.matrix.view`). Figures come from `mv_product_line_matrix`, refreshed with
+the daily totals after every load.
+
 ## Layout
 
 ```

@@ -202,12 +202,13 @@ def ensure_daily_partitions(days: Iterable[date]) -> list[str]:
 
 
 def refresh_daily_totals() -> None:
-    """Bring ``mv_leaderboard_daily`` up to date with ``fact_actual_daily``.
+    """Bring ``mv_leaderboard_daily`` and ``mv_product_line_matrix`` up to date.
 
     Concurrently, so readers keep the previous contents until the new ones are in.
     """
     with connection.cursor() as cur:
         cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_leaderboard_daily")
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_product_line_matrix")
 
 
 def write_daily(

@@ -123,6 +123,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/agent.matrix": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Product-line matrix: actual, target and % achieved per line, drilling region → RM. */
+        get: operations["agent_matrix"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/agent.pace": {
         parameters: {
             query?: never;
@@ -1460,6 +1477,40 @@ export interface paths {
         get: operations["platform_migrations_plan"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/preference.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Your view preferences, each with its allowed values. */
+        get: operations["preference_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/preference.set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set one of your view preferences, such as the matrix's grouped view. */
+        post: operations["preference_set"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3964,6 +4015,18 @@ export interface components {
             /** User Id */
             user_id?: string | null;
         };
+        /** CrumbOut */
+        CrumbOut: {
+            /** Code */
+            code: string | null;
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "all" | "region" | "branch";
+            /** Name */
+            name: string;
+        };
         /** CurrencyIn */
         CurrencyIn: {
             /** Code */
@@ -5690,6 +5753,109 @@ export interface components {
             /** Relationship Type */
             relationship_type: string;
         };
+        /** MatrixCellOut */
+        MatrixCellOut: {
+            /** Achieved */
+            achieved: string | null;
+            /** Actual */
+            actual: string | null;
+            /** Agents */
+            agents: number;
+            /** Currency Code */
+            currency_code: string | null;
+            /** Mixed Currency */
+            mixed_currency: boolean;
+            /** Rag */
+            rag: ("green" | "amber" | "red") | null;
+            /** Reported */
+            reported: number;
+            /** Target */
+            target: string | null;
+        };
+        /** MatrixColumnOut */
+        MatrixColumnOut: {
+            /** Group Code */
+            group_code: string | null;
+            /** Key */
+            key: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "line" | "group" | "all";
+            /** Name */
+            name: string;
+        };
+        /** MatrixInQuery */
+        MatrixInQuery: {
+            /** As Of */
+            as_of?: string | null;
+            /** Branch Code */
+            branch_code?: string | null;
+            /**
+             * Level
+             * @default region
+             * @enum {string}
+             */
+            level?: "region" | "branch" | "rm";
+            /** Metric Code */
+            metric_code?: string | null;
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+            /** Region Code */
+            region_code?: string | null;
+            /** View */
+            view?: ("expanded" | "grouped") | null;
+            /** Window */
+            window?: ("month" | "week") | null;
+        };
+        /** MatrixOut */
+        MatrixOut: {
+            /** Breadcrumb */
+            breadcrumb: components["schemas"]["CrumbOut"][];
+            /** Columns */
+            columns: components["schemas"]["MatrixColumnOut"][];
+            /** Level */
+            level: string;
+            metric: components["schemas"]["RankKeyOut"] | null;
+            /** Metric Options */
+            metric_options: components["schemas"]["RankKeyOut"][];
+            /** No Lines */
+            no_lines: boolean;
+            /** Product */
+            product: string;
+            /** Rows */
+            rows: components["schemas"]["MatrixRowOut"][];
+            total: components["schemas"]["MatrixRowOut"] | null;
+            /** View */
+            view: string;
+            window: components["schemas"]["WindowOut"];
+        };
+        /** MatrixRowOut */
+        MatrixRowOut: {
+            /** Agents */
+            agents: number;
+            /** Branch Code */
+            branch_code: string | null;
+            /** Cells */
+            cells: components["schemas"]["MatrixCellOut"][];
+            /** Drill Level */
+            drill_level: ("branch" | "rm") | null;
+            /** Key */
+            key: string;
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "region" | "branch" | "rm" | "total";
+            /** Name */
+            name: string;
+            /** Region Code */
+            region_code: string | null;
+        };
         /** MeOut */
         MeOut: {
             /** Home */
@@ -6351,6 +6517,27 @@ export interface components {
              * @enum {string}
              */
             scope_type: "role" | "profile";
+        };
+        /** PreferenceListOut */
+        PreferenceListOut: {
+            /** Preferences */
+            preferences: components["schemas"]["PreferenceOut"][];
+        };
+        /** PreferenceOut */
+        PreferenceOut: {
+            /** Allowed */
+            allowed: string[];
+            /** Key */
+            key: string;
+            /** Value */
+            value: string;
+        };
+        /** PreferenceSetIn */
+        PreferenceSetIn: {
+            /** Key */
+            key: string;
+            /** Value */
+            value: string;
         };
         /** PreviewIn */
         PreviewIn: {
@@ -8656,6 +8843,80 @@ export interface operations {
             };
             /** @description Service Unavailable */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    agent_matrix: {
+        parameters: {
+            query: {
+                product: "agent_sales" | "agent_service";
+                as_of?: string | null;
+                window?: ("month" | "week") | null;
+                metric_code?: string | null;
+                level?: "region" | "branch" | "rm";
+                region_code?: string | null;
+                branch_code?: string | null;
+                view?: ("expanded" | "grouped") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatrixOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -14672,6 +14933,149 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    preference_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferenceListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    preference_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferenceSetIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferenceOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
