@@ -19,6 +19,8 @@ export type Rule = Reach["attribution_rule"];
 export type ValueReport = Output<"campaign.value">;
 export type EventValue = ValueReport["events"][number];
 export type Basis = ValueReport["basis"];
+export type Winbacks = Output<"campaign.winbacks">;
+export type WinbackCounts = NonNullable<Winbacks["events"][number]["counts"]>;
 
 export const OBJECTIVES: { value: Objective; label: string }[] = [
   { value: "deposit_growth", label: "Deposit growth" },

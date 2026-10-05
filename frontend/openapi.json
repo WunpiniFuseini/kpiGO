@@ -3794,6 +3794,30 @@
         "title": "CampaignEventValueOut",
         "type": "object"
       },
+      "CampaignEventWinbacksOut": {
+        "properties": {
+          "counts": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CampaignWinbackCountsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_id",
+          "counts"
+        ],
+        "title": "CampaignEventWinbacksOut",
+        "type": "object"
+      },
       "CampaignGetInQuery": {
         "properties": {
           "campaign_id": {
@@ -4703,6 +4727,136 @@
         "title": "CampaignVersionOut",
         "type": "object"
       },
+      "CampaignWinbackCountsOut": {
+        "properties": {
+          "confirmed": {
+            "title": "Confirmed",
+            "type": "integer"
+          },
+          "lapsed": {
+            "title": "Lapsed",
+            "type": "integer"
+          },
+          "next_confirmation": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Confirmation"
+          },
+          "provisional": {
+            "title": "Provisional",
+            "type": "integer"
+          },
+          "qualified": {
+            "title": "Qualified",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "qualified",
+          "provisional",
+          "confirmed",
+          "lapsed",
+          "next_confirmation"
+        ],
+        "title": "CampaignWinbackCountsOut",
+        "type": "object"
+      },
+      "CampaignWinbackRetentionIn": {
+        "properties": {
+          "days": {
+            "maximum": 730,
+            "minimum": 1,
+            "title": "Days",
+            "type": "integer"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "days",
+          "reason"
+        ],
+        "title": "CampaignWinbackRetentionIn",
+        "type": "object"
+      },
+      "CampaignWinbackRetentionOut": {
+        "properties": {
+          "counts": {
+            "$ref": "#/components/schemas/CampaignWinbackCountsOut"
+          },
+          "retention_days": {
+            "title": "Retention Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "retention_days",
+          "counts"
+        ],
+        "title": "CampaignWinbackRetentionOut",
+        "type": "object"
+      },
+      "CampaignWinbacksInQuery": {
+        "properties": {
+          "campaign_id": {
+            "format": "uuid",
+            "title": "Campaign Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "campaign_id"
+        ],
+        "title": "CampaignWinbacksInQuery",
+        "type": "object"
+      },
+      "CampaignWinbacksOut": {
+        "properties": {
+          "campaign_id": {
+            "title": "Campaign Id",
+            "type": "string"
+          },
+          "earns_winbacks": {
+            "title": "Earns Winbacks",
+            "type": "boolean"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignEventWinbacksOut"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "fed": {
+            "title": "Fed",
+            "type": "boolean"
+          },
+          "retention_days": {
+            "title": "Retention Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "campaign_id",
+          "retention_days",
+          "fed",
+          "earns_winbacks",
+          "events"
+        ],
+        "title": "CampaignWinbacksOut",
+        "type": "object"
+      },
       "CampaignWindowOut": {
         "properties": {
           "default_window_days": {
@@ -5598,7 +5752,8 @@
                   "actual_dimensional",
                   "campaign_outcome",
                   "campaign_population",
-                  "campaign_contact"
+                  "campaign_contact",
+                  "campaign_winback"
                 ],
                 "type": "string"
               },
@@ -7703,7 +7858,8 @@
                   "actual_dimensional",
                   "campaign_outcome",
                   "campaign_population",
-                  "campaign_contact"
+                  "campaign_contact",
+                  "campaign_winback"
                 ],
                 "type": "string"
               },
@@ -8090,7 +8246,8 @@
               "actual_dimensional",
               "campaign_outcome",
               "campaign_population",
-              "campaign_contact"
+              "campaign_contact",
+              "campaign_winback"
             ],
             "title": "Template",
             "type": "string"
@@ -25545,6 +25702,203 @@
         "x-kpigo-action": "campaign.value_basis.set"
       }
     },
+    "/api/v1/actions/campaign.winback.retention.set": {
+      "post": {
+        "operationId": "campaign_winback_retention_set",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignWinbackRetentionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignWinbackRetentionOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Change how many days a win-back must hold before it is confirmed.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.winback.retention.set"
+      }
+    },
+    "/api/v1/actions/campaign.winbacks": {
+      "get": {
+        "operationId": "campaign_winbacks",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignWinbacksOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Each event's win-backs: provisional, confirmed after the retention window, lapsed.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.winbacks"
+      }
+    },
     "/api/v1/actions/connection.create": {
       "post": {
         "operationId": "connection_create",
@@ -25767,7 +26121,8 @@
                     "actual_dimensional",
                     "campaign_outcome",
                     "campaign_population",
-                    "campaign_contact"
+                    "campaign_contact",
+                    "campaign_winback"
                   ],
                   "type": "string"
                 },
@@ -27681,7 +28036,8 @@
                     "actual_dimensional",
                     "campaign_outcome",
                     "campaign_population",
-                    "campaign_contact"
+                    "campaign_contact",
+                    "campaign_winback"
                   ],
                   "type": "string"
                 },

@@ -35,6 +35,7 @@ import {
   type Reach,
   type Reference,
   type ValueReport,
+  type Winbacks,
 } from "./model";
 
 type Message = { tone: "info" | "neg"; text: string } | null;
@@ -48,6 +49,7 @@ export function CampaignDetailView({
   onChanged,
   reach,
   value,
+  winbacks,
 }: {
   campaign: Campaign;
   reference?: Reference;
@@ -57,6 +59,8 @@ export function CampaignDetailView({
   reach?: QueryState<Reach>;
   /** Each event's value, control group and return; absent, the cards are left out. */
   value?: QueryState<ValueReport>;
+  /** Each event's win-backs; absent, or for a campaign that earns none, the panels are left out. */
+  winbacks?: QueryState<Winbacks>;
 }) {
   const [message, setMessage] = useState<Message>(null);
   const [busy, setBusy] = useState(false);
@@ -112,7 +116,7 @@ export function CampaignDetailView({
       </section>
 
       {campaign.events.length ? (
-        campaign.events.map((e) => <EventPanel key={e.event_id} event={e} campaign={campaign} reference={reference} canManage={editable && !closed} busy={busy} act={act} reach={reach} value={value} />)
+        campaign.events.map((e) => <EventPanel key={e.event_id} event={e} campaign={campaign} reference={reference} canManage={editable && !closed} busy={busy} act={act} reach={reach} value={value} winbacks={winbacks} />)
       ) : (
         <EmptyState kind="none" title="This campaign has no events yet">
           An event is one run: its dates, its budget and who it is for. {editable ? "Add the first one below." : null}
@@ -191,7 +195,7 @@ function CampaignEdits({ campaign, busy, act }: { campaign: Campaign; busy: bool
 
 type Panel = "edit" | "budget" | "repeat" | null;
 
-function EventPanel({ event: e, campaign, reference, canManage, busy, act, reach, value }: { event: CampaignEvent; campaign: Campaign; reference?: Reference; canManage: boolean; busy: boolean; act: Act; reach?: QueryState<Reach>; value?: QueryState<ValueReport> }) {
+function EventPanel({ event: e, campaign, reference, canManage, busy, act, reach, value, winbacks }: { event: CampaignEvent; campaign: Campaign; reference?: Reference; canManage: boolean; busy: boolean; act: Act; reach?: QueryState<Reach>; value?: QueryState<ValueReport>; winbacks?: QueryState<Winbacks> }) {
   const [panel, setPanel] = useState<Panel>(null);
   const [confirm, setConfirm] = useState<"close" | "delete" | null>(null);
   const status = statusOf(e.status);
@@ -229,6 +233,7 @@ function EventPanel({ event: e, campaign, reference, canManage, busy, act, reach
       ) : null}
       {reach ? <ReachPanel event={e} campaign={campaign} reach={reach} reference={reference} /> : null}
       {value && !draft ? <ValuePanel event={e} value={value} /> : null}
+      {winbacks && !draft && campaign.objective === "attrition_winback" ? <WinbackPanel event={e} winbacks={winbacks} /> : null}
 
       {open ? (
         <div className="kg-row" style={{ justifyContent: "flex-start", flexWrap: "wrap" }}>
@@ -380,6 +385,50 @@ function ReachNotes({ all, r, objective }: { all: Reach; r: EventReach; objectiv
         </p>
       ))}
     </>
+  );
+}
+
+/** Who came back, and whether they stayed: provisional until the retention window passes (Scope §9.4). */
+function WinbackPanel({ event: e, winbacks }: { event: CampaignEvent; winbacks: QueryState<Winbacks> }) {
+  const title = `winbacks-${e.event_id}`;
+  if (winbacks.status === "loading") {
+    return (
+      <Loading label={`Loading the win-backs of ${e.event_name}`}>
+        <Skeleton height={48} />
+      </Loading>
+    );
+  }
+  if (winbacks.status === "error") return <p className="kg-cap">The win-backs of this event could not be loaded just now.</p>;
+  const all = winbacks.data;
+  const c = all.events.find((x) => x.event_id === e.event_id)?.counts ?? null;
+  const days = all.retention_days;
+  return (
+    <section className="kg-stack kg-roi" aria-labelledby={title}>
+      <h3 id={title} className="kg-eyebrow">
+        Win-backs
+      </h3>
+      {!all.fed ? (
+        <p className="kg-cap">No win-back feed has loaded yet. The data team's win-back feed says which customers came back, by your own definition.</p>
+      ) : c === null || c.qualified === 0 ? (
+        <p className="kg-cap">No win-backs have been credited to this event yet.</p>
+      ) : (
+        <>
+          <dl className="kg-facts">
+            <Fact term="Confirmed">
+              <b>{count(c.confirmed)}</b>
+            </Fact>
+            <Fact term="Provisional">{count(c.provisional)}</Fact>
+            <Fact term="Lapsed">{count(c.lapsed)}</Fact>
+            <Fact term="Won back in total">{count(c.qualified)}</Fact>
+          </dl>
+          <p className="kg-cap">
+            A win-back is confirmed once it has held for {days} days, or sooner when the data team confirms it.
+            {c.next_confirmation ? ` The next provisional win-backs confirm on ${formatDate(c.next_confirmation)}.` : ""}
+            {c.lapsed ? ` Lapsed win-backs are customers a later load said no longer qualify.` : ""}
+          </p>
+        </>
+      )}
+    </section>
   );
 }
 

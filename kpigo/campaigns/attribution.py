@@ -38,7 +38,7 @@ from django.db import connection
 from django.db.models import Max, Min, Q
 from django.utils import timezone
 
-from kpigo.campaigns import baseline
+from kpigo.campaigns import baseline, winbacks
 from kpigo.campaigns.authoring import window_end
 from kpigo.campaigns.models import (
     ATTRIBUTION_RULES,
@@ -49,6 +49,7 @@ from kpigo.campaigns.models import (
     CampaignEvent,
     CampaignObjective,
     CampaignOutcome,
+    CustomerDims,
 )
 from kpigo.hierarchy.models import DimMember
 from kpigo.ingestion.validator import CUSTOMER_DIMENSIONS
@@ -92,11 +93,12 @@ class EventSpec:
     products: frozenset[str] | None
     # Audience: dimension -> the members named and every member below them.
     criteria: dict[str, frozenset[str]] = field(default_factory=dict)
+    objective: str = ""
 
     def in_window(self, day: date) -> bool:
         return self.period_start < day <= self.window_end
 
-    def in_audience(self, outcome: CampaignOutcome) -> bool:
+    def in_audience(self, outcome: CustomerDims) -> bool:
         if not self.criteria:
             return False
         if self.products is not None and outcome.product_code not in self.products:
@@ -181,6 +183,7 @@ def events_for(org_id: str, trees: Trees | None = None) -> list[EventSpec]:
                 criteria={
                     dim: trees.below(dim, codes) for dim, codes in audience[e.event_id].items()
                 },
+                objective=c.objective,
             )
         )
     return specs
@@ -291,9 +294,16 @@ def attribute(
     CampaignAttribution.objects.filter(
         org_id=org_id, outcome_id__in=selected.values("outcome_id")
     ).delete()
+    # Win-backs are matched to events by the same window and audience: a full run
+    # matches every one, a run over days those that qualified in them.
+    won_back = Q() if not outcomes else None
+    if won_back is None and days is not None:
+        won_back = Q(qualified_at__gte=days[0], qualified_at__lte=days[1])
     if not events:
         summary.outcomes = selected.count()
         summary.unattributed = summary.outcomes
+        if won_back is not None:
+            winbacks.match(org_id, won_back, events, now=now)
         return summary
     rows: list[CampaignAttribution] = []
     for outcome in selected.order_by("outcome_id").iterator(chunk_size=BATCH):
@@ -345,6 +355,8 @@ def attribute(
     check_invariant(org_id)
     if days is not None:
         baseline.refresh(org_id, events, *days, now=now)
+    if won_back is not None:
+        winbacks.match(org_id, won_back, events, now=now)
     return summary
 
 
