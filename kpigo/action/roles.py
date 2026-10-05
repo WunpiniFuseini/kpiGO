@@ -63,6 +63,16 @@ INGESTION = (
     "feed.run",
 )
 
+# Scorecards configuration: taxonomy, profiles' metric sets, bands, settings and
+# the target workbench (PRD SC-1, SC-4, SC-10, SC-11).
+SCORECARD_CONFIG = (
+    "scorecard.config.view",
+    "scorecard.config.manage",
+    "target.view",
+    "target.manage",
+    "target.publish",
+)
+
 SYSTEM_ROLES: dict[str, RoleSpec] = {
     r.code: r
     for r in (
@@ -80,12 +90,23 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "metric.manage",
             "calendar.manage",
             "settings.manage",
+            *SCORECARD_CONFIG,
+            "scorecard.view",
         ),
-        _role("executive", "Executive / Regional Head", *EVERYONE, "dimension.view"),
-        _role("line_manager", "Line Manager", *EVERYONE),
+        _role(
+            "executive", "Executive / Regional Head", *EVERYONE, "dimension.view", "scorecard.view"
+        ),
+        _role("line_manager", "Line Manager", *EVERYONE, "scorecard.view"),
         _role("agent_supervisor", "Agent Supervisor", *EVERYONE),
         _role("campaign_manager", "Campaign Manager", *EVERYONE, "dimension.view"),
-        _role("metric_owner", "Metric Owner", *EVERYONE, "metric.manage"),
+        _role(
+            "metric_owner",
+            "Metric Owner",
+            *EVERYONE,
+            "metric.manage",
+            *SCORECARD_CONFIG,
+            "scorecard.view",
+        ),
         _role(
             "data_steward",
             "Data Steward",
@@ -96,7 +117,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "system.health.view",
         ),
         _role("contributor", "Contributor", *EVERYONE),
-        _role("staff", "Relationship Manager / Service Officer", *EVERYONE),
+        _role("staff", "Relationship Manager / Service Officer", *EVERYONE, "scorecard.view"),
     )
 }
 

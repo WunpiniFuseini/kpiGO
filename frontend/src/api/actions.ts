@@ -16,6 +16,8 @@ export const ROUTES = {
   "auth.password.change": { method: "POST", path: "/api/v1/actions/auth.password.change", pathParams: [], public: false },
   "auth.providers": { method: "GET", path: "/api/v1/auth/providers", pathParams: [], public: true },
   "auth.saml.start": { method: "POST", path: "/api/v1/auth/saml/start", pathParams: [], public: true },
+  "band.list": { method: "GET", path: "/api/v1/actions/band.list", pathParams: [], public: false },
+  "band.set": { method: "POST", path: "/api/v1/actions/band.set", pathParams: [], public: false },
   "calendar.business_date": { method: "GET", path: "/api/v1/actions/calendar.business_date", pathParams: [], public: false },
   "calendar.list": { method: "GET", path: "/api/v1/actions/calendar.list", pathParams: [], public: false },
   "calendar.set_days": { method: "POST", path: "/api/v1/actions/calendar.set_days", pathParams: [], public: false },
@@ -84,6 +86,18 @@ export const ROUTES = {
   "scope.grant.create": { method: "POST", path: "/api/v1/actions/scope.grant.create", pathParams: [], public: false },
   "scope.grant.end": { method: "POST", path: "/api/v1/actions/scope.grant.end", pathParams: [], public: false },
   "scope.grant.list": { method: "GET", path: "/api/v1/scope-grants", pathParams: [], public: false },
+  "scorecard.node.delete": { method: "POST", path: "/api/v1/actions/scorecard.node.delete", pathParams: [], public: false },
+  "scorecard.node.save": { method: "POST", path: "/api/v1/actions/scorecard.node.save", pathParams: [], public: false },
+  "scorecard.placement.clear": { method: "POST", path: "/api/v1/actions/scorecard.placement.clear", pathParams: [], public: false },
+  "scorecard.placement.set": { method: "POST", path: "/api/v1/actions/scorecard.placement.set", pathParams: [], public: false },
+  "scorecard.profile.list": { method: "GET", path: "/api/v1/actions/scorecard.profile.list", pathParams: [], public: false },
+  "scorecard.profile.set_metrics": { method: "POST", path: "/api/v1/actions/scorecard.profile.set_metrics", pathParams: [], public: false },
+  "scorecard.settings.get": { method: "GET", path: "/api/v1/actions/scorecard.settings.get", pathParams: [], public: false },
+  "scorecard.settings.set": { method: "POST", path: "/api/v1/actions/scorecard.settings.set", pathParams: [], public: false },
+  "scorecard.template.activate": { method: "POST", path: "/api/v1/actions/scorecard.template.activate", pathParams: [], public: false },
+  "scorecard.template.get": { method: "GET", path: "/api/v1/actions/scorecard.template.get", pathParams: [], public: false },
+  "scorecard.template.list": { method: "GET", path: "/api/v1/actions/scorecard.template.list", pathParams: [], public: false },
+  "scorecard.template.save": { method: "POST", path: "/api/v1/actions/scorecard.template.save", pathParams: [], public: false },
   "settings.get": { method: "GET", path: "/api/v1/actions/settings.get", pathParams: [], public: false },
   "settings.update": { method: "POST", path: "/api/v1/actions/settings.update", pathParams: [], public: false },
   "setup.bootstrap": { method: "POST", path: "/api/v1/setup/bootstrap", pathParams: [], public: true },
@@ -93,6 +107,15 @@ export const ROUTES = {
   "subject.register": { method: "POST", path: "/api/v1/actions/subject.register", pathParams: [], public: false },
   "subject.update": { method: "POST", path: "/api/v1/actions/subject.update", pathParams: [], public: false },
   "system.health": { method: "GET", path: "/api/v1/health", pathParams: [], public: false },
+  "target.batch.list": { method: "GET", path: "/api/v1/actions/target.batch.list", pathParams: [], public: false },
+  "target.batch.revert": { method: "POST", path: "/api/v1/actions/target.batch.revert", pathParams: [], public: false },
+  "target.copy_forward": { method: "POST", path: "/api/v1/actions/target.copy_forward", pathParams: [], public: false },
+  "target.coverage": { method: "GET", path: "/api/v1/actions/target.coverage", pathParams: [], public: false },
+  "target.draft.discard": { method: "POST", path: "/api/v1/actions/target.draft.discard", pathParams: [], public: false },
+  "target.get": { method: "GET", path: "/api/v1/actions/target.get", pathParams: [], public: false },
+  "target.list": { method: "GET", path: "/api/v1/actions/target.list", pathParams: [], public: false },
+  "target.publish": { method: "POST", path: "/api/v1/actions/target.publish", pathParams: [], public: false },
+  "target.upload": { method: "POST", path: "/api/v1/actions/target.upload", pathParams: [], public: false },
   "user.disable": { method: "POST", path: "/api/v1/actions/user.disable", pathParams: [], public: false },
   "user.enable": { method: "POST", path: "/api/v1/actions/user.enable", pathParams: [], public: false },
   "user.get": { method: "GET", path: "/api/v1/actions/user.get", pathParams: [], public: false },
@@ -120,6 +143,8 @@ export interface Actions {
   "auth.password.change": { input: NonNullable<operations["auth_password_change"]["requestBody"]>["content"]["application/json"]; output: operations["auth_password_change"]["responses"][200]["content"]["application/json"] };
   "auth.providers": { input: Record<string, never>; output: operations["auth_providers"]["responses"][200]["content"]["application/json"] };
   "auth.saml.start": { input: NonNullable<operations["auth_saml_start"]["requestBody"]>["content"]["application/json"]; output: operations["auth_saml_start"]["responses"][200]["content"]["application/json"] };
+  "band.list": { input: Record<string, never>; output: operations["band_list"]["responses"][200]["content"]["application/json"] };
+  "band.set": { input: NonNullable<operations["band_set"]["requestBody"]>["content"]["application/json"]; output: operations["band_set"]["responses"][200]["content"]["application/json"] };
   "calendar.business_date": { input: NonNullable<operations["calendar_business_date"]["parameters"]["query"]>; output: operations["calendar_business_date"]["responses"][200]["content"]["application/json"] };
   "calendar.list": { input: NonNullable<operations["calendar_list"]["parameters"]["query"]>; output: operations["calendar_list"]["responses"][200]["content"]["application/json"] };
   "calendar.set_days": { input: NonNullable<operations["calendar_set_days"]["requestBody"]>["content"]["application/json"]; output: operations["calendar_set_days"]["responses"][200]["content"]["application/json"] };
@@ -188,6 +213,18 @@ export interface Actions {
   "scope.grant.create": { input: NonNullable<operations["scope_grant_create"]["requestBody"]>["content"]["application/json"]; output: operations["scope_grant_create"]["responses"][200]["content"]["application/json"] };
   "scope.grant.end": { input: NonNullable<operations["scope_grant_end"]["requestBody"]>["content"]["application/json"]; output: operations["scope_grant_end"]["responses"][200]["content"]["application/json"] };
   "scope.grant.list": { input: NonNullable<operations["scope_grant_list"]["parameters"]["query"]>; output: operations["scope_grant_list"]["responses"][200]["content"]["application/json"] };
+  "scorecard.node.delete": { input: NonNullable<operations["scorecard_node_delete"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_node_delete"]["responses"][200]["content"]["application/json"] };
+  "scorecard.node.save": { input: NonNullable<operations["scorecard_node_save"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_node_save"]["responses"][200]["content"]["application/json"] };
+  "scorecard.placement.clear": { input: NonNullable<operations["scorecard_placement_clear"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_placement_clear"]["responses"][200]["content"]["application/json"] };
+  "scorecard.placement.set": { input: NonNullable<operations["scorecard_placement_set"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_placement_set"]["responses"][200]["content"]["application/json"] };
+  "scorecard.profile.list": { input: NonNullable<operations["scorecard_profile_list"]["parameters"]["query"]>; output: operations["scorecard_profile_list"]["responses"][200]["content"]["application/json"] };
+  "scorecard.profile.set_metrics": { input: NonNullable<operations["scorecard_profile_set_metrics"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_profile_set_metrics"]["responses"][200]["content"]["application/json"] };
+  "scorecard.settings.get": { input: Record<string, never>; output: operations["scorecard_settings_get"]["responses"][200]["content"]["application/json"] };
+  "scorecard.settings.set": { input: NonNullable<operations["scorecard_settings_set"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_settings_set"]["responses"][200]["content"]["application/json"] };
+  "scorecard.template.activate": { input: NonNullable<operations["scorecard_template_activate"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_template_activate"]["responses"][200]["content"]["application/json"] };
+  "scorecard.template.get": { input: NonNullable<operations["scorecard_template_get"]["parameters"]["query"]>; output: operations["scorecard_template_get"]["responses"][200]["content"]["application/json"] };
+  "scorecard.template.list": { input: Record<string, never>; output: operations["scorecard_template_list"]["responses"][200]["content"]["application/json"] };
+  "scorecard.template.save": { input: NonNullable<operations["scorecard_template_save"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_template_save"]["responses"][200]["content"]["application/json"] };
   "settings.get": { input: Record<string, never>; output: operations["settings_get"]["responses"][200]["content"]["application/json"] };
   "settings.update": { input: NonNullable<operations["settings_update"]["requestBody"]>["content"]["application/json"]; output: operations["settings_update"]["responses"][200]["content"]["application/json"] };
   "setup.bootstrap": { input: NonNullable<operations["setup_bootstrap"]["requestBody"]>["content"]["application/json"]; output: operations["setup_bootstrap"]["responses"][200]["content"]["application/json"] };
@@ -197,6 +234,15 @@ export interface Actions {
   "subject.register": { input: NonNullable<operations["subject_register"]["requestBody"]>["content"]["application/json"]; output: operations["subject_register"]["responses"][200]["content"]["application/json"] };
   "subject.update": { input: NonNullable<operations["subject_update"]["requestBody"]>["content"]["application/json"]; output: operations["subject_update"]["responses"][200]["content"]["application/json"] };
   "system.health": { input: NonNullable<operations["system_health"]["parameters"]["query"]>; output: operations["system_health"]["responses"][200]["content"]["application/json"] };
+  "target.batch.list": { input: NonNullable<operations["target_batch_list"]["parameters"]["query"]>; output: operations["target_batch_list"]["responses"][200]["content"]["application/json"] };
+  "target.batch.revert": { input: NonNullable<operations["target_batch_revert"]["requestBody"]>["content"]["application/json"]; output: operations["target_batch_revert"]["responses"][200]["content"]["application/json"] };
+  "target.copy_forward": { input: NonNullable<operations["target_copy_forward"]["requestBody"]>["content"]["application/json"]; output: operations["target_copy_forward"]["responses"][200]["content"]["application/json"] };
+  "target.coverage": { input: NonNullable<operations["target_coverage"]["parameters"]["query"]>; output: operations["target_coverage"]["responses"][200]["content"]["application/json"] };
+  "target.draft.discard": { input: NonNullable<operations["target_draft_discard"]["requestBody"]>["content"]["application/json"]; output: operations["target_draft_discard"]["responses"][200]["content"]["application/json"] };
+  "target.get": { input: NonNullable<operations["target_get"]["parameters"]["query"]>; output: operations["target_get"]["responses"][200]["content"]["application/json"] };
+  "target.list": { input: NonNullable<operations["target_list"]["parameters"]["query"]>; output: operations["target_list"]["responses"][200]["content"]["application/json"] };
+  "target.publish": { input: NonNullable<operations["target_publish"]["requestBody"]>["content"]["application/json"]; output: operations["target_publish"]["responses"][200]["content"]["application/json"] };
+  "target.upload": { input: NonNullable<operations["target_upload"]["requestBody"]>["content"]["application/json"]; output: operations["target_upload"]["responses"][200]["content"]["application/json"] };
   "user.disable": { input: NonNullable<operations["user_disable"]["requestBody"]>["content"]["application/json"]; output: operations["user_disable"]["responses"][200]["content"]["application/json"] };
   "user.enable": { input: NonNullable<operations["user_enable"]["requestBody"]>["content"]["application/json"]; output: operations["user_enable"]["responses"][200]["content"]["application/json"] };
   "user.get": { input: NonNullable<operations["user_get"]["parameters"]["query"]>; output: operations["user_get"]["responses"][200]["content"]["application/json"] };

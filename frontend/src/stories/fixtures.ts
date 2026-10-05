@@ -10,6 +10,7 @@ const PAGES: Me["pages"] = [
   { page_key: "admin.users", label: "Users & access", group: "administer", access: "edit" },
   { page_key: "admin.metrics", label: "Metric registry", group: "administer", access: "edit" },
   { page_key: "admin.targets", label: "Targets", group: "administer", access: "edit" },
+  { page_key: "admin.scorecard_setup", label: "Scorecard setup", group: "administer", access: "edit" },
   { page_key: "admin.calendar", label: "Business calendar", group: "administer", access: "edit" },
   { page_key: "admin.data_integration", label: "Data integration", group: "administer", access: "edit" },
   { page_key: "admin.health", label: "Health", group: "administer", access: "edit" },

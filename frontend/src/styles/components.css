@@ -72,7 +72,7 @@
 .kg-scale li[aria-current="true"] small { font-weight: 600; color: var(--ink); }
 
 /* ── tables ────────────────────────────────────────────── */
-.kg-table-wrap { overflow-x: auto; }
+.kg-table-wrap { overflow-x: auto; position: relative; } /* contains .sr-only text in scrolled cells */
 .kg-table { width: 100%; border-collapse: collapse; }
 .kg-table caption { text-align: left; padding-bottom: 10px; }
 .kg-table th {
@@ -189,3 +189,11 @@
 .kg-auth__or { display: flex; align-items: center; gap: 10px; color: var(--ink-cap); font-size: 11.5px; }
 .kg-auth__or::before, .kg-auth__or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 .kg-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; word-break: break-all; }
+
+/* ── target coverage grid and taxonomy tree ────────────── */
+.kg-coverage td { padding: 8px 6px; }
+.kg-coverage th[scope="col"] { padding-left: 6px; padding-right: 6px; }
+.kg-tree { list-style: none; margin: 0; padding: 0 0 0 18px; border-left: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.kg-stack > .kg-tree { padding-left: 0; border-left: 0; }
+.kg-tree__metrics { list-style: none; margin: 6px 0 0; padding: 0 0 0 12px; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+.kg-tree__metrics li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

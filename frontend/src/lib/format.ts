@@ -58,3 +58,35 @@ export function initials(name: string): string {
   const letters = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : (parts[0] ?? "?").slice(0, 2);
   return letters.toUpperCase();
 }
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+/** "202607" → "Jul 2026" (or "July 2026" with `long`). */
+export function formatPeriod(periodKey: string, long = false): string {
+  const month = Number(periodKey.slice(4, 6)) - 1;
+  const names = long ? MONTHS_LONG : MONTHS;
+  return `${names[month] ?? periodKey.slice(4, 6)} ${periodKey.slice(0, 4)}`;
+}
+
+/** Move a YYYYMM period key by whole months. */
+export function shiftPeriod(periodKey: string, months: number): string {
+  const index = Number(periodKey.slice(0, 4)) * 12 + Number(periodKey.slice(4, 6)) - 1 + months;
+  return `${Math.floor(index / 12)}${String((index % 12) + 1).padStart(2, "0")}`;
+}
+
+/** Today's period key in the browser's calendar. */
+export function currentPeriod(today: Date = new Date()): string {
+  return `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** A decimal string from the API ("40.000") as a short figure ("40"). */
+export function formatDecimal(value: string | number | null | undefined, decimals?: number): string {
+  if (value === null || value === undefined || value === "") return "–";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return String(value);
+  return n.toLocaleString("en-GB", {
+    minimumFractionDigits: decimals ?? 0,
+    maximumFractionDigits: decimals ?? 4,
+  });
+}

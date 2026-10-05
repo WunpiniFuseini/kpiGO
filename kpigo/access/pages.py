@@ -33,7 +33,8 @@ PAGES: tuple[Page, ...] = (
     Page("my_inputs", "My inputs", "modules", "platform"),
     Page("admin.users", "Users & access", "administer", "platform"),
     Page("admin.metrics", "Metric registry", "administer", "platform"),
-    Page("admin.targets", "Targets", "administer", "platform"),
+    Page("admin.targets", "Targets", "administer", "scorecards"),
+    Page("admin.scorecard_setup", "Scorecard setup", "administer", "scorecards"),
     Page("admin.calendar", "Business calendar", "administer", "platform"),
     Page("admin.product_lines", "Product lines", "administer", "agent_performance"),
     Page("admin.data_integration", "Data integration", "administer", "platform"),
@@ -59,7 +60,12 @@ SYSTEM_PAGE_ACCESS: dict[str, dict[str, Access]] = {
     "line_manager": {"scorecards": "view", "agent_performance": "view"},
     "agent_supervisor": {"agent_performance": "view"},
     "campaign_manager": {"campaign": "edit", "agent_performance": "view"},
-    "metric_owner": {"scorecards": "view", "admin.metrics": "edit", "admin.targets": "edit"},
+    "metric_owner": {
+        "scorecards": "view",
+        "admin.metrics": "edit",
+        "admin.targets": "edit",
+        "admin.scorecard_setup": "edit",
+    },
     "data_steward": {
         "admin.data_integration": "edit",
         "admin.product_lines": "edit",

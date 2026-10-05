@@ -4,6 +4,8 @@ import { EmptyState, Loading, Skeleton } from "./components";
 import { AdminPlaceholder, ModulePage } from "./pages/ModulePage";
 import { HealthPage } from "./pages/admin/Health";
 import { MetricsPage } from "./pages/admin/Metrics";
+import { ScorecardSetupPage } from "./pages/admin/ScorecardSetup";
+import { TargetsPage } from "./pages/admin/Targets";
 import { UsersPage } from "./pages/admin/Users";
 import { InviteAccept } from "./pages/InviteAccept";
 import { Login } from "./pages/Login";
@@ -30,7 +32,8 @@ export function App() {
         <Route path="/admin/users" element={<UsersPage />} />
         <Route path="/admin/metrics" element={<MetricsPage />} />
         <Route path="/admin/health" element={<HealthPage />} />
-        <Route path="/admin/targets" element={<AdminPlaceholder title="Targets" what="Target workbench, coverage and publish batches." />} />
+        <Route path="/admin/targets" element={<TargetsPage />} />
+        <Route path="/admin/scorecard-setup" element={<ScorecardSetupPage />} />
         <Route path="/admin/calendar" element={<AdminPlaceholder title="Business calendar" what="Cycles, working days, deadlines and period close." />} />
         <Route path="/admin/product-lines" element={<AdminPlaceholder title="Product lines" what="The product line registry, groups and activation." />} />
         <Route path="/admin/data-integration" element={<AdminPlaceholder title="Data integration" what="Connections, feeds, runs and rejections." />} />

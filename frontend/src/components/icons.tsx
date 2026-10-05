@@ -10,6 +10,7 @@ const paths: Record<string, ReactElement> = {
   "admin.users": <path d="M6 7a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM1.5 14c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5M11 2.5a2.5 2.5 0 0 1 0 4.5M12.5 9.8c1.2.6 2 1.9 2 3.7" />,
   "admin.metrics": <path d="M2 3h12M2 8h12M2 13h12M5 1.5v3M10 6.5v3M7 11.5v3" />,
   "admin.targets": <path d="M8 14A6 6 0 1 0 8 2a6 6 0 0 0 0 12zM8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 8h.01" />,
+  "admin.scorecard_setup": <path d="M2 3h4v4H2zM10 9h4v4h-4zM6 5h3v6h1M4 7v6h6" />,
   "admin.calendar": <path d="M2 4h12v10H2zM2 7h12M5 2v3M11 2v3" />,
   "admin.product_lines": <path d="M2 2h5v5H2zM9 9h5v5H9zM9 4.5h5M2 11.5h5" />,
   "admin.data_integration": <path d="M8 1.5c3.3 0 6 1 6 2.5S11.3 6.5 8 6.5 2 5.5 2 4s2.7-2.5 6-2.5zM2 4v8c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V4M2 8c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5" />,

@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "kpigo.ingestion",
     "kpigo.access",
     "kpigo.licence",
+    "kpigo.scorecards",
 ]
 
 MIDDLEWARE = [
