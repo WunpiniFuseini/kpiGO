@@ -1300,6 +1300,198 @@
         "title": "CommentAddIn",
         "type": "object"
       },
+      "ComplianceInQuery": {
+        "properties": {
+          "months": {
+            "default": 6,
+            "maximum": 24,
+            "minimum": 1,
+            "title": "Months",
+            "type": "integer"
+          },
+          "period_key": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Key"
+          }
+        },
+        "title": "ComplianceInQuery",
+        "type": "object"
+      },
+      "ComplianceMonthOut": {
+        "properties": {
+          "asked": {
+            "title": "Asked",
+            "type": "integer"
+          },
+          "last_submitted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Submitted At"
+          },
+          "late": {
+            "title": "Late",
+            "type": "integer"
+          },
+          "missing": {
+            "title": "Missing",
+            "type": "integer"
+          },
+          "on_time": {
+            "title": "On Time",
+            "type": "integer"
+          },
+          "open": {
+            "title": "Open",
+            "type": "integer"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "step": {
+            "title": "Step",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "period_key",
+          "asked",
+          "on_time",
+          "late",
+          "missing",
+          "open",
+          "step",
+          "last_submitted_at"
+        ],
+        "title": "ComplianceMonthOut",
+        "type": "object"
+      },
+      "ComplianceOut": {
+        "properties": {
+          "chronic_months": {
+            "title": "Chronic Months",
+            "type": "integer"
+          },
+          "periods": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Periods",
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ComplianceRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "periods",
+          "rows",
+          "chronic_months",
+          "scope"
+        ],
+        "title": "ComplianceOut",
+        "type": "object"
+      },
+      "ComplianceRowOut": {
+        "properties": {
+          "asked": {
+            "title": "Asked",
+            "type": "integer"
+          },
+          "chronic": {
+            "title": "Chronic",
+            "type": "boolean"
+          },
+          "late": {
+            "title": "Late",
+            "type": "integer"
+          },
+          "late_months": {
+            "title": "Late Months",
+            "type": "integer"
+          },
+          "missing": {
+            "title": "Missing",
+            "type": "integer"
+          },
+          "months": {
+            "items": {
+              "$ref": "#/components/schemas/ComplianceMonthOut"
+            },
+            "title": "Months",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "on_time": {
+            "title": "On Time",
+            "type": "integer"
+          },
+          "on_time_rate": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "On Time Rate"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "months",
+          "asked",
+          "on_time",
+          "late",
+          "missing",
+          "on_time_rate",
+          "late_months",
+          "chronic"
+        ],
+        "title": "ComplianceRowOut",
+        "type": "object"
+      },
       "ConnectionCreateIn": {
         "properties": {
           "database": {
@@ -17783,6 +17975,114 @@
           "scorecards"
         ],
         "x-kpigo-action": "input.assignment.set_stakeholders"
+      }
+    },
+    "/api/v1/actions/input.compliance": {
+      "get": {
+        "operationId": "input_compliance",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period Key"
+            }
+          },
+          {
+            "in": "query",
+            "name": "months",
+            "required": false,
+            "schema": {
+              "default": 6,
+              "maximum": 24,
+              "minimum": 1,
+              "title": "Months",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplianceOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Who was asked for manual inputs, who submitted, and when, per contributor over time.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "input.compliance"
       }
     },
     "/api/v1/actions/input.escalation.list": {
