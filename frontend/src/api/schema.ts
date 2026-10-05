@@ -769,6 +769,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/input.compliance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who was asked for manual inputs, who submitted, and when, per contributor over time. */
+        get: operations["input_compliance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/input.escalation.list": {
         parameters: {
             query?: never;
@@ -3178,6 +3195,69 @@ export interface components {
              * @enum {string}
              */
             visibility?: "subject" | "managers";
+        };
+        /** ComplianceInQuery */
+        ComplianceInQuery: {
+            /**
+             * Months
+             * @default 6
+             */
+            months?: number;
+            /** Period Key */
+            period_key?: string | null;
+        };
+        /** ComplianceMonthOut */
+        ComplianceMonthOut: {
+            /** Asked */
+            asked: number;
+            /** Last Submitted At */
+            last_submitted_at: string | null;
+            /** Late */
+            late: number;
+            /** Missing */
+            missing: number;
+            /** On Time */
+            on_time: number;
+            /** Open */
+            open: number;
+            /** Period Key */
+            period_key: string;
+            /** Step */
+            step: number;
+        };
+        /** ComplianceOut */
+        ComplianceOut: {
+            /** Chronic Months */
+            chronic_months: number;
+            /** Periods */
+            periods: string[];
+            /** Rows */
+            rows: components["schemas"]["ComplianceRowOut"][];
+            /** Scope */
+            scope: string;
+        };
+        /** ComplianceRowOut */
+        ComplianceRowOut: {
+            /** Asked */
+            asked: number;
+            /** Chronic */
+            chronic: boolean;
+            /** Late */
+            late: number;
+            /** Late Months */
+            late_months: number;
+            /** Missing */
+            missing: number;
+            /** Months */
+            months: components["schemas"]["ComplianceMonthOut"][];
+            /** Name */
+            name: string;
+            /** On Time */
+            on_time: number;
+            /** On Time Rate */
+            on_time_rate: string | null;
+            /** User Id */
+            user_id: string | null;
         };
         /** ConnectionCreateIn */
         ConnectionCreateIn: {
@@ -10583,6 +10663,74 @@ export interface operations {
             };
             /** @description Service Unavailable */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    input_compliance: {
+        parameters: {
+            query?: {
+                period_key?: string | null;
+                months?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplianceOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

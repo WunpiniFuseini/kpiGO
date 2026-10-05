@@ -31,6 +31,7 @@ PAGES: tuple[Page, ...] = (
     Page("campaign", "Campaign Manager", "modules", "campaign"),
     Page("executive", "Executive", "modules", "executive"),
     Page("my_inputs", "My inputs", "modules", "platform"),
+    Page("input_compliance", "Input compliance", "modules", "platform"),
     Page("admin.users", "Users & access", "administer", "platform"),
     Page("admin.metrics", "Metric registry", "administer", "platform"),
     Page("admin.targets", "Targets", "administer", "scorecards"),
@@ -56,6 +57,7 @@ SYSTEM_PAGE_ACCESS: dict[str, dict[str, Access]] = {
         "campaign": "view",
         "executive": "view",
         "my_inputs": "edit",
+        "input_compliance": "view",
     },
     # An executive may be a stakeholder told about overdue inputs (MI-8).
     "executive": {
@@ -63,9 +65,16 @@ SYSTEM_PAGE_ACCESS: dict[str, dict[str, Access]] = {
         "scorecards": "view",
         "agent_performance": "view",
         "my_inputs": "view",
+        "input_compliance": "view",
     },
     # A line manager enters inputs owed by "the line manager of" their people (MI-2).
-    "line_manager": {"scorecards": "view", "agent_performance": "view", "my_inputs": "edit"},
+    # ...and sees how punctually their team enters inputs (MI-12).
+    "line_manager": {
+        "scorecards": "view",
+        "agent_performance": "view",
+        "my_inputs": "edit",
+        "input_compliance": "view",
+    },
     "agent_supervisor": {"agent_performance": "view"},
     "campaign_manager": {"campaign": "edit", "agent_performance": "view"},
     "metric_owner": {

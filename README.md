@@ -227,6 +227,15 @@ per run, never one email per slice. A relay failure is audited and never stops
 the in-app notice. A rung that reaches nobody (a contributor with no line
 manager) is recorded, not skipped silently.
 
+**Input compliance** (`input.compliance`, the Input compliance page) shows, per
+contributor and month, how many slices they were asked for and whether each
+arrived on time, late or never, with how far the ladder climbed. An input's
+arrival is its first submission, so a later correction does not make it late; an
+input not yet due is "still open", not missing. A contributor late or missing in
+3 or more of the months shown is flagged. Admins see everyone, including slices
+nobody could be asked for; line managers and executives see the contributors in
+their visibility scope.
+
 ## Layout
 
 ```

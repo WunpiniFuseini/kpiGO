@@ -56,6 +56,7 @@ export const ROUTES = {
   "input.assignment.end": { method: "POST", path: "/api/v1/actions/input.assignment.end", pathParams: [], public: false },
   "input.assignment.list": { method: "GET", path: "/api/v1/actions/input.assignment.list", pathParams: [], public: false },
   "input.assignment.set_stakeholders": { method: "POST", path: "/api/v1/actions/input.assignment.set_stakeholders", pathParams: [], public: false },
+  "input.compliance": { method: "GET", path: "/api/v1/actions/input.compliance", pathParams: [], public: false },
   "input.escalation.list": { method: "GET", path: "/api/v1/actions/input.escalation.list", pathParams: [], public: false },
   "input.ladder.get": { method: "GET", path: "/api/v1/actions/input.ladder.get", pathParams: [], public: false },
   "input.ladder.set": { method: "POST", path: "/api/v1/actions/input.ladder.set", pathParams: [], public: false },
@@ -217,6 +218,7 @@ export interface Actions {
   "input.assignment.end": { input: NonNullable<operations["input_assignment_end"]["requestBody"]>["content"]["application/json"]; output: operations["input_assignment_end"]["responses"][200]["content"]["application/json"] };
   "input.assignment.list": { input: NonNullable<operations["input_assignment_list"]["parameters"]["query"]>; output: operations["input_assignment_list"]["responses"][200]["content"]["application/json"] };
   "input.assignment.set_stakeholders": { input: NonNullable<operations["input_assignment_set_stakeholders"]["requestBody"]>["content"]["application/json"]; output: operations["input_assignment_set_stakeholders"]["responses"][200]["content"]["application/json"] };
+  "input.compliance": { input: NonNullable<operations["input_compliance"]["parameters"]["query"]>; output: operations["input_compliance"]["responses"][200]["content"]["application/json"] };
   "input.escalation.list": { input: Record<string, never>; output: operations["input_escalation_list"]["responses"][200]["content"]["application/json"] };
   "input.ladder.get": { input: NonNullable<operations["input_ladder_get"]["parameters"]["query"]>; output: operations["input_ladder_get"]["responses"][200]["content"]["application/json"] };
   "input.ladder.set": { input: NonNullable<operations["input_ladder_set"]["requestBody"]>["content"]["application/json"]; output: operations["input_ladder_set"]["responses"][200]["content"]["application/json"] };

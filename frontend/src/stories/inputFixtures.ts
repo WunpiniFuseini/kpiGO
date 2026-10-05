@@ -218,3 +218,41 @@ export const escalated: Escalated = {
 };
 
 export const nothingEscalated: Escalated = { items: [] };
+
+type Compliance = Output<"input.compliance">;
+type ComplianceMonth = Compliance["rows"][number]["months"][number];
+
+const PERIODS = ["202604", "202605", "202606", "202607", "202608", "202609"];
+
+function months(spec: string): ComplianceMonth[] {
+  // One letter a month: o on time, l late, m missing, p still open, - not asked.
+  return PERIODS.map((period_key, i) => {
+    const c = spec[i];
+    return {
+      period_key,
+      asked: c === "-" ? 0 : 1,
+      on_time: c === "o" ? 1 : 0,
+      late: c === "l" ? 1 : 0,
+      missing: c === "m" ? 1 : 0,
+      open: c === "p" ? 1 : 0,
+      step: c === "o" ? 1 : c === "l" ? 2 : c === "m" ? 3 : 0,
+      last_submitted_at: c === "o" ? `${period_key.slice(0, 4)}-${period_key.slice(4)}-28T10:00:00Z` : c === "l" ? "2026-09-12T10:00:00Z" : null,
+    };
+  });
+}
+
+export const compliance: Compliance = {
+  periods: PERIODS,
+  chronic_months: 3,
+  scope: "all",
+  rows: [
+    { user_id: "6f1c0d6e-1a4f-4b4e-9b1a-0c2d3e4f5a63", name: "Yaw Boakye", months: months("olmllo"), asked: 6, on_time: 2, late: 3, missing: 1, on_time_rate: "0.333", late_months: 4, chronic: true },
+    { user_id: "6f1c0d6e-1a4f-4b4e-9b1a-0c2d3e4f5a61", name: "Kofi Asante", months: months("oooolo"), asked: 6, on_time: 5, late: 1, missing: 0, on_time_rate: "0.833", late_months: 1, chronic: false },
+    { user_id: "6f1c0d6e-1a4f-4b4e-9b1a-0c2d3e4f5a62", name: "Efua Owusu", months: months("---oop"), asked: 3, on_time: 2, late: 0, missing: 0, on_time_rate: "1.000", late_months: 0, chronic: false },
+    { user_id: null, name: "Nobody (no line manager)", months: months("mmmmmm"), asked: 6, on_time: 0, late: 0, missing: 6, on_time_rate: "0.000", late_months: 6, chronic: true },
+  ],
+};
+
+export const complianceAllGood: Compliance = { ...compliance, rows: [compliance.rows[1], compliance.rows[2]].map((r) => ({ ...r, months: months("oooooo"), on_time: 6, late: 0, asked: 6, on_time_rate: "1.000", late_months: 0 })) };
+export const complianceEmpty: Compliance = { ...compliance, rows: [] };
+export const complianceTeamEmpty: Compliance = { ...compliance, rows: [], scope: "team" };
