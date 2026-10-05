@@ -145,7 +145,7 @@ class ScorecardSettingsOut(BaseModel):
     denominator_policy: str
     # Manual input is due at the end of this working day of the following month.
     input_due_working_day: int
-    # The single reminder goes this many working days before it.
+    # The contributor is reminded this many working days before it (the ladder's first rung).
     input_reminder_working_days: int
 
 

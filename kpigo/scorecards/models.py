@@ -209,9 +209,19 @@ class ScorecardSettings(Tracked):
     # ``redistribute``: their weight spreads over the scored metrics; explicit opt-in.
     denominator_policy = models.TextField(db_default="reduced")
     # Manual input (MI-7): due at the end of this working day of the following
-    # month, on the business calendar; one reminder this many working days before.
+    # month, on the business calendar; the contributor is reminded this many working
+    # days before.
     input_due_working_day = models.SmallIntegerField(db_default=5)
     input_reminder_working_days = models.SmallIntegerField(db_default=2)
+    # The escalation ladder (MI-8): the contributor's line manager is told this
+    # many working days from the due day (negative = before it), then the
+    # stakeholders. Null switches that rung off.
+    input_manager_working_days = models.SmallIntegerField(null=True, db_default=0)
+    input_stakeholder_working_days = models.SmallIntegerField(null=True, db_default=1)
+    # Accounts (user_id) told at the last rung; empty means everyone who manages input.
+    input_stakeholders = models.JSONField(
+        db_default=models.Value([], output_field=models.JSONField())
+    )
 
     class Meta:
         db_table = "scorecard_settings"
@@ -230,6 +240,22 @@ class ScorecardSettings(Tracked):
                 condition=models.Q(input_due_working_day__gte=1, input_due_working_day__lte=20)
                 & models.Q(input_reminder_working_days__gte=0, input_reminder_working_days__lte=10),
                 name="scorecard_settings_input_schedule_valid",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(input_manager_working_days__isnull=True)
+                    | models.Q(
+                        input_manager_working_days__gte=-10, input_manager_working_days__lte=10
+                    )
+                )
+                & (
+                    models.Q(input_stakeholder_working_days__isnull=True)
+                    | models.Q(
+                        input_stakeholder_working_days__gte=-10,
+                        input_stakeholder_working_days__lte=10,
+                    )
+                ),
+                name="scorecard_settings_input_ladder_valid",
             ),
         ]
 
@@ -744,7 +770,8 @@ class InputAssignment(Tracked):
         "access.AppUser", on_delete=models.PROTECT, null=True, related_name="+"
     )
     assignee_role = models.TextField(null=True)
-    # The R1.5 escalation ladder; R1 sends a single reminder.
+    # ``{"stakeholder_user_ids": [...]}``: who the last rung of the ladder tells
+    # for this slice, in place of the org's stakeholders.
     escalation_config = models.JSONField(
         db_default=models.Value({}, output_field=models.JSONField())
     )
@@ -884,3 +911,45 @@ class InputSchedule(Stamped):
 
     def __str__(self) -> str:
         return f"{self.input_assignment_id} {self.period_key}"
+
+
+ESCALATION_STEPS = {1: "contributor", 2: "line_manager", 3: "stakeholders"}
+
+
+class InputEscalation(Stamped):
+    """One rung of the ladder reaching one person for one slice and month (MI-8).
+
+    ``recipient`` is null when the rung resolved to nobody (a contributor with
+    no line manager): recorded, so the gap is visible rather than silent.
+    """
+
+    escalation_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    schedule = models.ForeignKey(InputSchedule, on_delete=models.PROTECT, related_name="steps")
+    step = models.SmallIntegerField()
+    recipient = models.ForeignKey(
+        "access.AppUser", on_delete=models.PROTECT, null=True, related_name="+"
+    )
+    # Who owed the input when this rung went out, for the message and the record.
+    contributor = models.ForeignKey(
+        "access.AppUser", on_delete=models.PROTECT, null=True, related_name="+"
+    )
+    sent_at = models.DateTimeField()
+    # Null: no relay configured; false: the relay refused it or there is no address.
+    emailed = models.BooleanField(null=True)
+
+    class Meta:
+        db_table = "input_escalation"
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(step__in=list(ESCALATION_STEPS)),
+                name="input_escalation_step_valid",
+            ),
+            models.UniqueConstraint(
+                fields=["schedule", "step", "recipient"], name="input_escalation_once"
+            ),
+        ]
+        indexes = [models.Index(fields=["recipient", "sent_at"], name="input_escalation_to")]
+
+    def __str__(self) -> str:
+        return f"{self.schedule_id} step {self.step}"

@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 
-import { ManualInputView } from "../pages/admin/ManualInput";
-import { InputsView } from "../pages/inputs/MyInputs";
-import { NOW, assignments, manualMetrics, noAssignments, people, tasksDue, tasksLocked, tasksNone, tasksRestating } from "../stories/inputFixtures";
+import { LadderView, ManualInputView } from "../pages/admin/ManualInput";
+import { EscalatedView, InputsView } from "../pages/inputs/MyInputs";
+import { NOW, assignments, escalated, ladder, ladderNamedNoManager, manualMetrics, noAssignments, nothingEscalated, people, tasksDue, tasksLocked, tasksNone, tasksRestating } from "../stories/inputFixtures";
 
 const noop = () => {};
 
@@ -67,13 +67,61 @@ describe("manual input assignments", () => {
 
   it("says whether reminders also go by email", () => {
     const { rerender } = render(<ManualInputView list={assignments} metrics={manualMetrics} users={people} onChanged={noop} />);
-    expect(screen.getByText(/one reminder, in kpiGo and by email/)).toBeInTheDocument();
+    expect(screen.getByText(/climbs the escalation ladder below, in kpiGo and by email/)).toBeInTheDocument();
     rerender(<ManualInputView list={{ ...assignments, email_reminders: false }} metrics={manualMetrics} users={people} onChanged={noop} />);
     expect(screen.getByText(/Email is off because no mail relay is set/)).toBeInTheDocument();
+  });
+
+  it("shows how far each slice has climbed and who hears when it is overdue", () => {
+    render(<ManualInputView list={assignments} metrics={manualMetrics} users={people} onChanged={noop} />);
+    expect(screen.getByText("Their line manager told")).toBeInTheDocument();
+    expect(screen.getByText("Overdue goes to Efua Owusu")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Who hears when Net promoter score for Yaw Mensah · RM-0188 is overdue" }));
+    const form = screen.getByRole("form", { name: "Overdue contacts for Net promoter score, Yaw Mensah · RM-0188" });
+    // Only people whose role can see escalations are offered; the one already named is ticked.
+    expect(within(form).getByRole("checkbox", { name: "Efua Owusu" })).toBeChecked();
+    expect(within(form).queryByRole("checkbox", { name: "Kofi Asante" })).not.toBeInTheDocument();
   });
 
   it("explains an empty registry", () => {
     render(<ManualInputView list={noAssignments} metrics={[]} users={people} onChanged={noop} />);
     expect(screen.getByText(/Set a metric's collection to manual input/)).toBeInTheDocument();
+  });
+});
+
+describe("escalation ladder", () => {
+  it("reads as dates for the month, rung by rung", () => {
+    render(<LadderView ladder={ladder} users={people} onChanged={noop} />);
+    const table = screen.getByRole("table", { name: "Escalation ladder" });
+    expect(within(table).getByText("2 working day(s) before the due day")).toBeInTheDocument();
+    expect(within(table).getByText("On the due day")).toBeInTheDocument();
+    expect(within(table).getByText(/everyone who manages input: Abena Darko/)).toBeInTheDocument();
+    expect(screen.getByText(/one email a day/)).toBeInTheDocument();
+  });
+
+  it("shows a rung that is off, and named stakeholders", () => {
+    render(<LadderView ladder={ladderNamedNoManager} users={people} onChanged={noop} />);
+    const table = screen.getByRole("table", { name: "Escalation ladder" });
+    expect(within(table).getAllByText("Off")).toHaveLength(2);
+    expect(screen.getByText(/Email is off/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Change the ladder" }));
+    expect(screen.getByRole("combobox", { name: "Tell their line manager" })).toHaveValue("off");
+  });
+});
+
+describe("escalated to you", () => {
+  it("lists what others owe and why you were told", () => {
+    render(<EscalatedView escalated={escalated} alone={false} />);
+    expect(screen.getByText("You are their line manager")).toBeInTheDocument();
+    expect(screen.getByText("You are a stakeholder")).toBeInTheDocument();
+    expect(screen.getByText("Missed the deadline")).toBeInTheDocument();
+    expect(screen.getByText("Nobody: no line manager")).toBeInTheDocument();
+  });
+
+  it("says why it is empty when that is all the page shows", () => {
+    const { container, rerender } = render(<EscalatedView escalated={nothingEscalated} alone={false} />);
+    expect(container).toBeEmptyDOMElement();
+    rerender(<EscalatedView escalated={nothingEscalated} alone />);
+    expect(screen.getByRole("heading", { name: "Nothing has been escalated to you" })).toBeInTheDocument();
   });
 });

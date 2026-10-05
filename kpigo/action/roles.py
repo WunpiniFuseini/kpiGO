@@ -81,7 +81,9 @@ SCORECARD_READER = ("scorecard.view", "scorecard.acknowledge", "scorecard.query"
 # Managing others' (SC-15, SC-16): answer their queries, comment on their month.
 SCORECARD_MANAGER = ("scorecard.query.resolve", "scorecard.comment")
 # Manual metric input (PRD MI-1–MI-13): set up who enters what; enter it.
-INPUT_MANAGE = ("input.manage", "input.submit")
+INPUT_MANAGE = ("input.manage", "input.submit", "input.followup")
+# Being told when someone else's input is overdue (MI-8): line managers and stakeholders.
+INPUT_FOLLOWUP = "input.followup"
 
 SYSTEM_ROLES: dict[str, RoleSpec] = {
     r.code: r
@@ -114,6 +116,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *EVERYONE,
             "dimension.view",
             *SCORECARD_READER,
+            INPUT_FOLLOWUP,
         ),
         _role(
             "line_manager",
@@ -123,6 +126,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *SCORECARD_MANAGER,
             *OVERRIDE_REQUEST,
             "input.submit",
+            INPUT_FOLLOWUP,
         ),
         _role("agent_supervisor", "Agent Supervisor", *EVERYONE),
         _role("campaign_manager", "Campaign Manager", *EVERYONE, "dimension.view"),

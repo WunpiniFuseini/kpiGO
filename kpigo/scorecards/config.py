@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Literal
 
@@ -23,6 +23,9 @@ class Settings:
     denominator_policy: str = "reduced"
     input_due_working_day: int = 5
     input_reminder_working_days: int = 2
+    input_manager_working_days: int | None = 0
+    input_stakeholder_working_days: int | None = 1
+    input_stakeholders: tuple[str, ...] = field(default=())
 
 
 def settings_for(org_id: str) -> Settings:
@@ -37,6 +40,9 @@ def settings_for(org_id: str) -> Settings:
         denominator_policy=row.denominator_policy,
         input_due_working_day=row.input_due_working_day,
         input_reminder_working_days=row.input_reminder_working_days,
+        input_manager_working_days=row.input_manager_working_days,
+        input_stakeholder_working_days=row.input_stakeholder_working_days,
+        input_stakeholders=tuple(str(u) for u in row.input_stakeholders or ()),
     )
 
 

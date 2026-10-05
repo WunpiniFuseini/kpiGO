@@ -55,6 +55,10 @@ export const ROUTES = {
   "input.assignment.create": { method: "POST", path: "/api/v1/actions/input.assignment.create", pathParams: [], public: false },
   "input.assignment.end": { method: "POST", path: "/api/v1/actions/input.assignment.end", pathParams: [], public: false },
   "input.assignment.list": { method: "GET", path: "/api/v1/actions/input.assignment.list", pathParams: [], public: false },
+  "input.assignment.set_stakeholders": { method: "POST", path: "/api/v1/actions/input.assignment.set_stakeholders", pathParams: [], public: false },
+  "input.escalation.list": { method: "GET", path: "/api/v1/actions/input.escalation.list", pathParams: [], public: false },
+  "input.ladder.get": { method: "GET", path: "/api/v1/actions/input.ladder.get", pathParams: [], public: false },
+  "input.ladder.set": { method: "POST", path: "/api/v1/actions/input.ladder.set", pathParams: [], public: false },
   "input.remind": { method: "POST", path: "/api/v1/actions/input.remind", pathParams: [], public: false },
   "input.save": { method: "POST", path: "/api/v1/actions/input.save", pathParams: [], public: false },
   "input.submit": { method: "POST", path: "/api/v1/actions/input.submit", pathParams: [], public: false },
@@ -212,6 +216,10 @@ export interface Actions {
   "input.assignment.create": { input: NonNullable<operations["input_assignment_create"]["requestBody"]>["content"]["application/json"]; output: operations["input_assignment_create"]["responses"][200]["content"]["application/json"] };
   "input.assignment.end": { input: NonNullable<operations["input_assignment_end"]["requestBody"]>["content"]["application/json"]; output: operations["input_assignment_end"]["responses"][200]["content"]["application/json"] };
   "input.assignment.list": { input: NonNullable<operations["input_assignment_list"]["parameters"]["query"]>; output: operations["input_assignment_list"]["responses"][200]["content"]["application/json"] };
+  "input.assignment.set_stakeholders": { input: NonNullable<operations["input_assignment_set_stakeholders"]["requestBody"]>["content"]["application/json"]; output: operations["input_assignment_set_stakeholders"]["responses"][200]["content"]["application/json"] };
+  "input.escalation.list": { input: Record<string, never>; output: operations["input_escalation_list"]["responses"][200]["content"]["application/json"] };
+  "input.ladder.get": { input: NonNullable<operations["input_ladder_get"]["parameters"]["query"]>; output: operations["input_ladder_get"]["responses"][200]["content"]["application/json"] };
+  "input.ladder.set": { input: NonNullable<operations["input_ladder_set"]["requestBody"]>["content"]["application/json"]; output: operations["input_ladder_set"]["responses"][200]["content"]["application/json"] };
   "input.remind": { input: NonNullable<operations["input_remind"]["requestBody"]>["content"]["application/json"]; output: operations["input_remind"]["responses"][200]["content"]["application/json"] };
   "input.save": { input: NonNullable<operations["input_save"]["requestBody"]>["content"]["application/json"]; output: operations["input_save"]["responses"][200]["content"]["application/json"] };
   "input.submit": { input: NonNullable<operations["input_submit"]["requestBody"]>["content"]["application/json"]; output: operations["input_submit"]["responses"][200]["content"]["application/json"] };

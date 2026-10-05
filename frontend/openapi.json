@@ -3010,6 +3010,95 @@
         "title": "ErrorOut",
         "type": "object"
       },
+      "EscalatedInputListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EscalatedInputOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "EscalatedInputListOut",
+        "type": "object"
+      },
+      "EscalatedInputOut": {
+        "properties": {
+          "assignment_id": {
+            "format": "uuid",
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "contributor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contributor Name"
+          },
+          "due_at": {
+            "format": "date-time",
+            "title": "Due At",
+            "type": "string"
+          },
+          "escalated_at": {
+            "format": "date-time",
+            "title": "Escalated At",
+            "type": "string"
+          },
+          "locked": {
+            "title": "Locked",
+            "type": "boolean"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "metric_name": {
+            "title": "Metric Name",
+            "type": "string"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "scope_label": {
+            "title": "Scope Label",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "step": {
+            "title": "Step",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assignment_id",
+          "period_key",
+          "metric_code",
+          "metric_name",
+          "scope_label",
+          "contributor_name",
+          "step",
+          "escalated_at",
+          "due_at",
+          "locked",
+          "state"
+        ],
+        "title": "EscalatedInputOut",
+        "type": "object"
+      },
       "ExclusionAddIn": {
         "properties": {
           "metric_code": {
@@ -4998,6 +5087,10 @@
             ],
             "title": "Effective To"
           },
+          "escalation_step": {
+            "title": "Escalation Step",
+            "type": "integer"
+          },
           "members": {
             "title": "Members",
             "type": "integer"
@@ -5021,6 +5114,21 @@
           "scope_type": {
             "title": "Scope Type",
             "type": "string"
+          },
+          "stakeholder_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Stakeholder Names",
+            "type": "array"
+          },
+          "stakeholder_user_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Stakeholder User Ids",
+            "type": "array"
           },
           "state": {
             "title": "State",
@@ -5054,7 +5162,10 @@
           "effective_from",
           "effective_to",
           "state",
-          "submitted_at"
+          "submitted_at",
+          "escalation_step",
+          "stakeholder_user_ids",
+          "stakeholder_names"
         ],
         "title": "InputAssignmentOut",
         "type": "object"
@@ -5094,6 +5205,178 @@
         "title": "InputEntryIn",
         "type": "object"
       },
+      "InputLadderGetInQuery": {
+        "properties": {
+          "period_key": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Key"
+          }
+        },
+        "title": "InputLadderGetInQuery",
+        "type": "object"
+      },
+      "InputLadderOut": {
+        "properties": {
+          "contributor_on": {
+            "format": "date",
+            "title": "Contributor On",
+            "type": "string"
+          },
+          "contributor_working_days_before": {
+            "title": "Contributor Working Days Before",
+            "type": "integer"
+          },
+          "default_stakeholders": {
+            "items": {
+              "$ref": "#/components/schemas/StakeholderOut"
+            },
+            "title": "Default Stakeholders",
+            "type": "array"
+          },
+          "due_on": {
+            "format": "date",
+            "title": "Due On",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "boolean"
+          },
+          "manager_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manager On"
+          },
+          "manager_working_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manager Working Days"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "stakeholder_working_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stakeholder Working Days"
+          },
+          "stakeholders": {
+            "items": {
+              "$ref": "#/components/schemas/StakeholderOut"
+            },
+            "title": "Stakeholders",
+            "type": "array"
+          },
+          "stakeholders_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stakeholders On"
+          }
+        },
+        "required": [
+          "contributor_working_days_before",
+          "manager_working_days",
+          "stakeholder_working_days",
+          "stakeholders",
+          "default_stakeholders",
+          "period_key",
+          "due_on",
+          "contributor_on",
+          "manager_on",
+          "stakeholders_on",
+          "email"
+        ],
+        "title": "InputLadderOut",
+        "type": "object"
+      },
+      "InputLadderSetIn": {
+        "properties": {
+          "contributor_working_days_before": {
+            "maximum": 10,
+            "minimum": 0,
+            "title": "Contributor Working Days Before",
+            "type": "integer"
+          },
+          "manager_working_days": {
+            "anyOf": [
+              {
+                "maximum": 10,
+                "minimum": -10,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manager Working Days"
+          },
+          "stakeholder_user_ids": {
+            "default": [],
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Stakeholder User Ids",
+            "type": "array"
+          },
+          "stakeholder_working_days": {
+            "anyOf": [
+              {
+                "maximum": 10,
+                "minimum": -10,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stakeholder Working Days"
+          }
+        },
+        "required": [
+          "contributor_working_days_before",
+          "manager_working_days",
+          "stakeholder_working_days"
+        ],
+        "title": "InputLadderSetIn",
+        "type": "object"
+      },
       "InputRemindIn": {
         "properties": {
           "as_of": {
@@ -5118,6 +5401,17 @@
             "default": 0,
             "title": "Emailed",
             "type": "integer"
+          },
+          "escalated": {
+            "title": "Escalated",
+            "type": "integer"
+          },
+          "escalated_to": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Escalated To",
+            "type": "array"
           },
           "not_emailed": {
             "default": [],
@@ -5146,7 +5440,9 @@
         "required": [
           "reminded",
           "recipients",
-          "unresolved"
+          "unresolved",
+          "escalated",
+          "escalated_to"
         ],
         "title": "InputRemindOut",
         "type": "object"
@@ -5173,6 +5469,30 @@
           "entries"
         ],
         "title": "InputSaveIn",
+        "type": "object"
+      },
+      "InputStakeholdersSetIn": {
+        "properties": {
+          "assignment_id": {
+            "format": "uuid",
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "stakeholder_user_ids": {
+            "default": [],
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Stakeholder User Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "assignment_id"
+        ],
+        "title": "InputStakeholdersSetIn",
         "type": "object"
       },
       "InputSubmitIn": {
@@ -5286,6 +5606,10 @@
             "title": "Direction",
             "type": "string"
           },
+          "escalation_step": {
+            "title": "Escalation Step",
+            "type": "integer"
+          },
           "members": {
             "title": "Members",
             "type": "integer"
@@ -5382,7 +5706,8 @@
           "note",
           "submitted_at",
           "version",
-          "reminded_at"
+          "reminded_at",
+          "escalation_step"
         ],
         "title": "InputTaskOut",
         "type": "object"
@@ -11168,6 +11493,25 @@
           "redirect_url"
         ],
         "title": "SsoStartOut",
+        "type": "object"
+      },
+      "StakeholderOut": {
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "display_name"
+        ],
+        "title": "StakeholderOut",
         "type": "object"
       },
       "StatusListInQuery": {
@@ -17343,6 +17687,386 @@
         "x-kpigo-action": "input.assignment.list"
       }
     },
+    "/api/v1/actions/input.assignment.set_stakeholders": {
+      "post": {
+        "operationId": "input_assignment_set_stakeholders",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InputStakeholdersSetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InputAssignmentOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Name who is told when this slice's input is overdue, in place of the org's stakeholders.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "input.assignment.set_stakeholders"
+      }
+    },
+    "/api/v1/actions/input.escalation.list": {
+      "get": {
+        "operationId": "input_escalation_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EscalatedInputListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Inputs escalated to you that are still owed.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "input.escalation.list"
+      }
+    },
+    "/api/v1/actions/input.ladder.get": {
+      "get": {
+        "operationId": "input_ladder_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InputLadderOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "The escalation ladder for overdue inputs, and the days it falls on for a month.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "input.ladder.get"
+      }
+    },
+    "/api/v1/actions/input.ladder.set": {
+      "post": {
+        "operationId": "input_ladder_set",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InputLadderSetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InputLadderOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Change when overdue inputs escalate, and who the stakeholders are.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "input.ladder.set"
+      }
+    },
     "/api/v1/actions/input.remind": {
       "post": {
         "operationId": "input_remind",
@@ -17434,7 +18158,7 @@
             "SessionAuth": []
           }
         ],
-        "summary": "Send the one reminder for inputs still owed as their deadline nears, in-app and by email when a relay is set (scheduled daily).",
+        "summary": "Climb the escalation ladder for inputs still owed: remind the contributor, then tell their line manager, then the stakeholders, in-app and by email when a relay is set (scheduled daily).",
         "tags": [
           "scorecards"
         ],

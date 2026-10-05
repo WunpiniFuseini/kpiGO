@@ -8,7 +8,13 @@ import {
   NOW,
   assignments,
   contributorMe,
+  escalated,
+  ladder,
+  ladderNamedNoManager,
+  managerMe,
   manualMetrics,
+  nothingEscalated,
+  stakeholderMe,
   noAssignments,
   people,
   tasksAllSubmitted,
@@ -19,8 +25,8 @@ import {
   tasksRestating,
 } from "../../stories/inputFixtures";
 import { withApp, type Handlers } from "../../stories/mockApi";
-import { ManualInputView } from "../admin/ManualInput";
-import { InputsView, MyInputsPage } from "./MyInputs";
+import { LadderView, ManualInputView } from "../admin/ManualInput";
+import { EscalatedView, InputsView, MyInputsPage } from "./MyInputs";
 
 function InShell({ children }: { children: React.ReactNode }) {
   const { state } = useSession();
@@ -62,6 +68,23 @@ export const NoAccess: Story = page({}, {
   ...contributorMe,
   no_access: [{ page_key: "my_inputs", missing: "Your account has no input rights.", ask: "an Admin, under Administer → Users & access" }],
 });
+/** A line manager: their own inputs, then what the ladder has escalated to them. */
+export const ManagerWithEscalations: Story = page({ "input.task.list": { data: tasksAllSubmitted }, "input.escalation.list": { data: escalated } }, managerMe);
+/** A stakeholder with nothing to enter sees only the escalations. */
+export const StakeholderEscalations: Story = page({ "input.escalation.list": { data: escalated } }, stakeholderMe);
+/** Nothing escalated: said, not blank. */
+export const StakeholderNothingEscalated: Story = page({ "input.escalation.list": { data: nothingEscalated } }, stakeholderMe);
+export const StakeholderLoading: Story = page({ "input.escalation.list": "pending" }, stakeholderMe);
+export const StakeholderFailed: Story = page({ "input.escalation.list": { error: serverError } }, stakeholderMe);
+/** The contributor's view of an input whose line manager has been told. */
+export const EscalatedToManager: Story = page({ "input.task.list": { data: { ...tasksDue, tasks: [{ ...tasksDue.tasks[0], escalation_step: 2 }, ...tasksDue.tasks.slice(1)] } } });
+export const EscalatedList: Story = {
+  render: () => (
+    <div style={{ padding: 24 }}>
+      <EscalatedView escalated={escalated} alone={false} />
+    </div>
+  ),
+};
 /** A value that is not a number is caught before it is sent. */
 export const InvalidValue: Story = {
   render: () => (
@@ -87,3 +110,18 @@ export const AdminNothingAssigned: Story = admin(noAssignments);
 /** No mail relay on this install: reminders are in-app only, and the page says so. */
 export const AdminEmailOff: Story = admin({ ...assignments, email_reminders: false });
 export const AdminNoManualMetrics: Story = admin(noAssignments, []);
+
+const ladderStory = (l: typeof ladder): Story => ({
+  render: () => (
+    <div style={{ padding: 24, maxWidth: 1100 }}>
+      <section className="kg-card">
+        <LadderView ladder={l} users={people} onChanged={() => {}} />
+      </section>
+    </div>
+  ),
+});
+
+/** The default ladder: contributor two working days before, line manager on the due day, stakeholders the day after. */
+export const AdminLadder: Story = ladderStory(ladder);
+/** Line-manager rung off, named stakeholders, no mail relay. */
+export const AdminLadderCustom: Story = ladderStory(ladderNamedNoManager);

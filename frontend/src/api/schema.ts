@@ -752,6 +752,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/input.assignment.set_stakeholders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Name who is told when this slice's input is overdue, in place of the org's stakeholders. */
+        post: operations["input_assignment_set_stakeholders"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/input.escalation.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inputs escalated to you that are still owed. */
+        get: operations["input_escalation_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/input.ladder.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The escalation ladder for overdue inputs, and the days it falls on for a month. */
+        get: operations["input_ladder_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/input.ladder.set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change when overdue inputs escalate, and who the stakeholders are. */
+        post: operations["input_ladder_set"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/input.remind": {
         parameters: {
             query?: never;
@@ -761,7 +829,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Send the one reminder for inputs still owed as their deadline nears, in-app and by email when a relay is set (scheduled daily). */
+        /** Climb the escalation ladder for inputs still owed: remind the contributor, then tell their line manager, then the stakeholders, in-app and by email when a relay is set (scheduled daily). */
         post: operations["input_remind"];
         delete?: never;
         options?: never;
@@ -3753,6 +3821,45 @@ export interface components {
             /** Message */
             message: string;
         };
+        /** EscalatedInputListOut */
+        EscalatedInputListOut: {
+            /** Items */
+            items: components["schemas"]["EscalatedInputOut"][];
+        };
+        /** EscalatedInputOut */
+        EscalatedInputOut: {
+            /**
+             * Assignment Id
+             * Format: uuid
+             */
+            assignment_id: string;
+            /** Contributor Name */
+            contributor_name: string | null;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /**
+             * Escalated At
+             * Format: date-time
+             */
+            escalated_at: string;
+            /** Locked */
+            locked: boolean;
+            /** Metric Code */
+            metric_code: string;
+            /** Metric Name */
+            metric_name: string;
+            /** Period Key */
+            period_key: string;
+            /** Scope Label */
+            scope_label: string;
+            /** State */
+            state: string;
+            /** Step */
+            step: number;
+        };
         /** ExclusionAddIn */
         ExclusionAddIn: {
             /** Metric Code */
@@ -4371,6 +4478,8 @@ export interface components {
             effective_from: string;
             /** Effective To */
             effective_to: string | null;
+            /** Escalation Step */
+            escalation_step: number;
             /** Members */
             members: number;
             /** Metric Code */
@@ -4383,6 +4492,10 @@ export interface components {
             scope_label: string;
             /** Scope Type */
             scope_type: string;
+            /** Stakeholder Names */
+            stakeholder_names: string[];
+            /** Stakeholder User Ids */
+            stakeholder_user_ids: string[];
             /** State */
             state: string;
             /** Submitted At */
@@ -4403,6 +4516,56 @@ export interface components {
             /** Value */
             value?: number | string | null;
         };
+        /** InputLadderGetInQuery */
+        InputLadderGetInQuery: {
+            /** Period Key */
+            period_key?: string | null;
+        };
+        /** InputLadderOut */
+        InputLadderOut: {
+            /**
+             * Contributor On
+             * Format: date
+             */
+            contributor_on: string;
+            /** Contributor Working Days Before */
+            contributor_working_days_before: number;
+            /** Default Stakeholders */
+            default_stakeholders: components["schemas"]["StakeholderOut"][];
+            /**
+             * Due On
+             * Format: date
+             */
+            due_on: string;
+            /** Email */
+            email: boolean;
+            /** Manager On */
+            manager_on: string | null;
+            /** Manager Working Days */
+            manager_working_days: number | null;
+            /** Period Key */
+            period_key: string;
+            /** Stakeholder Working Days */
+            stakeholder_working_days: number | null;
+            /** Stakeholders */
+            stakeholders: components["schemas"]["StakeholderOut"][];
+            /** Stakeholders On */
+            stakeholders_on: string | null;
+        };
+        /** InputLadderSetIn */
+        InputLadderSetIn: {
+            /** Contributor Working Days Before */
+            contributor_working_days_before: number;
+            /** Manager Working Days */
+            manager_working_days: number | null;
+            /**
+             * Stakeholder User Ids
+             * @default []
+             */
+            stakeholder_user_ids?: string[];
+            /** Stakeholder Working Days */
+            stakeholder_working_days: number | null;
+        };
         /** InputRemindIn */
         InputRemindIn: {
             /** As Of */
@@ -4415,6 +4578,10 @@ export interface components {
              * @default 0
              */
             emailed?: number;
+            /** Escalated */
+            escalated: number;
+            /** Escalated To */
+            escalated_to: string[];
             /**
              * Not Emailed
              * @default []
@@ -4433,6 +4600,19 @@ export interface components {
             entries: components["schemas"]["InputEntryIn"][];
             /** Period Key */
             period_key: string;
+        };
+        /** InputStakeholdersSetIn */
+        InputStakeholdersSetIn: {
+            /**
+             * Assignment Id
+             * Format: uuid
+             */
+            assignment_id: string;
+            /**
+             * Stakeholder User Ids
+             * @default []
+             */
+            stakeholder_user_ids?: string[];
         };
         /** InputSubmitIn */
         InputSubmitIn: {
@@ -4479,6 +4659,8 @@ export interface components {
             description: string;
             /** Direction */
             direction: string;
+            /** Escalation Step */
+            escalation_step: number;
             /** Members */
             members: number;
             /** Metric Code */
@@ -6398,6 +6580,16 @@ export interface components {
         SsoStartOut: {
             /** Redirect Url */
             redirect_url: string;
+        };
+        /** StakeholderOut */
+        StakeholderOut: {
+            /** Display Name */
+            display_name: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
         };
         /** StatusListInQuery */
         StatusListInQuery: {
@@ -10313,6 +10505,303 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    input_assignment_set_stakeholders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InputStakeholdersSetIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InputAssignmentOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    input_escalation_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EscalatedInputListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    input_ladder_get: {
+        parameters: {
+            query?: {
+                period_key?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InputLadderOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    input_ladder_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InputLadderSetIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InputLadderOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -62,15 +62,37 @@ def due_at(org_id: str, period_key: str) -> datetime:
     return datetime.combine(due_day(org_id, period_key) + timedelta(days=1), time(), tzinfo=zone)
 
 
-def remind_on(org_id: str, period_key: str) -> date:
-    """The working day the single reminder goes out: N working days before the due day."""
-    day = due_day(org_id, period_key)
-    back = settings_for(org_id).input_reminder_working_days
-    while back > 0:
-        day -= timedelta(days=1)
+def working_days_from(org_id: str, day: date, n: int) -> date:
+    """The working day ``n`` working days after ``day`` (before it when negative)."""
+    step = 1 if n > 0 else -1
+    left = abs(n)
+    for _ in range(_SCAN * 2):
+        if left == 0:
+            return day
+        day += timedelta(days=step)
         if is_working_day(org_id, day):
-            back -= 1
-    return day
+            left -= 1
+    raise ValueError(f"No working day {n} working days from {day}; check the business calendar.")
+
+
+def remind_on(org_id: str, period_key: str) -> date:
+    """The working day the contributor is reminded: N working days before the due day."""
+    back = settings_for(org_id).input_reminder_working_days
+    return working_days_from(org_id, due_day(org_id, period_key), -back)
+
+
+def ladder(org_id: str, period_key: str) -> dict[int, date | None]:
+    """The day each rung of the escalation ladder is due for a month (MI-8).
+
+    1 reminds the contributor, 2 tells their line manager, 3 tells the
+    stakeholders; a rung switched off is None.
+    """
+    s = settings_for(org_id)
+    due = due_day(org_id, period_key)
+    out: dict[int, date | None] = {1: remind_on(org_id, period_key)}
+    for step, offset in ((2, s.input_manager_working_days), (3, s.input_stakeholder_working_days)):
+        out[step] = None if offset is None else working_days_from(org_id, due, offset)
+    return out
 
 
 def locked(org_id: str, period_key: str, now: datetime | None = None) -> bool:
@@ -132,6 +154,46 @@ def contributor(ia: InputAssignment, period_key: str) -> AppUser | None:
     if manager is None:
         return None
     return AppUser.objects.filter(org_id=ia.org_id, subject_id=manager, status="active").first()
+
+
+def line_manager_of(account: AppUser, day: date) -> AppUser | None:
+    """The account of whoever this account's subject reports to (solid line) on ``day``.
+
+    Resolved against the hierarchy as it stands when the ladder runs, so a
+    manager who changed mid-month is the one told. A contributor who is not a
+    tracked subject (MI-13) has no line manager.
+    """
+    if account.subject_id is None:
+        return None
+    edge = (
+        ReportingEdge.objects.filter(
+            org_id=account.org_id, subject_id=account.subject_id, relationship_type="solid"
+        )
+        .filter(in_force_on(day))
+        .first()
+    )
+    if edge is None:
+        return None
+    return AppUser.objects.filter(
+        org_id=account.org_id, subject_id=edge.manager_id, status="active"
+    ).first()
+
+
+def stakeholders(ia: InputAssignment, managers: list[AppUser]) -> list[AppUser]:
+    """Who the last rung tells for a slice: its own list, else the org's, else ``managers``."""
+    org_id = str(ia.org_id)
+    ids = (ia.escalation_config or {}).get("stakeholder_user_ids") or list(
+        settings_for(org_id).input_stakeholders
+    )
+    if ids:
+        found = list(
+            AppUser.objects.filter(org_id=org_id, user_id__in=ids, status="active").order_by(
+                "display_name"
+            )
+        )
+        if found:
+            return found
+    return managers
 
 
 def owed_by(account: AppUser, period_key: str) -> list[InputAssignment]:
