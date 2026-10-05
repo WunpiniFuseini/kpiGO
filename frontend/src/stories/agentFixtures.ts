@@ -186,3 +186,84 @@ export const registryFresh: Registry = {
 
 /** The feed has carried no product line codes at all. */
 export const registryEmpty: Registry = { ...registryFresh, available: [] };
+
+// ── product-line matrix ─────────────────────────────────────────────────────
+
+type ProductMatrix = Output<"agent.matrix">;
+type MatrixCell = ProductMatrix["rows"][number]["cells"][number];
+
+function cell(actual: string | null, target: string | null, achieved: string | null, rag: MatrixCell["rag"], agents: number, reported = agents): MatrixCell {
+  return { actual, target, achieved, rag, agents, reported, currency_code: actual === null ? null : "GHS", mixed_currency: false };
+}
+const absent = (agents: number) => cell(null, null, null, null, agents, 0);
+
+function mrow(key: string, name: string, level: ProductMatrix["rows"][number]["level"], agents: number, cells: MatrixCell[], region: string | null = null, branch: string | null = null): ProductMatrix["rows"][number] {
+  const drill_level = level === "region" ? "branch" : level === "branch" ? "rm" : null;
+  return { key, name, level, drill_level, region_code: region, branch_code: branch, agents, cells };
+}
+
+const lineColumns: ProductMatrix["columns"] = [
+  { key: "MORTGAGE", kind: "line", name: "Mortgages", group_code: "lending" },
+  { key: "LOANS", kind: "line", name: "Personal loans", group_code: "lending" },
+  { key: "CARDS", kind: "line", name: "Cards", group_code: "cards" },
+  { key: "", kind: "all", name: "All products", group_code: null },
+];
+
+/** Regions on value booked, month to date: one line nobody in Ashanti sold. */
+export const matrix: ProductMatrix = {
+  product: "agent_sales",
+  window,
+  metric: valueBooked,
+  metric_options: [accounts, valueBooked],
+  level: "region",
+  view: "expanded",
+  breadcrumb: [{ level: "all", code: null, name: "All regions" }],
+  columns: lineColumns,
+  rows: [
+    mrow("AS", "Ashanti", "region", 3, [cell("42000", "36000", "1.1667", "green", 3), cell("8000", "12000", "0.6667", "red", 2, 2), absent(3), cell("51000", "54000", "0.9444", "amber", 3)], "AS"),
+    mrow("GA", "Greater Accra", "region", 5, [cell("61000", "60000", "1.0167", "green", 5), cell("19000", "20000", "0.9500", "amber", 5, 4), cell("3200", "4000", "0.8000", "red", 5, 2), cell("85000", "90000", "0.9444", "amber", 5)], "GA"),
+  ],
+  total: mrow("total", "Total", "total", 8, [cell("103000", "96000", "1.0729", "green", 8), cell("27000", "32000", "0.8438", "red", 8, 6), cell("3200", "4000", "0.8000", "red", 8, 2), cell("136000", "144000", "0.9444", "amber", 8)]),
+  no_lines: false,
+};
+
+/** The same regions with lines summed into their groups. */
+export const matrixGrouped: ProductMatrix = {
+  ...matrix,
+  view: "grouped",
+  columns: [
+    { key: "lending", kind: "group", name: "Lending", group_code: "lending" },
+    { key: "cards", kind: "group", name: "Cards and payments", group_code: "cards" },
+    { key: "", kind: "all", name: "All products", group_code: null },
+  ],
+  rows: matrix.rows.map((r) => ({ ...r, cells: [r.key === "AS" ? cell("50000", "48000", "1.0417", "green", 3) : cell("80000", "80000", "1.0000", "green", 5), r.cells[2], r.cells[3]] })),
+  total: { ...matrix.total!, cells: [cell("130000", "128000", "1.0156", "green", 8), matrix.total!.cells[2], matrix.total!.cells[3]] },
+};
+
+/** Drilled to one branch's RMs. */
+export const matrixRms: ProductMatrix = {
+  ...matrix,
+  level: "rm",
+  breadcrumb: [
+    { level: "all", code: null, name: "All regions" },
+    { level: "region", code: "GA", name: "Greater Accra" },
+    { level: "branch", code: "GA-01", name: "Accra Central" },
+  ],
+  rows: [
+    mrow("s1", "Abena Owusu", "rm", 1, [cell("14000", "12000", "1.1667", "green", 1), cell("5000", "4000", "1.2500", "green", 1), absent(1), cell("19000", "18000", "1.0556", "green", 1)], "GA", "GA-01"),
+    mrow("s2", "Kofi Boateng", "rm", 1, [cell("9000", "12000", "0.7500", "red", 1), absent(1), cell("1200", "800", "1.5000", "green", 1), cell("10200", "18000", "0.5667", "red", 1)], "GA", "GA-01"),
+  ],
+  total: mrow("total", "Total", "total", 2, [cell("23000", "24000", "0.9583", "amber", 2), cell("5000", "4000", "1.2500", "green", 2, 1), cell("1200", "800", "1.5000", "green", 2, 1), cell("29200", "36000", "0.8111", "red", 2)]),
+};
+
+/** No line switched on yet: only All products. */
+export const matrixNoLines: ProductMatrix = {
+  ...matrix,
+  columns: [lineColumns[3]],
+  rows: matrix.rows.map((r) => ({ ...r, cells: [r.cells[3]] })),
+  total: { ...matrix.total!, cells: [matrix.total!.cells[3]] },
+  no_lines: true,
+};
+
+/** No sum or count metric in the module. */
+export const matrixNoMetric: ProductMatrix = { ...matrix, metric: null, metric_options: [], rows: [], total: null };

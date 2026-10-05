@@ -42,18 +42,32 @@ class Line:
 
 def lines_on(org_id: str, day: date, product: str | None = None) -> list[Line]:
     """The lines in the matrix on ``day``, in group then line order."""
-    groupings = {
-        str(g.line_id): g.group
-        for g in ProductLineGroup.objects.filter(line__org_id=org_id)
-        .filter(in_force(day))
-        .select_related("group")
-    }
-    out: list[Line] = []
+    return lines_between(org_id, day, day, product)
+
+
+def lines_between(org_id: str, first: date, last: date, product: str | None = None) -> list[Line]:
+    """The lines in force on any day of ``[first, last]``, grouped as on their last such day.
+
+    A line retired mid-month still has a column in that month's matrix: the
+    agents sold it for part of the month (Scope §8.5).
+    """
+    overlaps = Q(effective_from__lte=last) & (
+        Q(effective_to__isnull=True) | Q(effective_to__gt=first)
+    )
     rows = (
         ProductLine.objects.filter(org_id=org_id, status__in=("active", "retired"))
-        .filter(in_force(day))
+        .filter(overlaps)
         .order_by("sort_order", "code")
     )
+    groupings: dict[str, ProductGroup] = {}
+    for g in (
+        ProductLineGroup.objects.filter(line__org_id=org_id)
+        .filter(overlaps)
+        .select_related("group")
+        .order_by("effective_from")
+    ):
+        groupings[str(g.line_id)] = g.group  # the latest overlapping grouping wins
+    out: list[Line] = []
     for line in rows:
         group = groupings.get(str(line.line_id))
         if group is None or not shows_in(line.module, product):

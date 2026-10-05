@@ -9,6 +9,7 @@ export const ROUTES = {
   "agent.daily.restore": { method: "POST", path: "/api/v1/actions/agent.daily.restore", pathParams: [], public: false },
   "agent.leaderboard": { method: "GET", path: "/api/v1/actions/agent.leaderboard", pathParams: [], public: false },
   "agent.leaderboard.refresh": { method: "POST", path: "/api/v1/actions/agent.leaderboard.refresh", pathParams: [], public: false },
+  "agent.matrix": { method: "GET", path: "/api/v1/actions/agent.matrix", pathParams: [], public: false },
   "agent.pace": { method: "GET", path: "/api/v1/actions/agent.pace", pathParams: [], public: false },
   "agent.settings.get": { method: "GET", path: "/api/v1/actions/agent.settings.get", pathParams: [], public: false },
   "agent.settings.set": { method: "POST", path: "/api/v1/actions/agent.settings.set", pathParams: [], public: false },
@@ -101,6 +102,8 @@ export const ROUTES = {
   "platform.hello": { method: "GET", path: "/api/v1/hello", pathParams: [], public: false },
   "platform.migrations.plan": { method: "GET", path: "/api/v1/actions/platform.migrations.plan", pathParams: [], public: false },
   "platform.registry.list": { method: "GET", path: "/api/v1/registry", pathParams: [], public: false },
+  "preference.list": { method: "GET", path: "/api/v1/actions/preference.list", pathParams: [], public: false },
+  "preference.set": { method: "POST", path: "/api/v1/actions/preference.set", pathParams: [], public: false },
   "product_group.set": { method: "POST", path: "/api/v1/actions/product_group.set", pathParams: [], public: false },
   "product_line.activate": { method: "POST", path: "/api/v1/actions/product_line.activate", pathParams: [], public: false },
   "product_line.list": { method: "GET", path: "/api/v1/actions/product_line.list", pathParams: [], public: false },
@@ -188,6 +191,7 @@ export interface Actions {
   "agent.daily.restore": { input: NonNullable<operations["agent_daily_restore"]["requestBody"]>["content"]["application/json"]; output: operations["agent_daily_restore"]["responses"][200]["content"]["application/json"] };
   "agent.leaderboard": { input: NonNullable<operations["agent_leaderboard"]["parameters"]["query"]>; output: operations["agent_leaderboard"]["responses"][200]["content"]["application/json"] };
   "agent.leaderboard.refresh": { input: NonNullable<operations["agent_leaderboard_refresh"]["requestBody"]>["content"]["application/json"]; output: operations["agent_leaderboard_refresh"]["responses"][200]["content"]["application/json"] };
+  "agent.matrix": { input: NonNullable<operations["agent_matrix"]["parameters"]["query"]>; output: operations["agent_matrix"]["responses"][200]["content"]["application/json"] };
   "agent.pace": { input: NonNullable<operations["agent_pace"]["parameters"]["query"]>; output: operations["agent_pace"]["responses"][200]["content"]["application/json"] };
   "agent.settings.get": { input: NonNullable<operations["agent_settings_get"]["parameters"]["query"]>; output: operations["agent_settings_get"]["responses"][200]["content"]["application/json"] };
   "agent.settings.set": { input: NonNullable<operations["agent_settings_set"]["requestBody"]>["content"]["application/json"]; output: operations["agent_settings_set"]["responses"][200]["content"]["application/json"] };
@@ -280,6 +284,8 @@ export interface Actions {
   "platform.hello": { input: NonNullable<operations["platform_hello"]["parameters"]["query"]>; output: operations["platform_hello"]["responses"][200]["content"]["application/json"] };
   "platform.migrations.plan": { input: Record<string, never>; output: operations["platform_migrations_plan"]["responses"][200]["content"]["application/json"] };
   "platform.registry.list": { input: NonNullable<operations["platform_registry_list"]["parameters"]["query"]>; output: operations["platform_registry_list"]["responses"][200]["content"]["application/json"] };
+  "preference.list": { input: Record<string, never>; output: operations["preference_list"]["responses"][200]["content"]["application/json"] };
+  "preference.set": { input: NonNullable<operations["preference_set"]["requestBody"]>["content"]["application/json"]; output: operations["preference_set"]["responses"][200]["content"]["application/json"] };
   "product_group.set": { input: NonNullable<operations["product_group_set"]["requestBody"]>["content"]["application/json"]; output: operations["product_group_set"]["responses"][200]["content"]["application/json"] };
   "product_line.activate": { input: NonNullable<operations["product_line_activate"]["requestBody"]>["content"]["application/json"]; output: operations["product_line_activate"]["responses"][200]["content"]["application/json"] };
   "product_line.list": { input: NonNullable<operations["product_line_list"]["parameters"]["query"]>; output: operations["product_line_list"]["responses"][200]["content"]["application/json"] };

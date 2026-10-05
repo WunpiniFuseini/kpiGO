@@ -6,6 +6,7 @@ import { CardSkeleton, EmptyState, ErrorPanel, Loading, MetricCard, RankedList, 
 import { formatDate, formatValue } from "../../lib/format";
 import { Page } from "../../shell/AppShell";
 import { useMe } from "../../session/Session";
+import { MatrixSection } from "./Matrix";
 import { ProductLinesQuick } from "./ProductLines";
 
 export type Leaderboard = Output<"agent.leaderboard">;
@@ -167,6 +168,7 @@ export function AgentPerformancePage() {
             )}
           </section>
           {selected && board ? <AgentDetail product={product} subjectId={selected} asOf={board.window.as_of} onClose={() => setSelected(null)} /> : null}
+          <MatrixSection key={product} product={product} />
         </div>
       )}
     </Page>

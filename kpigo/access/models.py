@@ -229,3 +229,24 @@ class DirectoryImport(Stamped):
 
     def __str__(self) -> str:
         return f"{self.source} import {self.import_id} ({self.status})"
+
+
+class UserPreference(Tracked):
+    """A per-user view choice (PRD AP-9): what one reader prefers binds nobody else.
+
+    Keys and their allowed values are declared in ``kpigo.access.preferences``.
+    """
+
+    preference_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    app_user = models.ForeignKey(AppUser, on_delete=models.PROTECT, related_name="preferences")
+    key = models.TextField()
+    value = models.TextField()
+
+    class Meta:
+        db_table = "user_preference"
+        constraints = [
+            models.UniqueConstraint(fields=["app_user", "key"], name="user_preference_key_unique")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.app_user_id} {self.key}={self.value}"

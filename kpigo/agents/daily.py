@@ -228,14 +228,17 @@ class MonthTarget:
 Targets = dict[tuple[str, str, str, str], MonthTarget]
 
 
-def month_targets(org_id: str, codes: Sequence[str], months: Sequence[str]) -> Targets:
+def month_targets(
+    org_id: str, codes: Sequence[str], months: Sequence[str], product_line_code: str = ""
+) -> Targets:
+    """Published targets by key; ``product_line_code`` "" is the metric's own, across lines."""
     out: Targets = {}
     rows = Target.objects.filter(
         org_id=org_id,
         metric__metric_code__in=list(codes),
         period_key__in=list(months),
         series_type="target",
-        product_line_code="",
+        product_line_code=product_line_code,
         state="published",
     ).select_related("metric")
     for t in rows:
@@ -306,6 +309,119 @@ class _Fx:
         return self.cache[key]
 
 
+class Pacer:
+    """Paces one agent on one metric's series against month targets, for a window.
+
+    Shared by the board (each metric, every line) and the product-line matrix
+    (one metric, line by line): the calendar, FX and cycle lookups are cached.
+    """
+
+    def __init__(self, org_id: str, product: str, window: Window, settings: Settings) -> None:
+        self.org_id = org_id
+        self.product = product
+        self.window = window
+        self.settings = settings
+        # Shares need each month's working days in full, even where the week cuts it.
+        span_start = month_bounds(window.months[0])[0]
+        span_end = month_bounds(window.months[-1])[1]
+        self.calendar = WorkingCalendar(org_id, span_start, span_end)
+        self.fx = _Fx(org_id)
+        self.as_of_month = period_key_for(window.as_of)
+        self._month_working: dict[tuple[str | None, str], int] = {}
+        self._cycle_months: dict[str | None, int] = {}
+
+    @property
+    def working_days_elapsed(self) -> int:
+        w = self.window
+        return len(self.calendar.working_days(w.start, w.as_of + timedelta(days=1)))
+
+    @property
+    def working_days_total(self) -> int:
+        return len(self.calendar.working_days(self.window.start, self.window.end))
+
+    def _working_in(self, region: str | None, month: str) -> int:
+        if (region, month) not in self._month_working:
+            first, end = month_bounds(month)
+            self._month_working[(region, month)] = len(
+                self.calendar.working_days(first, end, region)
+            )
+        return self._month_working[(region, month)]
+
+    def _months_in_cycle(self, agent: Agent) -> int:
+        if agent.cycle_id not in self._cycle_months:
+            self._cycle_months[agent.cycle_id] = cycle_for(
+                self.org_id, self.product, self.as_of_month, agent.cycle_id
+            ).months
+        return self._cycle_months[agent.cycle_id]
+
+    def targets_for(
+        self, agent: Agent, metric: Metric, targets: Targets
+    ) -> dict[str, MonthTarget | None]:
+        scope_code = agent.subject_id if metric.target_scope == "subject" else agent.profile_code
+        return {
+            month: targets.get((metric.metric_code, metric.target_scope, scope_code, month))
+            for month in self.window.months
+        }
+
+    def pace(
+        self,
+        agent: Agent,
+        metric: Metric,
+        found: dict[str, MonthTarget | None],
+        series: dict[date, dict[str | None, Decimal]],
+    ) -> MetricPace:
+        months_in_cycle = self._months_in_cycle(agent)
+        mine = found.get(self.as_of_month)
+        currency = next(
+            (t.currency_code for t in found.values() if t is not None and t.currency_code),
+            None,
+        )
+        plans: list[DayPlan] = []
+        for day in self.window.days:
+            month = period_key_for(day)
+            working = self.calendar.is_working(day, agent.region_code)
+            t = found.get(month)
+            share: Decimal | None = None
+            if t is not None:
+                n = self._working_in(agent.region_code, month)
+                month_value = month_share(t.stored, t.target_type, months_in_cycle)
+                share = month_value / n if working and n else Decimal(0)
+            plans.append(DayPlan(day=day, working=working, share=share))
+        actuals: dict[date, Decimal] = {}
+        missing_fx = False
+        for day, by_currency in series.items():
+            value = Decimal(0)
+            for src, amount in by_currency.items():
+                rate = self.fx.rate(src, currency, period_key_for(day))
+                if rate is None:
+                    missing_fx = True
+                    continue
+                value += amount * rate
+            actuals[day] = value
+        return MetricPace(
+            metric=metric,
+            target=mine,
+            currency_code=currency,
+            day_value=actuals.get(self.window.as_of),
+            pace=pace(
+                PaceIn(
+                    direction=metric.direction,
+                    aggregation=metric.aggregation,
+                    days=plans,
+                    as_of=self.window.as_of,
+                    actuals=actuals,
+                    month_target=(
+                        month_share(mine.stored, mine.target_type, months_in_cycle)
+                        if mine is not None
+                        else None
+                    ),
+                    cap=self.settings.pace_cap,
+                    missing_fx=missing_fx,
+                )
+            ),
+        )
+
+
 def board(
     org_id: str,
     product: str,
@@ -316,18 +432,13 @@ def board(
     """Every agent's pace on every metric of their profile, for the window."""
     settings = settings_for(org_id, product)
     agents, by_profile = agents_on(org_id, product, window.as_of, subject_ids)
-    # Shares need each month's working days in full, even where the week cuts it.
-    span_start = month_bounds(window.months[0])[0]
-    span_end = month_bounds(window.months[-1])[1]
-    calendar = WorkingCalendar(org_id, span_start, span_end)
+    pacer = Pacer(org_id, product, window, settings)
     out = Board(
         product=product,
         window=window,
         settings=settings,
-        working_days_elapsed=len(
-            calendar.working_days(window.start, window.as_of + timedelta(days=1))
-        ),
-        working_days_total=len(calendar.working_days(window.start, window.end)),
+        working_days_elapsed=pacer.working_days_elapsed,
+        working_days_total=pacer.working_days_total,
     )
     if not agents:
         return out
@@ -341,82 +452,15 @@ def board(
         [a.subject_id for a in agents] if subject_ids is not None else None,
     )
     targets = month_targets(org_id, codes, window.months)
-    fx = _Fx(org_id)
-    as_of_month = period_key_for(window.as_of)
-    month_working: dict[tuple[str | None, str], int] = {}
-    cycle_months: dict[str | None, int] = {}
-
-    def working_in(region: str | None, month: str) -> int:
-        if (region, month) not in month_working:
-            first, end = month_bounds(month)
-            month_working[(region, month)] = len(calendar.working_days(first, end, region))
-        return month_working[(region, month)]
-
     for agent in agents:
-        if agent.cycle_id not in cycle_months:
-            cycle_months[agent.cycle_id] = cycle_for(
-                org_id, product, as_of_month, agent.cycle_id
-            ).months
-        months_in_cycle = cycle_months[agent.cycle_id]
-        paced: list[MetricPace] = []
-        for metric in by_profile.get(agent.profile_code, []):
-            scope_code = (
-                agent.subject_id if metric.target_scope == "subject" else agent.profile_code
+        paced = [
+            pacer.pace(
+                agent,
+                metric,
+                pacer.targets_for(agent, metric, targets),
+                totals.get((agent.subject_id, metric.metric_code), {}),
             )
-            found = {
-                month: targets.get((metric.metric_code, metric.target_scope, scope_code, month))
-                for month in window.months
-            }
-            mine = found.get(as_of_month)
-            currency = next(
-                (t.currency_code for t in found.values() if t is not None and t.currency_code),
-                None,
-            )
-            plans: list[DayPlan] = []
-            for day in window.days:
-                month = period_key_for(day)
-                working = calendar.is_working(day, agent.region_code)
-                t = found.get(month)
-                share: Decimal | None = None
-                if t is not None:
-                    n = working_in(agent.region_code, month)
-                    month_value = month_share(t.stored, t.target_type, months_in_cycle)
-                    share = month_value / n if working and n else Decimal(0)
-                plans.append(DayPlan(day=day, working=working, share=share))
-            actuals: dict[date, Decimal] = {}
-            missing_fx = False
-            for day, by_currency in totals.get((agent.subject_id, metric.metric_code), {}).items():
-                value = Decimal(0)
-                for src, amount in by_currency.items():
-                    rate = fx.rate(src, currency, period_key_for(day))
-                    if rate is None:
-                        missing_fx = True
-                        continue
-                    value += amount * rate
-                actuals[day] = value
-            paced.append(
-                MetricPace(
-                    metric=metric,
-                    target=mine,
-                    currency_code=currency,
-                    day_value=actuals.get(window.as_of),
-                    pace=pace(
-                        PaceIn(
-                            direction=metric.direction,
-                            aggregation=metric.aggregation,
-                            days=plans,
-                            as_of=window.as_of,
-                            actuals=actuals,
-                            month_target=(
-                                month_share(mine.stored, mine.target_type, months_in_cycle)
-                                if mine is not None
-                                else None
-                            ),
-                            cap=settings.pace_cap,
-                            missing_fx=missing_fx,
-                        )
-                    ),
-                )
-            )
+            for metric in by_profile.get(agent.profile_code, [])
+        ]
         out.agents.append(AgentPace(agent=agent, metrics=paced))
     return out
