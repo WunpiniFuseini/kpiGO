@@ -548,6 +548,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/campaign.board": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The quarter's campaign value, spend, ROI and win-backs, and each campaign's figures. */
+        get: operations["campaign_board"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/campaign.builder.reference": {
         parameters: {
             query?: never;
@@ -812,6 +829,23 @@ export interface paths {
         };
         /** Each event's reach: estimated audience, contacts, outcome reach and conversions. */
         get: operations["campaign_reach"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/campaign.reconciliation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Attributed value against source totals, with what other events won and why. */
+        get: operations["campaign_reconciliation"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4452,6 +4486,52 @@ export interface components {
             /** On */
             on?: string | null;
         };
+        /** CampaignBoardInQuery */
+        CampaignBoardInQuery: {
+            /** On */
+            on?: string | null;
+        };
+        /** CampaignBoardOut */
+        CampaignBoardOut: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "incremental" | "gross";
+            /** Campaigns */
+            campaigns: components["schemas"]["CampaignBoardRowOut"][];
+            /** Contacts Fed */
+            contacts_fed: boolean;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /** Money */
+            money: components["schemas"]["CampaignMoneyOut"][];
+            /** Outcomes Fed */
+            outcomes_fed: boolean;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            winbacks: components["schemas"]["CampaignWinbackCountsOut"] | null;
+        };
+        /** CampaignBoardRowOut */
+        CampaignBoardRowOut: {
+            /** Campaign Id */
+            campaign_id: string;
+            /** Contacted */
+            contacted: number | null;
+            /** Converted */
+            converted: number | null;
+            /** Events In Play */
+            events_in_play: number;
+            /** Money */
+            money: components["schemas"]["CampaignMoneyOut"][];
+            winbacks: components["schemas"]["CampaignWinbackCountsOut"] | null;
+        };
         /** CampaignBudgetOut */
         CampaignBudgetOut: {
             /** Amount */
@@ -4498,6 +4578,15 @@ export interface components {
              * Format: uuid
              */
             campaign_id: string;
+        };
+        /** CampaignContaminatedOut */
+        CampaignContaminatedOut: {
+            /** Contaminated By */
+            contaminated_by: string | null;
+            /** Customer Ref */
+            customer_ref: string;
+            /** Event Id */
+            event_id: string;
         };
         /** CampaignControlOut */
         CampaignControlOut: {
@@ -4869,6 +4958,27 @@ export interface components {
             /** Parent Code */
             parent_code: string | null;
         };
+        /** CampaignMoneyOut */
+        CampaignMoneyOut: {
+            /** Budget */
+            budget: string;
+            /** Currency */
+            currency: string;
+            /** Gross */
+            gross: string | null;
+            /** Gross Roi */
+            gross_roi: string | null;
+            /** Incremental */
+            incremental: string | null;
+            /** Measured Events */
+            measured_events: number;
+            /** Roi */
+            roi: string | null;
+            /** Spend */
+            spend: string | null;
+            /** Withheld Events */
+            withheld_events: number;
+        };
         /** CampaignObjectiveListOut */
         CampaignObjectiveListOut: {
             /** Candidates */
@@ -4988,6 +5098,69 @@ export interface components {
             outcome_metric_codes: string[];
             /** Outcomes Fed */
             outcomes_fed: boolean;
+        };
+        /** CampaignReconciliationEventOut */
+        CampaignReconciliationEventOut: {
+            /** By Rule */
+            by_rule: {
+                [key: string]: number;
+            };
+            /** Credited */
+            credited: string;
+            /** Credited Outcomes */
+            credited_outcomes: number;
+            /** Event Id */
+            event_id: string;
+            /** Held Out Outcomes */
+            held_out_outcomes: number;
+            /** Lost */
+            lost: string;
+            /** Lost Outcomes */
+            lost_outcomes: number;
+        };
+        /** CampaignReconciliationInQuery */
+        CampaignReconciliationInQuery: {
+            /**
+             * Campaign Id
+             * Format: uuid
+             */
+            campaign_id: string;
+        };
+        /** CampaignReconciliationLineOut */
+        CampaignReconciliationLineOut: {
+            /** Credited Elsewhere */
+            credited_elsewhere: string;
+            /** Credited Here */
+            credited_here: string;
+            /** Currency */
+            currency: string | null;
+            /** Metric Code */
+            metric_code: string;
+            /** Source Outcomes */
+            source_outcomes: number;
+            /** Source Total */
+            source_total: string;
+            /** Unattributed */
+            unattributed: string;
+        };
+        /** CampaignReconciliationOut */
+        CampaignReconciliationOut: {
+            /** Campaign Id */
+            campaign_id: string;
+            /** Contaminated */
+            contaminated: components["schemas"]["CampaignContaminatedOut"][];
+            /** Contaminated Total */
+            contaminated_total: number;
+            /** Events */
+            events: components["schemas"]["CampaignReconciliationEventOut"][];
+            /** Invariant Holds */
+            invariant_holds: boolean;
+            /** Lines */
+            lines: components["schemas"]["CampaignReconciliationLineOut"][];
+            /** Span End */
+            span_end: string | null;
+            /** Span Start */
+            span_start: string | null;
         };
         /** CampaignSummaryOut */
         CampaignSummaryOut: {
@@ -12568,6 +12741,73 @@ export interface operations {
             };
         };
     };
+    campaign_board: {
+        parameters: {
+            query?: {
+                on?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignBoardOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     campaign_builder_reference: {
         parameters: {
             query?: never;
@@ -13716,6 +13956,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CampaignReachOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    campaign_reconciliation: {
+        parameters: {
+            query: {
+                campaign_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignReconciliationOut"];
                 };
             };
             /** @description Unauthorized */

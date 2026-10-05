@@ -2,10 +2,11 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { ApiError, invoke } from "../../api/client";
-import { useQuery } from "../../api/useAction";
+import { useQuery, type QueryState } from "../../api/useAction";
 import { Chip, EmptyState, ErrorPanel, Loading, Notice, SelectField, TableSkeleton, TextField } from "../../components";
 import { Page } from "../../shell/AppShell";
 import { useMe } from "../../session/Session";
+import { BoardFigures, BoardSummary } from "./Board";
 import { CampaignDetailView } from "./Detail";
 import { EventFields } from "./EventFields";
 import {
@@ -20,6 +21,8 @@ import {
   span,
   statusOf,
   validateEvent,
+  type Board,
+  type BoardRow,
   type CampaignList,
   type CampaignSummary,
   type EventDraft,
@@ -35,6 +38,7 @@ export function CampaignsPage() {
   const me = useMe();
   const canAuthor = me.permissions.includes("campaign.manage");
   const [data, reload] = useQuery("campaign.list", { tab: "all" });
+  const [board] = useQuery("campaign.board", {});
   const [tab, setTab] = useState<Tab>("running");
   return (
     <Page
@@ -54,13 +58,13 @@ export function CampaignsPage() {
       ) : data.status === "error" ? (
         <ErrorPanel error={data.error} retry={reload} what="Campaigns" />
       ) : (
-        <CampaignListView list={data.data} tab={tab} onTab={setTab} canAuthor={canAuthor} />
+        <CampaignListView list={data.data} tab={tab} onTab={setTab} canAuthor={canAuthor} board={board} />
       )}
     </Page>
   );
 }
 
-export function CampaignListView({ list, tab, onTab, canAuthor }: { list: CampaignList; tab: Tab; onTab: (t: Tab) => void; canAuthor: boolean }) {
+export function CampaignListView({ list, tab, onTab, canAuthor, board }: { list: CampaignList; tab: Tab; onTab: (t: Tab) => void; canAuthor: boolean; board?: QueryState<Board> }) {
   if (!list.scoped) {
     return (
       <EmptyState kind="no-access" title="No campaigns are in your scope" ask="an Admin, under Administer → Users & access">
@@ -70,8 +74,10 @@ export function CampaignListView({ list, tab, onTab, canAuthor }: { list: Campai
   }
   const counts = Object.fromEntries(TABS.map((t) => [t.value, list.campaigns.filter((c) => c.status === t.value).length]));
   const shown = list.campaigns.filter((c) => c.status === tab);
+  const rows = new Map(board?.status === "ready" ? board.data.campaigns.map((r) => [r.campaign_id, r]) : []);
   return (
     <div className="kg-stack">
+      {board && list.campaigns.length ? <BoardSummary board={board} /> : null}
       <div className="kg-seg" role="group" aria-label="Campaign status">
         {TABS.map((t) => (
           <button key={t.value} type="button" aria-pressed={tab === t.value} onClick={() => onTab(t.value)}>
@@ -83,7 +89,7 @@ export function CampaignListView({ list, tab, onTab, canAuthor }: { list: Campai
         <ul className="kg-stack" style={{ listStyle: "none", padding: 0, margin: 0 }} aria-label={`${TABS.find((t) => t.value === tab)?.label} campaigns`}>
           {shown.map((c) => (
             <li key={c.campaign_id}>
-              <CampaignListItem campaign={c} />
+              <CampaignListItem campaign={c} row={rows.get(c.campaign_id)} />
             </li>
           ))}
         </ul>
@@ -121,7 +127,7 @@ function TabReset({ counts, onTab }: { counts: Record<string, number>; onTab: (t
 }
 
 /** One row of the list (Design Brief §5.6, `CampaignListItem`): what it is, when, how much, and its state in words. */
-export function CampaignListItem({ campaign: c }: { campaign: CampaignSummary }) {
+export function CampaignListItem({ campaign: c, row }: { campaign: CampaignSummary; row?: BoardRow }) {
   const status = statusOf(c.status);
   const e = c.current_event;
   return (
@@ -157,6 +163,7 @@ export function CampaignListItem({ campaign: c }: { campaign: CampaignSummary })
           Budget {c.budgets.length ? c.budgets.map((b) => money(b.amount, b.currency)).join(" + ") : "–"}
           {c.event_count > 1 ? ` across ${c.event_count} events` : ""}
         </p>
+        {row ? <BoardFigures row={row} /> : null}
       </div>
     </article>
   );
@@ -325,7 +332,9 @@ export function CampaignPage() {
   const [reach, reloadReach] = useQuery("campaign.reach", { campaign_id: campaignId });
   const [value, reloadValue] = useQuery("campaign.value", { campaign_id: campaignId });
   const [winbacks, reloadWinbacks] = useQuery("campaign.winbacks", { campaign_id: campaignId });
+  const [reconciliation, reloadReconciliation] = useQuery("campaign.reconciliation", { campaign_id: campaignId });
   const reload = () => {
+    reloadReconciliation();
     reloadCampaign();
     reloadReach();
     reloadValue();
@@ -354,9 +363,9 @@ export function CampaignPage() {
           <ErrorPanel error={data.error} retry={reload} what="The campaign" />
         )
       ) : canManage ? (
-        <ManagedCampaign campaign={data.data} onChanged={reload} reach={reach} value={value} winbacks={winbacks} />
+        <ManagedCampaign campaign={data.data} onChanged={reload} reach={reach} value={value} winbacks={winbacks} reconciliation={reconciliation} />
       ) : (
-        <CampaignDetailView campaign={data.data} canManage={false} reach={reach} value={value} winbacks={winbacks} />
+        <CampaignDetailView campaign={data.data} canManage={false} reach={reach} value={value} winbacks={winbacks} reconciliation={reconciliation} />
       )}
     </Page>
   );
@@ -364,7 +373,7 @@ export function CampaignPage() {
 
 type DetailProps = Parameters<typeof CampaignDetailView>[0];
 
-function ManagedCampaign({ campaign, onChanged, reach, value, winbacks }: { campaign: DetailProps["campaign"]; onChanged: () => void; reach: DetailProps["reach"]; value: DetailProps["value"]; winbacks: DetailProps["winbacks"] }) {
+function ManagedCampaign({ campaign, onChanged, reach, value, winbacks, reconciliation }: { campaign: DetailProps["campaign"]; onChanged: () => void; reach: DetailProps["reach"]; value: DetailProps["value"]; winbacks: DetailProps["winbacks"]; reconciliation: DetailProps["reconciliation"] }) {
   const [ref, reload] = useQuery("campaign.builder.reference", {});
   if (ref.status === "loading") {
     return (
@@ -374,6 +383,6 @@ function ManagedCampaign({ campaign, onChanged, reach, value, winbacks }: { camp
     );
   }
   if (ref.status === "error") return <ErrorPanel error={ref.error} retry={reload} what="The campaign builder" />;
-  return <CampaignDetailView campaign={campaign} reference={ref.data} canManage onChanged={onChanged} reach={reach} value={value} winbacks={winbacks} />;
+  return <CampaignDetailView campaign={campaign} reference={ref.data} canManage onChanged={onChanged} reach={reach} value={value} winbacks={winbacks} reconciliation={reconciliation} />;
 }
 

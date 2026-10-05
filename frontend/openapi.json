@@ -2458,6 +2458,151 @@
         "title": "CampaignAudienceEstimateInQuery",
         "type": "object"
       },
+      "CampaignBoardInQuery": {
+        "properties": {
+          "on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "On"
+          }
+        },
+        "title": "CampaignBoardInQuery",
+        "type": "object"
+      },
+      "CampaignBoardOut": {
+        "properties": {
+          "basis": {
+            "enum": [
+              "incremental",
+              "gross"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "campaigns": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignBoardRowOut"
+            },
+            "title": "Campaigns",
+            "type": "array"
+          },
+          "contacts_fed": {
+            "title": "Contacts Fed",
+            "type": "boolean"
+          },
+          "end": {
+            "format": "date",
+            "title": "End",
+            "type": "string"
+          },
+          "money": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignMoneyOut"
+            },
+            "title": "Money",
+            "type": "array"
+          },
+          "outcomes_fed": {
+            "title": "Outcomes Fed",
+            "type": "boolean"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          },
+          "winbacks": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CampaignWinbackCountsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "basis",
+          "outcomes_fed",
+          "contacts_fed",
+          "money",
+          "winbacks",
+          "campaigns"
+        ],
+        "title": "CampaignBoardOut",
+        "type": "object"
+      },
+      "CampaignBoardRowOut": {
+        "properties": {
+          "campaign_id": {
+            "title": "Campaign Id",
+            "type": "string"
+          },
+          "contacted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contacted"
+          },
+          "converted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Converted"
+          },
+          "events_in_play": {
+            "title": "Events In Play",
+            "type": "integer"
+          },
+          "money": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignMoneyOut"
+            },
+            "title": "Money",
+            "type": "array"
+          },
+          "winbacks": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CampaignWinbackCountsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "campaign_id",
+          "events_in_play",
+          "contacted",
+          "converted",
+          "money",
+          "winbacks"
+        ],
+        "title": "CampaignBoardRowOut",
+        "type": "object"
+      },
       "CampaignBudgetOut": {
         "properties": {
           "amount": {
@@ -2591,6 +2736,36 @@
           "campaign_id"
         ],
         "title": "CampaignCloseIn",
+        "type": "object"
+      },
+      "CampaignContaminatedOut": {
+        "properties": {
+          "contaminated_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contaminated By"
+          },
+          "customer_ref": {
+            "title": "Customer Ref",
+            "type": "string"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer_ref",
+          "event_id",
+          "contaminated_by"
+        ],
+        "title": "CampaignContaminatedOut",
         "type": "object"
       },
       "CampaignControlOut": {
@@ -3922,6 +4097,94 @@
         "title": "CampaignMemberOptionOut",
         "type": "object"
       },
+      "CampaignMoneyOut": {
+        "properties": {
+          "budget": {
+            "title": "Budget",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "gross": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross"
+          },
+          "gross_roi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross Roi"
+          },
+          "incremental": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incremental"
+          },
+          "measured_events": {
+            "title": "Measured Events",
+            "type": "integer"
+          },
+          "roi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roi"
+          },
+          "spend": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spend"
+          },
+          "withheld_events": {
+            "title": "Withheld Events",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "currency",
+          "budget",
+          "spend",
+          "gross",
+          "incremental",
+          "roi",
+          "gross_roi",
+          "measured_events",
+          "withheld_events"
+        ],
+        "title": "CampaignMoneyOut",
+        "type": "object"
+      },
       "CampaignObjectiveListOut": {
         "properties": {
           "candidates": {
@@ -4315,6 +4578,199 @@
           "events"
         ],
         "title": "CampaignReachOut",
+        "type": "object"
+      },
+      "CampaignReconciliationEventOut": {
+        "properties": {
+          "by_rule": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "single",
+                "holdout",
+                "last_touch",
+                "first_touch",
+                "priority",
+                "split_even"
+              ]
+            },
+            "title": "By Rule",
+            "type": "object"
+          },
+          "credited": {
+            "title": "Credited",
+            "type": "string"
+          },
+          "credited_outcomes": {
+            "title": "Credited Outcomes",
+            "type": "integer"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "held_out_outcomes": {
+            "title": "Held Out Outcomes",
+            "type": "integer"
+          },
+          "lost": {
+            "title": "Lost",
+            "type": "string"
+          },
+          "lost_outcomes": {
+            "title": "Lost Outcomes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "event_id",
+          "credited",
+          "credited_outcomes",
+          "lost",
+          "lost_outcomes",
+          "held_out_outcomes",
+          "by_rule"
+        ],
+        "title": "CampaignReconciliationEventOut",
+        "type": "object"
+      },
+      "CampaignReconciliationInQuery": {
+        "properties": {
+          "campaign_id": {
+            "format": "uuid",
+            "title": "Campaign Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "campaign_id"
+        ],
+        "title": "CampaignReconciliationInQuery",
+        "type": "object"
+      },
+      "CampaignReconciliationLineOut": {
+        "properties": {
+          "credited_elsewhere": {
+            "title": "Credited Elsewhere",
+            "type": "string"
+          },
+          "credited_here": {
+            "title": "Credited Here",
+            "type": "string"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "source_outcomes": {
+            "title": "Source Outcomes",
+            "type": "integer"
+          },
+          "source_total": {
+            "title": "Source Total",
+            "type": "string"
+          },
+          "unattributed": {
+            "title": "Unattributed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric_code",
+          "currency",
+          "source_total",
+          "source_outcomes",
+          "credited_here",
+          "credited_elsewhere",
+          "unattributed"
+        ],
+        "title": "CampaignReconciliationLineOut",
+        "type": "object"
+      },
+      "CampaignReconciliationOut": {
+        "properties": {
+          "campaign_id": {
+            "title": "Campaign Id",
+            "type": "string"
+          },
+          "contaminated": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignContaminatedOut"
+            },
+            "title": "Contaminated",
+            "type": "array"
+          },
+          "contaminated_total": {
+            "title": "Contaminated Total",
+            "type": "integer"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignReconciliationEventOut"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "invariant_holds": {
+            "title": "Invariant Holds",
+            "type": "boolean"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignReconciliationLineOut"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "span_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Span End"
+          },
+          "span_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Span Start"
+          }
+        },
+        "required": [
+          "campaign_id",
+          "span_start",
+          "span_end",
+          "lines",
+          "events",
+          "contaminated",
+          "contaminated_total",
+          "invariant_holds"
+        ],
+        "title": "CampaignReconciliationOut",
         "type": "object"
       },
       "CampaignSummaryOut": {
@@ -23862,6 +24318,102 @@
         "x-kpigo-action": "campaign.audience.estimate"
       }
     },
+    "/api/v1/actions/campaign.board": {
+      "get": {
+        "operationId": "campaign_board",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "on",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "On"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignBoardOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "The quarter's campaign value, spend, ROI and win-backs, and each campaign's figures.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.board"
+      }
+    },
     "/api/v1/actions/campaign.builder.reference": {
       "get": {
         "operationId": "campaign_builder_reference",
@@ -25405,6 +25957,95 @@
           "campaign"
         ],
         "x-kpigo-action": "campaign.reach"
+      }
+    },
+    "/api/v1/actions/campaign.reconciliation": {
+      "get": {
+        "operationId": "campaign_reconciliation",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignReconciliationOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Attributed value against source totals, with what other events won and why.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.reconciliation"
       }
     },
     "/api/v1/actions/campaign.update": {

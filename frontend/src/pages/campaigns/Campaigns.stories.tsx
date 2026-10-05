@@ -5,8 +5,14 @@ import { AppShell } from "../../shell/AppShell";
 import { useSession, type Me } from "../../session/Session";
 import {
   campaignAllDrafts,
+  campaignBoard,
+  campaignBoardEmpty,
+  campaignBoardWithheld,
   campaignDetail,
   campaignReach,
+  campaignReconciliation,
+  campaignReconciliationNoOutcomes,
+  campaignReconciliationNothingPublished,
   campaignReachNothingFed,
   campaignValue,
   campaignValueGross,
@@ -53,9 +59,17 @@ type Story = StoryObj;
 
 const DETAIL = "/campaign/c1000000-0000-4000-8000-000000000001";
 
-/** Two running, one scheduled, one draft; one has a budget change waiting for approval. */
-export const List: Story = at("/campaign", { "campaign.list": { data: campaignList } });
-export const ListReadOnly: Story = at("/campaign", { "campaign.list": { data: campaignList } }, campaignViewerMe);
+const listOk = { "campaign.list": { data: campaignList }, "campaign.board": { data: campaignBoard } } as const;
+
+/** Two running, one scheduled, one draft; the quarter's figures above, each row's beside it. */
+export const List: Story = at("/campaign", listOk);
+export const ListReadOnly: Story = at("/campaign", listOk, campaignViewerMe);
+/** One event's baseline is contaminated: incremental value and return are withheld, never zero. */
+export const ListValueWithheld: Story = at("/campaign", { ...listOk, "campaign.board": { data: campaignBoardWithheld } });
+/** Nothing runs or attributes this quarter: the summary says so. */
+export const ListQuarterQuiet: Story = at("/campaign", { ...listOk, "campaign.board": { data: campaignBoardEmpty } });
+export const ListBoardLoading: Story = at("/campaign", { ...listOk, "campaign.board": "pending" });
+export const ListBoardFailed: Story = at("/campaign", { ...listOk, "campaign.board": { error: serverError } });
 /** In scope, but nobody has authored a campaign yet. */
 export const ListNothingYet: Story = at("/campaign", { "campaign.list": { data: campaignListEmpty } });
 /** No Campaign scope grant: names the grant and who to ask. */
@@ -74,11 +88,16 @@ export const BuilderNoDimensions: Story = at("/campaign/new", { "campaign.builde
 export const BuilderLoading: Story = at("/campaign/new", { "campaign.builder.reference": "pending" });
 export const BuilderFailed: Story = at("/campaign/new", { "campaign.builder.reference": { error: serverError } });
 
-const reachOk = { "campaign.reach": { data: campaignReach }, "campaign.value": { data: campaignValue }, "campaign.audience.estimate": { data: estimate } } as const;
+const reachOk = {
+  "campaign.reach": { data: campaignReach },
+  "campaign.value": { data: campaignValue },
+  "campaign.reconciliation": { data: campaignReconciliation },
+  "campaign.audience.estimate": { data: estimate },
+} as const;
 
 /** A running event with its reach funnel and a budget change awaiting approval, and a draft ready to publish. */
 export const Detail: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, ...reachOk });
-export const DetailReadOnly: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.reach": { data: campaignReach }, "campaign.value": { data: campaignValue } }, campaignViewerMe);
+export const DetailReadOnly: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, ...reachOk }, campaignViewerMe);
 /** The org changed its value basis to gross: the banner says since when. */
 export const DetailGrossBasis: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, ...reachOk, "campaign.value": { data: campaignValueGross } });
 export const DetailValueLoading: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, ...reachOk, "campaign.value": "pending" });
@@ -101,3 +120,11 @@ export const DetailWinbacks: Story = at(DETAIL, { ...winbackOk, "campaign.winbac
 export const DetailWinbacksNothingFed: Story = at(DETAIL, { ...winbackOk, "campaign.winbacks": { data: campaignWinbacksNothingFed } });
 export const DetailWinbacksLoading: Story = at(DETAIL, { ...winbackOk, "campaign.winbacks": "pending" });
 export const DetailWinbacksFailed: Story = at(DETAIL, { ...winbackOk, "campaign.winbacks": { error: serverError } });
+
+const detailOk = { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, ...reachOk } as const;
+/** Published, but no outcome of the objective's metrics has loaded for the span. */
+export const DetailReconciliationNoOutcomes: Story = at(DETAIL, { ...detailOk, "campaign.reconciliation": { data: campaignReconciliationNoOutcomes } });
+/** Every event is a draft: there is nothing to reconcile. */
+export const DetailReconciliationNothingPublished: Story = at(DETAIL, { ...detailOk, "campaign.get": { data: campaignAllDrafts }, "campaign.reconciliation": { data: campaignReconciliationNothingPublished } });
+export const DetailReconciliationLoading: Story = at(DETAIL, { ...detailOk, "campaign.reconciliation": "pending" });
+export const DetailReconciliationFailed: Story = at(DETAIL, { ...detailOk, "campaign.reconciliation": { error: serverError } });

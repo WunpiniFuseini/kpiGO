@@ -5,16 +5,23 @@ import { MemoryRouter } from "react-router-dom";
 import { ROUTES, type ActionName } from "../api/actions";
 import { setTransport } from "../api/client";
 import { formatDate } from "../lib/format";
+import { BoardSummary, ReconciliationPanel } from "../pages/campaigns/Board";
 import { CampaignBuilder, CampaignListView } from "../pages/campaigns/Campaigns";
 import { CampaignDetailView } from "../pages/campaigns/Detail";
 import { blankEvent, describeAudience, describeEstimate, percent, validateEvent } from "../pages/campaigns/model";
 import {
   campaignAllDrafts,
+  campaignBoard,
+  campaignBoardEmpty,
+  campaignBoardWithheld,
   campaignDetail,
   campaignList,
   campaignListNoScope,
   campaignReach,
   campaignReachNothingFed,
+  campaignReconciliation,
+  campaignReconciliationNoOutcomes,
+  campaignReconciliationNothingPublished,
   campaignValue,
   campaignValueGross,
   campaignWinbackDetail,
@@ -315,5 +322,61 @@ describe("win-backs", () => {
     unmount();
     routed(<CampaignDetailView campaign={campaignDetail} canManage={false} winbacks={ready(campaignWinbacks)} />);
     expect(screen.queryByRole("region", { name: "Win-backs" })).not.toBeInTheDocument();
+  });
+});
+
+describe("tracking board", () => {
+  const ready = <T,>(data: T) => ({ status: "ready" as const, data, refreshing: false });
+
+  it("sums the quarter and keeps other currencies apart", () => {
+    routed(<BoardSummary board={ready(campaignBoard)} />);
+    const summary = screen.getByRole("region", { name: /Events in play this quarter/ });
+    expect(summary).toHaveTextContent("Incremental value");
+    expect(summary).toHaveTextContent("Win-backs confirmed");
+    expect(within(summary).getByText("184")).toBeInTheDocument();
+    expect(summary).toHaveTextContent(/never converted/);
+  });
+
+  it("shows withheld value as a dash with the reason, and a quiet quarter in words", () => {
+    const { unmount } = routed(<BoardSummary board={ready(campaignBoardWithheld)} />);
+    expect(screen.getByText(/Withheld for 1 event/)).toBeInTheDocument();
+    expect(screen.getAllByText("—").length).toBeGreaterThan(0);
+    unmount();
+    routed(<BoardSummary board={ready(campaignBoardEmpty)} />);
+    expect(screen.getByText(/No published event runs or attributes in this quarter/)).toBeInTheDocument();
+  });
+
+  it("puts each campaign's figures on its list row", () => {
+    routed(<CampaignListView list={campaignList} tab="running" onTab={() => {}} canAuthor={false} board={ready(campaignBoard)} />);
+    expect(screen.getByText(/41,200 contacted/)).toBeInTheDocument();
+    expect(screen.getByText("Value withheld · low confidence")).toBeInTheDocument();
+    expect(screen.getByText(/184 win-backs confirmed, 558 provisional/)).toBeInTheDocument();
+  });
+});
+
+describe("reconciliation", () => {
+  const ready = <T,>(data: T) => ({ status: "ready" as const, data, refreshing: false });
+
+  it("accounts for the source total and says what each event won and lost", () => {
+    routed(<ReconciliationPanel campaign={campaignDetail} reconciliation={ready(campaignReconciliation)} />);
+    const panel = screen.getByRole("region", { name: "Reconciliation" });
+    const table = within(panel).getByRole("table");
+    expect(within(table).getAllByRole("row")).toHaveLength(3);
+    expect(within(table).getByRole("rowheader", { name: /deposit_value \(GHS\)/ })).toBeInTheDocument();
+    const events = within(panel).getByRole("list", { name: "By event" });
+    expect(events).toHaveTextContent("Event 1 · October SMS wave");
+    expect(events).toHaveTextContent(/lost 214 worth 38,200 to other events/);
+    expect(events).toHaveTextContent(/162 from its control group/);
+    expect(events).toHaveTextContent(/collisions settled by .*\(433\)/);
+    expect(panel).toHaveTextContent("2 customers' baselines were contaminated");
+    expect(within(panel).getByRole("list", { name: "Contaminated baselines" })).toHaveTextContent("reached earlier by Another campaign's event");
+  });
+
+  it("says why it is empty", () => {
+    const { unmount } = routed(<ReconciliationPanel campaign={campaignDetail} reconciliation={ready(campaignReconciliationNoOutcomes)} />);
+    expect(screen.getByText(/No outcome of the objective's metrics has loaded/)).toBeInTheDocument();
+    unmount();
+    routed(<ReconciliationPanel campaign={campaignAllDrafts} reconciliation={ready(campaignReconciliationNothingPublished)} />);
+    expect(screen.getByText("Nothing is published yet, so there is nothing to reconcile.")).toBeInTheDocument();
   });
 });

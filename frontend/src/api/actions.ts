@@ -43,6 +43,7 @@ export const ROUTES = {
   "campaign.attribution.rule.set": { method: "POST", path: "/api/v1/actions/campaign.attribution.rule.set", pathParams: [], public: false },
   "campaign.attribution.run": { method: "POST", path: "/api/v1/actions/campaign.attribution.run", pathParams: [], public: false },
   "campaign.audience.estimate": { method: "GET", path: "/api/v1/actions/campaign.audience.estimate", pathParams: [], public: false },
+  "campaign.board": { method: "GET", path: "/api/v1/actions/campaign.board", pathParams: [], public: false },
   "campaign.builder.reference": { method: "GET", path: "/api/v1/actions/campaign.builder.reference", pathParams: [], public: false },
   "campaign.close": { method: "POST", path: "/api/v1/actions/campaign.close", pathParams: [], public: false },
   "campaign.create": { method: "POST", path: "/api/v1/actions/campaign.create", pathParams: [], public: false },
@@ -59,6 +60,7 @@ export const ROUTES = {
   "campaign.objective.list": { method: "GET", path: "/api/v1/actions/campaign.objective.list", pathParams: [], public: false },
   "campaign.objective.set": { method: "POST", path: "/api/v1/actions/campaign.objective.set", pathParams: [], public: false },
   "campaign.reach": { method: "GET", path: "/api/v1/actions/campaign.reach", pathParams: [], public: false },
+  "campaign.reconciliation": { method: "GET", path: "/api/v1/actions/campaign.reconciliation", pathParams: [], public: false },
   "campaign.update": { method: "POST", path: "/api/v1/actions/campaign.update", pathParams: [], public: false },
   "campaign.value": { method: "GET", path: "/api/v1/actions/campaign.value", pathParams: [], public: false },
   "campaign.value_basis.set": { method: "POST", path: "/api/v1/actions/campaign.value_basis.set", pathParams: [], public: false },
@@ -260,6 +262,7 @@ export interface Actions {
   "campaign.attribution.rule.set": { input: NonNullable<operations["campaign_attribution_rule_set"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_attribution_rule_set"]["responses"][200]["content"]["application/json"] };
   "campaign.attribution.run": { input: NonNullable<operations["campaign_attribution_run"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_attribution_run"]["responses"][200]["content"]["application/json"] };
   "campaign.audience.estimate": { input: NonNullable<operations["campaign_audience_estimate"]["parameters"]["query"]>; output: operations["campaign_audience_estimate"]["responses"][200]["content"]["application/json"] };
+  "campaign.board": { input: NonNullable<operations["campaign_board"]["parameters"]["query"]>; output: operations["campaign_board"]["responses"][200]["content"]["application/json"] };
   "campaign.builder.reference": { input: Record<string, never>; output: operations["campaign_builder_reference"]["responses"][200]["content"]["application/json"] };
   "campaign.close": { input: NonNullable<operations["campaign_close"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_close"]["responses"][200]["content"]["application/json"] };
   "campaign.create": { input: NonNullable<operations["campaign_create"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_create"]["responses"][200]["content"]["application/json"] };
@@ -276,6 +279,7 @@ export interface Actions {
   "campaign.objective.list": { input: Record<string, never>; output: operations["campaign_objective_list"]["responses"][200]["content"]["application/json"] };
   "campaign.objective.set": { input: NonNullable<operations["campaign_objective_set"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_objective_set"]["responses"][200]["content"]["application/json"] };
   "campaign.reach": { input: NonNullable<operations["campaign_reach"]["parameters"]["query"]>; output: operations["campaign_reach"]["responses"][200]["content"]["application/json"] };
+  "campaign.reconciliation": { input: NonNullable<operations["campaign_reconciliation"]["parameters"]["query"]>; output: operations["campaign_reconciliation"]["responses"][200]["content"]["application/json"] };
   "campaign.update": { input: NonNullable<operations["campaign_update"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_update"]["responses"][200]["content"]["application/json"] };
   "campaign.value": { input: NonNullable<operations["campaign_value"]["parameters"]["query"]>; output: operations["campaign_value"]["responses"][200]["content"]["application/json"] };
   "campaign.value_basis.set": { input: NonNullable<operations["campaign_value_basis_set"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_value_basis_set"]["responses"][200]["content"]["application/json"] };

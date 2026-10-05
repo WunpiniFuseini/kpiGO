@@ -4,6 +4,7 @@ import { ApiError, invoke, isProposal } from "../../api/client";
 import { useQuery, type QueryState } from "../../api/useAction";
 import { Chip, EmptyState, ErrorPanel, Loading, Notice, SelectField, Skeleton, TextField } from "../../components";
 import { formatDate, formatDateTime, formatDelta } from "../../lib/format";
+import { ReconciliationPanel } from "./Board";
 import { EventFields } from "./EventFields";
 import {
   blankEvent,
@@ -34,6 +35,7 @@ import {
   type EventValue,
   type Reach,
   type Reference,
+  type Reconciliation,
   type ValueReport,
   type Winbacks,
 } from "./model";
@@ -50,6 +52,7 @@ export function CampaignDetailView({
   reach,
   value,
   winbacks,
+  reconciliation,
 }: {
   campaign: Campaign;
   reference?: Reference;
@@ -61,6 +64,8 @@ export function CampaignDetailView({
   value?: QueryState<ValueReport>;
   /** Each event's win-backs; absent, or for a campaign that earns none, the panels are left out. */
   winbacks?: QueryState<Winbacks>;
+  /** Attributed value against source totals; absent, the section is left out. */
+  reconciliation?: QueryState<Reconciliation>;
 }) {
   const [message, setMessage] = useState<Message>(null);
   const [busy, setBusy] = useState(false);
@@ -122,6 +127,8 @@ export function CampaignDetailView({
           An event is one run: its dates, its budget and who it is for. {editable ? "Add the first one below." : null}
         </EmptyState>
       )}
+
+      {reconciliation ? <ReconciliationPanel campaign={campaign} reconciliation={reconciliation} /> : null}
 
       {editable && campaign.status !== "closed" && reference ? <AddEvent campaign={campaign} reference={reference} busy={busy} act={act} /> : null}
     </div>
