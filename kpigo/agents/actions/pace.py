@@ -11,20 +11,22 @@ from __future__ import annotations
 import uuid
 from datetime import date, timedelta
 from decimal import Decimal
-from typing import Literal
+from typing import Annotated, Literal
 
 from django.utils import timezone
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 from kpigo.access.identity import app_user_for
-from kpigo.action import ActionContext, Conflict, NotFound, action
-from kpigo.agents.config import AgentProduct, Grain, rag, settings_for
+from kpigo.action import ActionContext, Conflict, InvalidInput, NotFound, action
+from kpigo.agents.config import AgentProduct, CohortType, Grain, rag, settings_for
 from kpigo.agents.daily import AgentPace, Board, board, default_as_of, window_for
 from kpigo.agents.models import AgentSettings
+from kpigo.metrics.models import METRIC_CODE_PATTERN, MetricBinding
 from kpigo.scorecards.bands import bands_for, lookup
 
 EXAMPLE_ID = "00000000-0000-0000-0000-000000000000"
 WindowKind = Literal["month", "week"]
+MetricCode = Annotated[str, StringConstraints(pattern=METRIC_CODE_PATTERN, max_length=80)]
 
 
 # ── shared output pieces ─────────────────────────────────────────────────────
@@ -222,6 +224,10 @@ class AgentSettingsOut(BaseModel):
     pace_cap: Decimal
     rag_green: Decimal
     rag_amber: Decimal
+    # The leaderboard: null ranks by the composite (mean of capped paces).
+    rank_metric_code: str | None
+    tiebreak_metric_code: str | None
+    cohort_type: str
 
 
 def _settings_out(org_id: str, product: str) -> AgentSettingsOut:
@@ -232,12 +238,15 @@ def _settings_out(org_id: str, product: str) -> AgentSettingsOut:
         pace_cap=s.pace_cap,
         rag_green=s.rag_green,
         rag_amber=s.rag_amber,
+        rank_metric_code=s.rank_metric_code,
+        tiebreak_metric_code=s.tiebreak_metric_code,
+        cohort_type=s.cohort_type,
     )
 
 
 @action(
     name="agent.settings.get",
-    summary="An Agent Performance module's grain, pace cap and RAG thresholds.",
+    summary="An Agent Performance module's grain, thresholds and leaderboard ranking.",
     schema=AgentSettingsGetIn,
     output=AgentSettingsOut,
     permission="agent.view",
@@ -255,11 +264,18 @@ class AgentSettingsSetIn(BaseModel):
     pace_cap: Decimal = Field(default=Decimal(2), ge=1, le=10)
     rag_green: Decimal = Field(default=Decimal(1), gt=0, le=5)
     rag_amber: Decimal = Field(default=Decimal("0.85"), gt=0, le=5)
+    rank_metric_code: MetricCode | None = None
+    tiebreak_metric_code: MetricCode | None = None
+    cohort_type: CohortType = "profile"
 
     @model_validator(mode="after")
     def _ordered(self) -> AgentSettingsSetIn:
         if self.rag_amber > self.rag_green:
             raise ValueError("rag_amber must not be above rag_green")
+        if self.tiebreak_metric_code is not None and (
+            self.tiebreak_metric_code == self.rank_metric_code
+        ):
+            raise ValueError("the tie-break metric must differ from the ranking metric")
         return self
 
 
@@ -280,9 +296,24 @@ class AgentSettingsSetIn(BaseModel):
         "pace_cap": "2",
         "rag_green": "1",
         "rag_amber": "0.85",
+        "cohort_type": "profile",
     },
 )
 def set_settings(params: AgentSettingsSetIn, ctx: ActionContext) -> AgentSettingsOut:
+    named = {c for c in (params.rank_metric_code, params.tiebreak_metric_code) if c}
+    bound = set(
+        MetricBinding.objects.filter(
+            product=params.product,
+            is_active=True,
+            metric__org_id=ctx.org_id,
+            metric__metric_code__in=sorted(named),
+        ).values_list("metric__metric_code", flat=True)
+    )
+    if named - bound:
+        raise InvalidInput(
+            f"Not a {params.product} metric: {', '.join(sorted(named - bound))}.",
+            detail={"unbound": sorted(named - bound)},
+        )
     row, _ = AgentSettings.objects.get_or_create(
         org_id=ctx.org_id, product=params.product, defaults={"created_by": ctx.user_id}
     )
@@ -290,6 +321,9 @@ def set_settings(params: AgentSettingsSetIn, ctx: ActionContext) -> AgentSetting
     row.pace_cap = params.pace_cap
     row.rag_green = params.rag_green
     row.rag_amber = params.rag_amber
+    row.rank_metric_code = params.rank_metric_code
+    row.tiebreak_metric_code = params.tiebreak_metric_code
+    row.cohort_type = params.cohort_type
     row.updated_by = ctx.user_id
     row.updated_at = timezone.now()
     row.save()

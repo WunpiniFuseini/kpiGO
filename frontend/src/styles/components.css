@@ -100,6 +100,9 @@
 .kg-ranked__rank { width: 22px; font-size: 12.5px; font-weight: 600; color: var(--ink-cap); text-align: center; }
 .kg-ranked__who { flex: 1; min-width: 0; }
 .kg-ranked__who b { display: block; font-size: 13px; font-weight: 500; }
+.kg-ranked__name { display: block; padding: 0; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 500; color: var(--ink); text-align: left; cursor: pointer; }
+.kg-ranked__name:hover { text-decoration: underline; }
+.kg-ranked__name:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
 .kg-ranked__who small { color: var(--ink-cap); font-size: 11.5px; }
 .kg-ranked__pace { width: 176px; flex: 0 1 176px; min-width: 0; }
 .kg-ranked__pace small { display: block; font-size: 11px; color: var(--ink-cap); margin-top: 5px; }

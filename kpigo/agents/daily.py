@@ -81,10 +81,11 @@ def latest_day(org_id: str, product: str) -> date | None:
     with connection.cursor() as cur:
         cur.execute(
             """
-            SELECT max(f.activity_date) FROM fact_actual_daily f
+            SELECT max(f.activity_date) FROM mv_leaderboard_daily f
+            JOIN metric m ON m.metric_code = f.metric_code AND m.org_id = f.org_id
             WHERE f.org_id = %s AND f.activity_date <= %s AND EXISTS (
                 SELECT 1 FROM metric_binding b
-                WHERE b.metric_id = f.metric_id AND b.product = %s AND b.is_active)
+                WHERE b.metric_id = m.metric_id AND b.product = %s AND b.is_active)
             """,
             [org_id, org_today(org_id), product],
         )
@@ -187,22 +188,25 @@ def daily_totals(
     last: date,
     subject_ids: Sequence[str] | None = None,
 ) -> Totals:
-    """Each agent's daily figure per metric over ``[first, last]``, summed across lines."""
+    """Each agent's daily figure per metric over ``[first, last]``, summed across lines.
+
+    Read from ``mv_leaderboard_daily``, which ingestion refreshes after every
+    daily load, archive and restore.
+    """
     out: Totals = defaultdict(lambda: defaultdict(dict))
     if not codes or last < first:
         return out
     sql = """
-        SELECT f.subject_id::text, m.metric_code, f.activity_date, f.currency_code,
-               sum(f.actual_value)
-        FROM fact_actual_daily f JOIN metric m ON m.metric_id = f.metric_id
-        WHERE f.org_id = %s AND f.activity_date >= %s AND f.activity_date <= %s
-          AND m.metric_code = ANY(%s)
+        SELECT subject_id::text, metric_code, activity_date, nullif(currency_code, ''),
+               actual_value
+        FROM mv_leaderboard_daily
+        WHERE org_id = %s AND activity_date >= %s AND activity_date <= %s
+          AND metric_code = ANY(%s)
     """
     args: list[Any] = [org_id, first, last, list(codes)]
     if subject_ids is not None:
-        sql += " AND f.subject_id = ANY(%s::uuid[])"
+        sql += " AND subject_id = ANY(%s::uuid[])"
         args.append(list(subject_ids))
-    sql += " GROUP BY 1, 2, 3, 4"
     with connection.cursor() as cur:
         cur.execute(sql, args)
         for subject_id, code, day, currency, value in cur.fetchall():
@@ -263,6 +267,8 @@ class MetricPace:
     target: MonthTarget | None
     currency_code: str | None
     pace: Pace
+    # The as-of day's own figure, in the target's currency (None when not reported).
+    day_value: Decimal | None = None
 
 
 @dataclass(frozen=True)
@@ -392,6 +398,7 @@ def board(
                     metric=metric,
                     target=mine,
                     currency_code=currency,
+                    day_value=actuals.get(window.as_of),
                     pace=pace(
                         PaceIn(
                             direction=metric.direction,

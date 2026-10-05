@@ -25,7 +25,7 @@ from datetime import date, datetime, timedelta
 from django.conf import settings
 from django.db import connection
 
-from kpigo.ingestion.conform import daily_partition_name
+from kpigo.ingestion.conform import daily_partition_name, refresh_daily_totals
 from kpigo.ingestion.models import DailyArchive
 
 ARCHIVE_SCHEMA = "kpigo_archive"
@@ -135,6 +135,7 @@ def archive(month: date, *, now: datetime, user_id: int | None) -> Archived:
         tablespace = settings.KPIGO_ARCHIVE_TABLESPACE
         if tablespace:
             cur.execute(f'ALTER TABLE {ARCHIVE_SCHEMA}."{name}" SET TABLESPACE "{tablespace}"')
+    refresh_daily_totals()
     DailyArchive.objects.update_or_create(
         month=month,
         defaults={
@@ -173,6 +174,7 @@ def restore(record: DailyArchive, *, now: datetime, user_id: int | None) -> None
             f'ALTER TABLE fact_actual_daily ATTACH PARTITION "{name}" '
             f"FOR VALUES FROM ('{record.month.isoformat()}') TO ('{following.isoformat()}')"
         )
+    refresh_daily_totals()
     record.status = "restored"
     record.restored_at = now
     record.updated_by = user_id

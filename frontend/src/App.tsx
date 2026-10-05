@@ -2,6 +2,7 @@ import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 
 import { EmptyState, Loading, Skeleton } from "./components";
 import { AdminPlaceholder, ModulePage } from "./pages/ModulePage";
+import { AgentPerformancePage } from "./pages/agents/AgentPerformance";
 import { CompliancePage } from "./pages/inputs/Compliance";
 import { MyInputsPage } from "./pages/inputs/MyInputs";
 import { ScorecardPage } from "./pages/scorecards/Scorecard";
@@ -29,7 +30,7 @@ export function App() {
       <Route element={<RequireSession />}>
         <Route index element={<Home />} />
         <Route path="/scorecards" element={<ScorecardPage />} />
-        <Route path="/agent-performance" element={<ModulePage pageKey="agent_performance" title="Agent Performance" />} />
+        <Route path="/agent-performance" element={<AgentPerformancePage />} />
         <Route path="/campaign" element={<ModulePage pageKey="campaign" title="Campaign Manager" />} />
         <Route path="/executive" element={<ModulePage pageKey="executive" title="Executive" exec />} />
         <Route path="/my-inputs" element={<MyInputsPage />} />
