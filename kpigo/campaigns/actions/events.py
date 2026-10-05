@@ -19,6 +19,7 @@ from django.utils import timezone
 from pydantic import BaseModel, Field
 
 from kpigo.action import ActionContext, Conflict, InvalidInput, NotFound, action
+from kpigo.campaigns import attribution
 from kpigo.campaigns import authoring as au
 from kpigo.campaigns.actions.campaigns import (
     Budget,
@@ -147,6 +148,7 @@ def update_event(params: CampaignEventUpdateIn, ctx: ActionContext) -> CampaignO
         event = get_event(ctx, params.event_id, lock=True)
         au.require_editable(event)
         draft = event.state == "draft"
+        was = (event.period_start, au.window_end(event))
         if not draft and (params.budget_amount is not None or params.budget_currency is not None):
             raise Conflict(
                 "A published event's budget changes through a budget change, which waits "
@@ -202,6 +204,13 @@ def update_event(params: CampaignEventUpdateIn, ctx: ActionContext) -> CampaignO
         if not draft and (fields_changed or audience_changed):
             au.record_version(
                 event, "audience" if audience_changed and not fields_changed else "updated", ctx
+            )
+        if event.reattribute_from is not None:
+            attribution.reattribute(
+                ctx.org_id,
+                min(was[0], event.reattribute_from),
+                max(was[1], au.window_end(event)),
+                events=[event],
             )
         ensure_still_visible(event.campaign, ctx)
     return campaign_out(event.campaign)
@@ -281,6 +290,8 @@ def publish_event(params: CampaignEventRef, ctx: ActionContext) -> CampaignOut:
         event.published_at = timezone.now()
         _touch(event, ctx)
         au.record_version(event, "published", ctx)
+        # Outcomes already loaded for its window are credited now, not at the next load.
+        attribution.reattribute(ctx.org_id, event.period_start, au.window_end(event))
     return campaign_out(event.campaign)
 
 

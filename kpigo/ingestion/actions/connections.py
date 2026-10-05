@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field, SecretStr, StringConstraints, field_valid
 from kpigo.action import ActionContext, NotFound, action
 from kpigo.ingestion import crypto, sources
 from kpigo.ingestion import validator as v
+from kpigo.ingestion.actions.feeds import Template
 from kpigo.ingestion.models import Connection, CredentialSecret
 from kpigo.platform.db import conflicts
 from kpigo.platform.vocab import Code
@@ -215,7 +216,7 @@ class ConnectionTestIn(BaseModel):
     name: Code
     # Optionally check that a registered object can be read and has a template's columns.
     source_object: Annotated[str, StringConstraints(max_length=400)] | None = None
-    template: Literal["actual_monthly", "actual_daily", "actual_dimensional"] | None = None
+    template: Template | None = None
 
     @field_validator("source_object")
     @classmethod

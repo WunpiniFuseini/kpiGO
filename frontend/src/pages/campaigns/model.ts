@@ -12,6 +12,10 @@ export type Criterion = { dimension_type: string; member_code: string };
 export type Objective = Input<"campaign.create">["objective"];
 export type Channel = NonNullable<NonNullable<Input<"campaign.create">["events"]>[number]["channels"]>[number];
 export type Tab = "running" | "scheduled" | "paused" | "draft" | "closed";
+export type Reach = Output<"campaign.reach">;
+export type EventReach = Reach["events"][number];
+export type Estimate = Output<"campaign.audience.estimate">;
+export type Rule = Reach["attribution_rule"];
 
 export const OBJECTIVES: { value: Objective; label: string }[] = [
   { value: "deposit_growth", label: "Deposit growth" },
@@ -88,6 +92,45 @@ export function describeAudience(criteria: Criterion[], dimensions: Dimension[] 
       return `${label}: ${names.join(" or ")}`;
     })
     .join(", and ");
+}
+
+// ── reach ───────────────────────────────────────────────────────────────────
+
+export const RULES: Record<Rule, string> = {
+  last_touch: "last touch",
+  first_touch: "first touch",
+  priority: "campaign priority",
+  split_even: "even split",
+};
+
+export function count(n: number): string {
+  return formatValue(n, { unit: "count" });
+}
+
+/** What share `part` is of `whole`, in words; empty when either is unknown. */
+export function shareOf(part: number | null, whole: number | null): string {
+  if (part === null || whole === null || whole <= 0) return "";
+  const pct = (part / whole) * 100;
+  return `${pct < 1 && pct > 0 ? "under 1" : Math.round(pct)}%`;
+}
+
+/** The reach estimate in a sentence, or why there is none. */
+export function describeEstimate(e: Estimate, dimensions: Dimension[] = []): string {
+  const asOf = e.as_of ? ` on ${formatDate(e.as_of)}` : "";
+  if (e.targeted !== null) {
+    const of = e.population ? ` of ${count(e.population)} (${shareOf(e.targeted, e.population)})` : "";
+    return `About ${count(e.targeted)} customers${of}, from the customer population${asOf}.`;
+  }
+  switch (e.reason) {
+    case "no_population":
+      return "No customer population has been fed yet, so the audience cannot be sized. The DE team's population feed supplies the counts.";
+    case "dimension_not_in_population": {
+      const names = e.dimensions.map((d) => dimensions.find((x) => x.dimension_type === d)?.display_name ?? d);
+      return `The customer population${asOf} is not broken down by ${names.join(" or ")}, so this audience cannot be sized.`;
+    }
+    default:
+      return e.population ? `Add a criterion to size the audience. The population${asOf} holds ${count(e.population)} customers.` : "Add a criterion to size the audience.";
+  }
 }
 
 // ── the event form ──────────────────────────────────────────────────────────

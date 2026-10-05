@@ -497,6 +497,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/campaign.attribution.rule.set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set the org's collision rule and attribute every outcome again under it. */
+        post: operations["campaign_attribution_rule_set"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/campaign.attribution.run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Attribute outcomes again: every one, or those since a day. */
+        post: operations["campaign_attribution_run"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/campaign.audience.estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Estimate how many customers an audience covers, from the population feed. */
+        get: operations["campaign_audience_estimate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/campaign.builder.reference": {
         parameters: {
             query?: never;
@@ -746,6 +797,23 @@ export interface paths {
         put?: never;
         /** Set an objective's default window and the outcome metrics attribution counts for it. */
         post: operations["campaign_objective_set"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/campaign.reach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Each event's reach: estimated audience, contacts, outcome reach and conversions. */
+        get: operations["campaign_reach"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4275,6 +4343,47 @@ export interface components {
              */
             business_date: string;
         };
+        /** CampaignAttributionRuleIn */
+        CampaignAttributionRuleIn: {
+            /**
+             * Reason
+             * @default
+             */
+            reason?: string;
+            /**
+             * Rule
+             * @enum {string}
+             */
+            rule: "last_touch" | "first_touch" | "priority" | "split_even";
+        };
+        /** CampaignAttributionRunIn */
+        CampaignAttributionRunIn: {
+            /** Since */
+            since?: string | null;
+        };
+        /** CampaignAttributionSummaryOut */
+        CampaignAttributionSummaryOut: {
+            /** Attributed */
+            attributed: number;
+            /** Collisions */
+            collisions: number;
+            /** Outcomes */
+            outcomes: number;
+            /**
+             * Rule
+             * @enum {string}
+             */
+            rule: "last_touch" | "first_touch" | "priority" | "split_even";
+            /** Unattributed */
+            unattributed: number;
+        };
+        /** CampaignAudienceEstimateInQuery */
+        CampaignAudienceEstimateInQuery: {
+            /** Audience */
+            audience: string[];
+            /** On */
+            on?: string | null;
+        };
         /** CampaignBudgetOut */
         CampaignBudgetOut: {
             /** Amount */
@@ -4481,6 +4590,26 @@ export interface components {
              */
             window_end: string;
         };
+        /** CampaignEventReachOut */
+        CampaignEventReachOut: {
+            /** Attributed */
+            attributed: components["schemas"]["CampaignValueOut"][];
+            /** Contacted */
+            contacted: number | null;
+            /** Converted Customers */
+            converted_customers: number | null;
+            /** Credited Outcomes */
+            credited_outcomes: number | null;
+            /** Delivered */
+            delivered: number | null;
+            estimate: components["schemas"]["CampaignReachEstimateOut"];
+            /** Event Id */
+            event_id: string;
+            /** Matched Customers */
+            matched_customers: number | null;
+            /** Responded */
+            responded: number | null;
+        };
         /** CampaignEventRef */
         CampaignEventRef: {
             /**
@@ -4666,6 +4795,45 @@ export interface components {
             /** Requested By Id */
             requested_by_id: number | null;
         };
+        /** CampaignReachEstimateOut */
+        CampaignReachEstimateOut: {
+            /** As Of */
+            as_of: string | null;
+            /** Dimensions */
+            dimensions: string[];
+            /** Population */
+            population: number | null;
+            /** Reason */
+            reason: ("no_criteria" | "no_population" | "dimension_not_in_population") | null;
+            /** Targeted */
+            targeted: number | null;
+        };
+        /** CampaignReachInQuery */
+        CampaignReachInQuery: {
+            /**
+             * Campaign Id
+             * Format: uuid
+             */
+            campaign_id: string;
+        };
+        /** CampaignReachOut */
+        CampaignReachOut: {
+            /**
+             * Attribution Rule
+             * @enum {string}
+             */
+            attribution_rule: "last_touch" | "first_touch" | "priority" | "split_even";
+            /** Campaign Id */
+            campaign_id: string;
+            /** Contacts Fed */
+            contacts_fed: boolean;
+            /** Events */
+            events: components["schemas"]["CampaignEventReachOut"][];
+            /** Outcome Metric Codes */
+            outcome_metric_codes: string[];
+            /** Outcomes Fed */
+            outcomes_fed: boolean;
+        };
         /** CampaignSummaryOut */
         CampaignSummaryOut: {
             /** Budgets */
@@ -4720,6 +4888,13 @@ export interface components {
             priority?: number | null;
             /** Product Code */
             product_code?: string | null;
+        };
+        /** CampaignValueOut */
+        CampaignValueOut: {
+            /** Amount */
+            amount: string;
+            /** Currency */
+            currency: string | null;
         };
         /** CampaignVersionOut */
         CampaignVersionOut: {
@@ -5047,7 +5222,7 @@ export interface components {
             /** Source Object */
             source_object?: string | null;
             /** Template */
-            template?: ("actual_monthly" | "actual_daily" | "actual_dimensional") | null;
+            template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact") | null;
         };
         /** ConnectionTestOut */
         ConnectionTestOut: {
@@ -5845,7 +6020,7 @@ export interface components {
             /** Freshness State */
             freshness_state?: ("never_loaded" | "fresh" | "stale") | null;
             /** Template */
-            template?: ("actual_monthly" | "actual_daily" | "actual_dimensional") | null;
+            template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact") | null;
         };
         /** FeedListOut */
         FeedListOut: {
@@ -5938,7 +6113,7 @@ export interface components {
              * Template
              * @enum {string}
              */
-            template: "actual_monthly" | "actual_daily" | "actual_dimensional";
+            template: "actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact";
             /**
              * Volume Reject Pct
              * @default 75
@@ -11916,6 +12091,239 @@ export interface operations {
             };
         };
     };
+    campaign_attribution_rule_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignAttributionRuleIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignAttributionSummaryOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    campaign_attribution_run: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignAttributionRunIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignAttributionSummaryOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    campaign_audience_estimate: {
+        parameters: {
+            query: {
+                audience: string[];
+                on?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignReachEstimateOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     campaign_builder_reference: {
         parameters: {
             query?: never;
@@ -13046,6 +13454,73 @@ export interface operations {
             };
         };
     };
+    campaign_reach: {
+        parameters: {
+            query: {
+                campaign_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignReachOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     campaign_update: {
         parameters: {
             query?: never;
@@ -13272,7 +13747,7 @@ export interface operations {
             query: {
                 name: string;
                 source_object?: string | null;
-                template?: ("actual_monthly" | "actual_daily" | "actual_dimensional") | null;
+                template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact") | null;
             };
             header?: never;
             path?: never;
@@ -14709,7 +15184,7 @@ export interface operations {
         parameters: {
             query?: {
                 freshness_state?: ("never_loaded" | "fresh" | "stale") | null;
-                template?: ("actual_monthly" | "actual_daily" | "actual_dimensional") | null;
+                template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact") | null;
             };
             header?: never;
             path?: never;

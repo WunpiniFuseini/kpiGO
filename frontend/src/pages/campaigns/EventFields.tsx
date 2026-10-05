@@ -1,7 +1,42 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
+import { invoke } from "../../api/client";
 import { CheckboxGroup, SelectField, TextField } from "../../components";
-import { CHANNELS, describeAudience, type Criterion, type Dimension, type EventDraft, type EventErrors } from "./model";
+import { CHANNELS, describeAudience, describeEstimate, type Criterion, type Dimension, type Estimate, type EventDraft, type EventErrors } from "./model";
+
+export type EstimateState = { status: "loading" } | { status: "ready"; data: Estimate } | { status: "error" };
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Sizes the audience from the population feed each time its criteria change. */
+export function useAudienceEstimate(audience: Criterion[], on: string): EstimateState | undefined {
+  const [state, setState] = useState<EstimateState | undefined>(undefined);
+  const key = JSON.stringify({ audience, on: ISO_DATE.test(on) ? on : undefined });
+  useEffect(() => {
+    const input = JSON.parse(key) as { audience: Criterion[]; on?: string };
+    if (!input.audience.length) {
+      setState(undefined);
+      return;
+    }
+    let live = true;
+    setState({ status: "loading" });
+    invoke("campaign.audience.estimate", { audience: input.audience.map((c) => `${c.dimension_type}:${c.member_code}`), ...(input.on ? { on: input.on } : {}) }).then(
+      (data) => live && setState({ status: "ready", data }),
+      () => live && setState({ status: "error" }),
+    );
+    return () => {
+      live = false;
+    };
+  }, [key]);
+  return state;
+}
+
+function estimateText(estimate: EstimateState | undefined, dimensions: Dimension[]): string | null {
+  if (!estimate) return null;
+  if (estimate.status === "loading") return "Sizing the audience…";
+  if (estimate.status === "error") return "The audience could not be sized just now.";
+  return `Estimated reach: ${describeEstimate(estimate.data, dimensions)}`;
+}
 
 /**
  * Builds an audience from dimension criteria (Design Brief §5.6, `AudienceCriteriaPicker`).
@@ -14,12 +49,15 @@ export function AudienceCriteriaPicker({
   onChange,
   error,
   disabled = false,
+  estimate,
 }: {
   dimensions: Dimension[];
   value: Criterion[];
   onChange: (next: Criterion[]) => void;
   error?: string;
   disabled?: boolean;
+  /** The reach estimate for these criteria; absent where the caller cannot size audiences. */
+  estimate?: EstimateState;
 }) {
   const id = useId();
   const [dimension, setDimension] = useState(dimensions[0]?.dimension_type ?? "");
@@ -74,8 +112,13 @@ export function AudienceCriteriaPicker({
         </ul>
       ) : null}
       <p id={`${id}-summary`} className="kg-cap" style={{ marginTop: 8 }}>
-        {value.length ? `Who it is for: ${describeAudience(value, dimensions)}.` : "No criteria yet. Add at least one before publishing."} The reach estimate appears once the campaign outcome feed has loaded customers to count.
+        {value.length ? `Who it is for: ${describeAudience(value, dimensions)}.` : "No criteria yet. Add at least one before publishing."}
       </p>
+      {estimateText(estimate, dimensions) ? (
+        <p className="kg-cap" role="status" aria-live="polite">
+          {estimateText(estimate, dimensions)}
+        </p>
+      ) : null}
       {error ? (
         <span id={`${id}-error`} className="kg-field-error">
           {error}
@@ -110,6 +153,7 @@ export function EventFields({
   started?: boolean;
 }) {
   const set = <K extends keyof EventDraft>(key: K, v: EventDraft[K]) => onChange({ ...value, [key]: v });
+  const estimate = useAudienceEstimate(value.audience, value.period_start);
   return (
     <div className="kg-stack">
       <div className="kg-form-row">
@@ -136,7 +180,7 @@ export function EventFields({
         </div>
       ) : null}
       <CheckboxGroup legend="Channels" options={CHANNELS} value={value.channels} onChange={(next) => set("channels", next)} />
-      <AudienceCriteriaPicker dimensions={dimensions} value={value.audience} onChange={(next) => set("audience", next)} error={errors.audience} />
+      <AudienceCriteriaPicker dimensions={dimensions} value={value.audience} onChange={(next) => set("audience", next)} error={errors.audience} estimate={estimate} />
     </div>
   );
 }

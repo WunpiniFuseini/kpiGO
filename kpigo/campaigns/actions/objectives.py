@@ -8,11 +8,13 @@ metrics bound to the ``campaign`` product like any other.
 
 from __future__ import annotations
 
+from django.db.models import Q
 from django.utils import timezone
 from pydantic import BaseModel, Field
 
 from kpigo.access.identity import in_force
 from kpigo.action import ActionContext, InvalidInput, action
+from kpigo.campaigns import attribution
 from kpigo.campaigns.actions.campaigns import Objective
 from kpigo.campaigns.authoring import DEFAULT_WINDOWS
 from kpigo.campaigns.models import OBJECTIVES, CampaignObjective
@@ -137,6 +139,11 @@ def set_objective(params: CampaignObjectiveSetIn, ctx: ActionContext) -> Campaig
             detail={"field": "outcome_metric_codes", "metric_codes": sorted(allowed)},
         )
     codes = list(dict.fromkeys(params.outcome_metric_codes))
+    before = (
+        CampaignObjective.objects.filter(org_id=ctx.org_id, objective=params.objective)
+        .values_list("outcome_metric_codes", flat=True)
+        .first()
+    )
     CampaignObjective.objects.update_or_create(
         org_id=ctx.org_id,
         objective=params.objective,
@@ -153,4 +160,7 @@ def set_objective(params: CampaignObjectiveSetIn, ctx: ActionContext) -> Campaig
             "updated_by": ctx.user_id,
         },
     )
+    if sorted(before or []) != sorted(codes):
+        # Which outcomes count changed: every outcome is weighed again.
+        attribution.attribute(ctx.org_id, Q())
     return _list(ctx.org_id)

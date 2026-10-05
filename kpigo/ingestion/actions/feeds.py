@@ -17,7 +17,14 @@ from kpigo.ingestion.reference import build_reference
 from kpigo.platform.db import conflicts
 from kpigo.platform.vocab import Code, PeriodKey
 
-Template = Literal["actual_monthly", "actual_daily", "actual_dimensional"]
+Template = Literal[
+    "actual_monthly",
+    "actual_daily",
+    "actual_dimensional",
+    "campaign_outcome",
+    "campaign_population",
+    "campaign_contact",
+]
 Mode = Literal["pull", "drop", "upload"]
 ObjectName = Annotated[str, StringConstraints(strip_whitespace=True, max_length=400)]
 DropPath = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=400)]

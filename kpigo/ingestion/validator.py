@@ -31,7 +31,9 @@ Gate           Check                                          Reports
 schema         required columns present, values coercible     load
 referential    metric active and bound, subject known,         rows
                member known (unknown members become
-               ``available``), no missing rows
+               ``available``), no missing rows; campaign
+               feeds: the campaign code known, a contact on
+               one of its published events' contact days
 grain          no duplicates at the template's grain           load
 domain         period key well formed, values in bounds,       rows
                no future activity
@@ -68,7 +70,7 @@ from typing import Any, Literal
 
 CONTRACT_VERSION = 1
 
-Kind = Literal["code", "text", "decimal", "date", "period", "currency"]
+Kind = Literal["code", "text", "decimal", "date", "period", "currency", "flag"]
 Severity = Literal["error", "warning"]
 Gate = Literal["schema", "referential", "grain", "domain", "volume", "period_status"]
 GATES: tuple[Gate, ...] = ("schema", "referential", "grain", "domain", "volume", "period_status")
@@ -93,6 +95,19 @@ _DATE_RE = re.compile(r"^([0-9]{4})-([0-9]{2})-([0-9]{2})(?:[T ]00:00(?::00(?:\.
 NON_NEGATIVE_UNITS = frozenset({"count", "days", "hours"})
 # Period statuses that refuse writes unless the load is flagged as a restatement.
 LOCKED_STATUSES = frozenset({"closing", "closed", "restating"})
+# The day a row is about, by template: activity, contact or population snapshot.
+DATE_COLUMNS = ("activity_date", "contact_date", "snapshot_date")
+FLAG_TRUE = frozenset({"y", "yes", "true", "1"})
+FLAG_FALSE = frozenset({"n", "no", "false", "0"})
+# Campaign feeds describe a customer by these dimensions, never by a customer
+# master: the column each audience dimension is matched against.
+CUSTOMER_DIMENSIONS: dict[str, str] = {
+    "segment": "segment_code",
+    "product": "product_code",
+    "region": "region_code",
+    "branch": "branch_code",
+}
+CAMPAIGN_CHANNELS = ("sms", "email", "call", "ussd", "branch", "app_push", "whatsapp")
 
 
 # ── the contract: landing templates ──────────────────────────────────────────
@@ -115,6 +130,8 @@ class Template:
     products: frozenset[str] = frozenset()
     # Whether kpiGo conforms this template yet; the others land in later releases.
     loadable: bool = False
+    # The column a reload's diff compares at the grain.
+    value_column: str = "actual_value"
 
     @property
     def column_names(self) -> tuple[str, ...]:
@@ -132,6 +149,12 @@ def _c(name: str, kind: Kind, required: bool = True, nullable: bool = False) -> 
 
 
 _CURRENCY = _c("currency_code", "currency", required=False, nullable=True)
+# Who the customer is, as the DE team's systems describe them; optional and blank
+# where unknown. An audience criterion on a dimension the row leaves blank does
+# not match it.
+_CUSTOMER = tuple(
+    _c(column, "code", required=False, nullable=True) for column in CUSTOMER_DIMENSIONS.values()
+)
 
 # Backend Schema §7. Feeds reference metrics by metric_code, never by uuid.
 TEMPLATES: dict[str, Template] = {
@@ -252,6 +275,9 @@ TEMPLATES: dict[str, Template] = {
                 "series_type",
             ),
         ),
+        # Campaign Manager (Schema §10). Outcomes per customer per day, with the
+        # customer's dimensions for audience matching and the client's own campaign
+        # tag where their system has one. customer_ref is the client's opaque key.
         Template(
             "campaign_outcome",
             (
@@ -262,8 +288,38 @@ TEMPLATES: dict[str, Template] = {
                 _c("activity_value", "decimal"),
                 _CURRENCY,
                 _c("source_ref", "text", nullable=True),
+                *_CUSTOMER,
             ),
             grain=("customer_ref", "metric_code", "activity_date", "source_ref"),
+            products=frozenset({"campaign"}),
+            loadable=True,
+            value_column="activity_value",
+        ),
+        # How many customers there are, by dimension combination, on a day: the
+        # denominator of a reach estimate. Counts only, no customer references.
+        # Each customer is counted once (by their primary product).
+        Template(
+            "campaign_population",
+            (_c("snapshot_date", "date"), *_CUSTOMER, _c("customer_count", "decimal")),
+            grain=("snapshot_date", *CUSTOMER_DIMENSIONS.values()),
+            loadable=True,
+            value_column="customer_count",
+        ),
+        # Who a campaign contacted, on which channel and day, and whether the
+        # contact was delivered and drew a response.
+        Template(
+            "campaign_contact",
+            (
+                _c("customer_ref", "code"),
+                _c("campaign_code", "code"),
+                _c("channel", "code"),
+                _c("contact_date", "date"),
+                _c("delivered", "flag", required=False, nullable=True),
+                _c("responded", "flag", required=False, nullable=True),
+            ),
+            grain=("customer_ref", "campaign_code", "channel", "contact_date"),
+            loadable=True,
+            value_column="responded",
         ),
     )
 }
@@ -632,6 +688,18 @@ class ProfileMetric:
         return self.effective_from <= day and (self.effective_to is None or day < self.effective_to)
 
 
+@dataclass(frozen=True)
+class EventWindow:
+    """A published campaign event's contact days, inclusive."""
+
+    event_id: str
+    period_start: date
+    period_end: date
+
+    def contacts_on(self, day: date) -> bool:
+        return self.period_start <= day <= self.period_end
+
+
 @dataclass
 class Reference:
     """Everything the gates check a load against, as of ``today``."""
@@ -654,6 +722,8 @@ class Reference:
     volume_warn_pct: int = 25
     volume_reject_pct: int = 75
     restatement: bool = False
+    # Campaign code -> its published events. A campaign with none maps to ().
+    campaigns: dict[str, tuple[EventWindow, ...]] = field(default_factory=dict)
 
     @property
     def current_period(self) -> str:
@@ -755,6 +825,17 @@ def reference_to_json(ref: Reference) -> dict[str, Any]:
         "expected_row_max": ref.expected_row_max,
         "volume_warn_pct": ref.volume_warn_pct,
         "volume_reject_pct": ref.volume_reject_pct,
+        "campaigns": {
+            code: [
+                {
+                    "event_id": e.event_id,
+                    "period_start": e.period_start.isoformat(),
+                    "period_end": e.period_end.isoformat(),
+                }
+                for e in events
+            ]
+            for code, events in sorted(ref.campaigns.items())
+        },
     }
 
 
@@ -814,6 +895,17 @@ def reference_from_json(data: dict[str, Any], *, today: date | None = None) -> R
         expected_row_max=data.get("expected_row_max"),
         volume_warn_pct=int(data.get("volume_warn_pct", 25)),
         volume_reject_pct=int(data.get("volume_reject_pct", 75)),
+        campaigns={
+            code: tuple(
+                EventWindow(
+                    event_id=e["event_id"],
+                    period_start=date.fromisoformat(e["period_start"]),
+                    period_end=date.fromisoformat(e["period_end"]),
+                )
+                for e in events
+            )
+            for code, events in data.get("campaigns", {}).items()
+        },
     )
 
 
@@ -886,10 +978,19 @@ class Validation:
         for r in self.rows:
             if r.values.get("period_key"):
                 found.add(str(r.values["period_key"]))
-            elif "activity_date" in r.values and isinstance(r.values["activity_date"], date):
-                d = r.values["activity_date"]
+                continue
+            d = row_date(r.values)
+            if d is not None:
                 found.add(f"{d.year:04d}{d.month:02d}")
         return sorted(found)
+
+
+def row_date(values: dict[str, Any]) -> date | None:
+    for column in DATE_COLUMNS:
+        day = values.get(column)
+        if isinstance(day, date):
+            return day
+    return None
 
 
 def parse_date(text: str) -> date | None:
@@ -900,6 +1001,15 @@ def parse_date(text: str) -> date | None:
         return date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
     except ValueError:
         return None
+
+
+def parse_flag(text: str) -> bool | None:
+    word = text.strip().lower()
+    if word in FLAG_TRUE:
+        return True
+    if word in FLAG_FALSE:
+        return False
+    return None
 
 
 def parse_decimal(text: str) -> Decimal | None:
@@ -1016,6 +1126,23 @@ def _schema(template: Template, table: RawTable) -> tuple[list[Row], list[Issue]
                     ok = False
                     continue
                 values[col.name] = day
+            elif col.kind == "flag":
+                flag = parse_flag(text)
+                if flag is None:
+                    issues.append(
+                        Issue(
+                            "schema",
+                            "not_a_flag",
+                            "error",
+                            f"'{col.name}' is not a yes/no flag (Y, N, true, false, 1 or 0).",
+                            row_no=n,
+                            column=col.name,
+                            value=text,
+                        )
+                    )
+                    ok = False
+                    continue
+                values[col.name] = flag
             else:
                 values[col.name] = text
         if ok:
@@ -1077,20 +1204,61 @@ def _domain(rows: list[Row], today: date) -> list[Issue]:
                         value=str(period),
                     )
                 )
-        day = v.get("activity_date")
-        if isinstance(day, date) and day > today:
+        for column in DATE_COLUMNS:
+            day = v.get(column)
+            if isinstance(day, date) and day > today:
+                issues.append(
+                    Issue(
+                        "domain",
+                        "future_date",
+                        "error",
+                        f"{column} {day.isoformat()} is in the future.",
+                        row_no=row.row_no,
+                        column=column,
+                        value=day.isoformat(),
+                    )
+                )
+        outcome = v.get("activity_value")
+        if isinstance(outcome, Decimal) and outcome < 0:
             issues.append(
                 Issue(
                     "domain",
-                    "future_date",
+                    "negative_outcome",
                     "error",
-                    f"activity_date {day.isoformat()} is in the future.",
+                    "activity_value is negative. An outcome is what the customer did; send "
+                    "outflows as their own metric.",
                     row_no=row.row_no,
-                    column="activity_date",
-                    value=day.isoformat(),
+                    column="activity_value",
+                    value=row.raw.get("activity_value"),
                 )
             )
-        for name in ("actual_value", "target_value", "value", "activity_value"):
+        count = v.get("customer_count")
+        if isinstance(count, Decimal) and (count < 0 or count != count.to_integral_value()):
+            issues.append(
+                Issue(
+                    "domain",
+                    "bad_count",
+                    "error",
+                    "customer_count must be a whole number, zero or more.",
+                    row_no=row.row_no,
+                    column="customer_count",
+                    value=row.raw.get("customer_count"),
+                )
+            )
+        channel = v.get("channel")
+        if channel is not None and str(channel) not in CAMPAIGN_CHANNELS:
+            issues.append(
+                Issue(
+                    "domain",
+                    "unknown_channel",
+                    "error",
+                    f"channel must be one of: {', '.join(CAMPAIGN_CHANNELS)}.",
+                    row_no=row.row_no,
+                    column="channel",
+                    value=str(channel),
+                )
+            )
+        for name in ("actual_value", "target_value", "value", "activity_value", "customer_count"):
             number = v.get(name)
             if not isinstance(number, Decimal):
                 continue
@@ -1138,8 +1306,8 @@ def _domain(rows: list[Row], today: date) -> list[Issue]:
 
 
 def _row_day(row: Row) -> date | None:
-    day = row.values.get("activity_date")
-    if isinstance(day, date):
+    day = row_date(row.values)
+    if day is not None:
         return day
     period = row.values.get("period_key")
     if period is not None and PERIOD_KEY_RE.match(str(period)):
@@ -1149,6 +1317,8 @@ def _row_day(row: Row) -> date | None:
 
 def _referential(template: Template, rows: list[Row], ref: Reference) -> list[Issue]:
     issues: list[Issue] = []
+    if "metric_code" not in template.column_names:
+        return issues
     for row in rows:
         v = row.values
         day = _row_day(row)
@@ -1324,6 +1494,88 @@ def _referential(template: Template, rows: list[Row], ref: Reference) -> list[Is
     return issues
 
 
+def _campaign(template: Template, rows: list[Row], ref: Reference) -> list[Issue]:
+    """Campaign feeds: the customer's members, the campaign tag, the contacted event."""
+    issues: list[Issue] = []
+    if not template.name.startswith("campaign_"):
+        return issues
+    reported: set[tuple[str, str]] = set()
+    for row in rows:
+        v = row.values
+        for dim, column in CUSTOMER_DIMENSIONS.items():
+            code = v.get(column)
+            if code is None or dim not in ref.members or str(code) in ref.members[dim]:
+                continue
+            if (dim, str(code)) in reported:
+                continue
+            reported.add((dim, str(code)))
+            issues.append(
+                Issue(
+                    "referential",
+                    "unknown_customer_member",
+                    "warning",
+                    f"'{code}' is not a member of {dim}. Rows carrying it match no audience "
+                    f"criterion on {dim} until a Data Steward adds it.",
+                    row_no=row.row_no,
+                    column=column,
+                    value=str(code),
+                )
+            )
+        code = v.get("campaign_code")
+        if code is None:
+            continue
+        events = ref.campaigns.get(str(code))
+        if template.name == "campaign_outcome":
+            if events is None:
+                issues.append(
+                    Issue(
+                        "referential",
+                        "unknown_campaign_tag",
+                        "warning",
+                        f"No campaign has the code '{code}'. The outcome is matched to events "
+                        "by audience, product and window instead.",
+                        row_no=row.row_no,
+                        column="campaign_code",
+                        value=str(code),
+                    )
+                )
+            continue
+        if events is None:
+            issues.append(
+                Issue(
+                    "referential",
+                    "unknown_campaign",
+                    "error",
+                    f"No campaign has the code '{code}'. Contacts are fed against the code "
+                    "the campaign was authored with.",
+                    row_no=row.row_no,
+                    column="campaign_code",
+                    value=str(code),
+                )
+            )
+            continue
+        day = v.get("contact_date")
+        if not isinstance(day, date):
+            continue
+        event = next((e for e in events if e.contacts_on(day)), None)
+        if event is None:
+            issues.append(
+                Issue(
+                    "referential",
+                    "contact_outside_event",
+                    "warning",
+                    f"{day.isoformat()} is not a contact day of any published event of "
+                    f"'{code}'. The contact is kept out of the funnel.",
+                    row_no=row.row_no,
+                    column="contact_date",
+                    value=day.isoformat(),
+                )
+            )
+            continue
+        row.resolved["event_id"] = event.event_id
+    return issues
+
+
 def _missing_rows(template: Template, rows: list[Row], ref: Reference) -> list[Issue]:
     """Absent is not zero: every subject expected to report a metric must have a row."""
     if template.name != "actual_monthly":
@@ -1496,6 +1748,7 @@ def validate(
     bad_period = {i.row_no for i in domain if i.rule == "bad_period_key"}
     checkable = [r for r in rows if r.row_no not in bad_period]
     issues += _referential(template, checkable, ref)
+    issues += _campaign(template, checkable, ref)
     issues += _missing_rows(template, checkable, ref)
     issues += _volume(rows_read, ref)
     issues += _period_status(template, checkable, ref)
@@ -1528,10 +1781,11 @@ def diff(
     template: Template,
     current: Iterable[dict[str, str | None]],
     previous: Iterable[dict[str, str | None]],
-    value_column: str = "actual_value",
+    value_column: str | None = None,
     sample: int = 20,
 ) -> dict[str, Any]:
     """Added, removed and changed rows at the grain, against the last load."""
+    value_column = value_column or template.value_column
     now = {grain_key(template, r): r.get(value_column) for r in current}
     before = {grain_key(template, r): r.get(value_column) for r in previous}
 

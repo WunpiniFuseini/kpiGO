@@ -6,12 +6,17 @@ import { useSession, type Me } from "../../session/Session";
 import {
   campaignAllDrafts,
   campaignDetail,
+  campaignReach,
+  campaignReachNothingFed,
   campaignList,
   campaignListEmpty,
   campaignListNoScope,
   campaignManagerMe,
   campaignNoEvents,
   campaignViewerMe,
+  estimate,
+  estimateNoPopulation,
+  estimateNotBrokenDown,
   reference,
 } from "../../stories/campaignFixtures";
 import { serverError } from "../../stories/fixtures";
@@ -54,18 +59,28 @@ export const ListLoading: Story = at("/campaign", { "campaign.list": "pending" }
 export const ListFailed: Story = at("/campaign", { "campaign.list": { error: serverError } });
 
 /** The builder: campaign details, then one event block to start. */
-export const Builder: Story = at("/campaign/new", { "campaign.builder.reference": { data: reference } });
+export const Builder: Story = at("/campaign/new", { "campaign.builder.reference": { data: reference }, "campaign.audience.estimate": { data: estimate } });
+/** No population fed yet: the picker says the audience cannot be sized, and why. */
+export const BuilderNoPopulation: Story = at("/campaign/new", { "campaign.builder.reference": { data: reference }, "campaign.audience.estimate": { data: estimateNoPopulation } });
+/** The population has no breakdown by a dimension the audience uses. */
+export const BuilderNotBrokenDown: Story = at("/campaign/new", { "campaign.builder.reference": { data: reference }, "campaign.audience.estimate": { data: estimateNotBrokenDown } });
 /** No dimension has members, so the audience picker says why it cannot offer any. */
 export const BuilderNoDimensions: Story = at("/campaign/new", { "campaign.builder.reference": { data: { ...reference, dimensions: [] } } });
 export const BuilderLoading: Story = at("/campaign/new", { "campaign.builder.reference": "pending" });
 export const BuilderFailed: Story = at("/campaign/new", { "campaign.builder.reference": { error: serverError } });
 
-/** A running event with a budget change awaiting approval, and a draft ready to publish. */
-export const Detail: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference } });
-export const DetailReadOnly: Story = at(DETAIL, { "campaign.get": { data: campaignDetail } }, campaignViewerMe);
+const reachOk = { "campaign.reach": { data: campaignReach }, "campaign.audience.estimate": { data: estimate } } as const;
+
+/** A running event with its reach funnel and a budget change awaiting approval, and a draft ready to publish. */
+export const Detail: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, ...reachOk });
+export const DetailReadOnly: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.reach": { data: campaignReach } }, campaignViewerMe);
+/** No feed has loaded and the objective counts no metrics: each missing figure says why. */
+export const DetailNothingFed: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, "campaign.reach": { data: campaignReachNothingFed } });
+export const DetailReachLoading: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, "campaign.reach": "pending" });
+export const DetailReachFailed: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, "campaign.reach": { error: serverError } });
 /** A draft with no audience cannot be published yet. */
-export const DetailDraftOnly: Story = at(DETAIL, { "campaign.get": { data: campaignAllDrafts }, "campaign.builder.reference": { data: reference } });
-export const DetailNoEvents: Story = at(DETAIL, { "campaign.get": { data: campaignNoEvents }, "campaign.builder.reference": { data: reference } });
+export const DetailDraftOnly: Story = at(DETAIL, { "campaign.get": { data: campaignAllDrafts }, "campaign.builder.reference": { data: reference }, ...reachOk });
+export const DetailNoEvents: Story = at(DETAIL, { "campaign.get": { data: campaignNoEvents }, "campaign.builder.reference": { data: reference }, "campaign.reach": { data: { ...campaignReach, events: [] } } });
 export const DetailOutOfScope: Story = at(DETAIL, { "campaign.get": { error: { status: 404, error: "not_found", message: "No such campaign in your scope." } } });
 export const DetailLoading: Story = at(DETAIL, { "campaign.get": "pending" });
 export const DetailFailed: Story = at(DETAIL, { "campaign.get": { error: serverError } });

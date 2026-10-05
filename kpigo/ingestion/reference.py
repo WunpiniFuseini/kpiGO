@@ -13,6 +13,7 @@ from datetime import date
 from django.db.models import Avg, Q
 from django.utils import timezone
 
+from kpigo.campaigns.models import Campaign, CampaignEvent
 from kpigo.hierarchy.models import Assignment, Dimension, DimMember, ProductLine, Subject
 from kpigo.ingestion import validator as v
 from kpigo.ingestion.models import Feed, FeedRun
@@ -31,7 +32,7 @@ def org_today(org_id: str) -> date:
 def periods_in(template: v.Template, table: v.RawTable) -> list[str]:
     """The well-formed months a raw load touches, for scoping reference reads."""
     found: set[str] = set()
-    for column in ("period_key", "activity_date"):
+    for column in ("period_key", *v.DATE_COLUMNS):
         if column not in table.header or column not in template.column_names:
             continue
         i = table.header.index(column)
@@ -41,11 +42,26 @@ def periods_in(template: v.Template, table: v.RawTable) -> list[str]:
                 continue
             if column == "period_key" and v.PERIOD_KEY_RE.match(text):
                 found.add(text)
-            elif column == "activity_date":
+            elif column != "period_key":
                 day = v.parse_date(text)
                 if day is not None:
                     found.add(f"{day.year:04d}{day.month:02d}")
     return sorted(found)
+
+
+def campaign_windows(org_id: str) -> dict[str, tuple[v.EventWindow, ...]]:
+    """Every campaign's code and its published events' contact days."""
+    found: dict[str, list[v.EventWindow]] = {
+        code: [] for code in Campaign.objects.filter(org_id=org_id).values_list("code", flat=True)
+    }
+    for code, event_id, start, end in (
+        CampaignEvent.objects.filter(org_id=org_id)
+        .exclude(state="draft")
+        .order_by("campaign__code", "period_start", "sequence_no")
+        .values_list("campaign__code", "event_id", "period_start", "period_end")
+    ):
+        found[code].append(v.EventWindow(str(event_id), start, end))
+    return {code: tuple(events) for code, events in found.items()}
 
 
 def staff_nos_in(table: v.RawTable) -> set[str]:
@@ -135,7 +151,8 @@ def build_reference(
             )
         ]
 
-    if "dimension_type" in template.column_names:
+    customer_dims = any(c in template.column_names for c in v.CUSTOMER_DIMENSIONS.values())
+    if "dimension_type" in template.column_names or customer_dims:
         for dim in Dimension.objects.filter(org_id=org_id).values_list("dimension_type", flat=True):
             ref.members.setdefault(dim, set())
         for dim, code in DimMember.objects.filter(org_id=org_id).values_list(
@@ -153,8 +170,11 @@ def build_reference(
             org_id=org_id, product__in=sorted(template.products), period_key__in=periods
         ).values_list("product", "period_key", "status"):
             ref.period_status[(product, period_key)] = status
-        if "activity_date" in template.column_names:
+        if template.name == "actual_daily":
             ref.archived_months = archived_months() & set(periods)
+
+    if "campaign_code" in template.column_names:
+        ref.campaigns = campaign_windows(org_id)
 
     if feed is not None:
         live = FeedRun.objects.filter(feed=feed, is_dry_run=False, outcome="success")

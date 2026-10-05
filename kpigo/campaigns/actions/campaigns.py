@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from kpigo.action import ActionContext, Conflict, InvalidInput, action
 from kpigo.action.pipeline import approval_enabled
+from kpigo.campaigns import attribution
 from kpigo.campaigns import authoring as au
 from kpigo.campaigns.models import CHANNELS, OBJECTIVES, Campaign, CampaignEvent
 from kpigo.campaigns.scope import get_visible, is_visible, visible
@@ -490,6 +491,11 @@ def update_campaign(params: CampaignUpdateIn, ctx: ActionContext) -> CampaignOut
         campaign.save()
         ensure_still_visible(campaign, ctx)
         after = {k: getattr(campaign, k) for k in before}
+        # The product narrows who matches and the priority settles collisions.
+        if any(before[k] != after[k] for k in ("product_code", "priority")):
+            days = attribution.span(CampaignEvent.objects.filter(campaign=campaign))
+            if days is not None:
+                attribution.reattribute(ctx.org_id, *days)
         ctx.audit(
             "campaign.changed",
             campaign_id=str(campaign.campaign_id),

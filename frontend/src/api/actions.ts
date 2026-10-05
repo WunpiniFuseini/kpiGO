@@ -40,6 +40,9 @@ export const ROUTES = {
   "calendar.business_date": { method: "GET", path: "/api/v1/actions/calendar.business_date", pathParams: [], public: false },
   "calendar.list": { method: "GET", path: "/api/v1/actions/calendar.list", pathParams: [], public: false },
   "calendar.set_days": { method: "POST", path: "/api/v1/actions/calendar.set_days", pathParams: [], public: false },
+  "campaign.attribution.rule.set": { method: "POST", path: "/api/v1/actions/campaign.attribution.rule.set", pathParams: [], public: false },
+  "campaign.attribution.run": { method: "POST", path: "/api/v1/actions/campaign.attribution.run", pathParams: [], public: false },
+  "campaign.audience.estimate": { method: "GET", path: "/api/v1/actions/campaign.audience.estimate", pathParams: [], public: false },
   "campaign.builder.reference": { method: "GET", path: "/api/v1/actions/campaign.builder.reference", pathParams: [], public: false },
   "campaign.close": { method: "POST", path: "/api/v1/actions/campaign.close", pathParams: [], public: false },
   "campaign.create": { method: "POST", path: "/api/v1/actions/campaign.create", pathParams: [], public: false },
@@ -55,6 +58,7 @@ export const ROUTES = {
   "campaign.list": { method: "GET", path: "/api/v1/actions/campaign.list", pathParams: [], public: false },
   "campaign.objective.list": { method: "GET", path: "/api/v1/actions/campaign.objective.list", pathParams: [], public: false },
   "campaign.objective.set": { method: "POST", path: "/api/v1/actions/campaign.objective.set", pathParams: [], public: false },
+  "campaign.reach": { method: "GET", path: "/api/v1/actions/campaign.reach", pathParams: [], public: false },
   "campaign.update": { method: "POST", path: "/api/v1/actions/campaign.update", pathParams: [], public: false },
   "connection.create": { method: "POST", path: "/api/v1/actions/connection.create", pathParams: [], public: false },
   "connection.list": { method: "GET", path: "/api/v1/actions/connection.list", pathParams: [], public: false },
@@ -249,6 +253,9 @@ export interface Actions {
   "calendar.business_date": { input: NonNullable<operations["calendar_business_date"]["parameters"]["query"]>; output: operations["calendar_business_date"]["responses"][200]["content"]["application/json"] };
   "calendar.list": { input: NonNullable<operations["calendar_list"]["parameters"]["query"]>; output: operations["calendar_list"]["responses"][200]["content"]["application/json"] };
   "calendar.set_days": { input: NonNullable<operations["calendar_set_days"]["requestBody"]>["content"]["application/json"]; output: operations["calendar_set_days"]["responses"][200]["content"]["application/json"] };
+  "campaign.attribution.rule.set": { input: NonNullable<operations["campaign_attribution_rule_set"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_attribution_rule_set"]["responses"][200]["content"]["application/json"] };
+  "campaign.attribution.run": { input: NonNullable<operations["campaign_attribution_run"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_attribution_run"]["responses"][200]["content"]["application/json"] };
+  "campaign.audience.estimate": { input: NonNullable<operations["campaign_audience_estimate"]["parameters"]["query"]>; output: operations["campaign_audience_estimate"]["responses"][200]["content"]["application/json"] };
   "campaign.builder.reference": { input: Record<string, never>; output: operations["campaign_builder_reference"]["responses"][200]["content"]["application/json"] };
   "campaign.close": { input: NonNullable<operations["campaign_close"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_close"]["responses"][200]["content"]["application/json"] };
   "campaign.create": { input: NonNullable<operations["campaign_create"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_create"]["responses"][200]["content"]["application/json"] };
@@ -264,6 +271,7 @@ export interface Actions {
   "campaign.list": { input: NonNullable<operations["campaign_list"]["parameters"]["query"]>; output: operations["campaign_list"]["responses"][200]["content"]["application/json"] };
   "campaign.objective.list": { input: Record<string, never>; output: operations["campaign_objective_list"]["responses"][200]["content"]["application/json"] };
   "campaign.objective.set": { input: NonNullable<operations["campaign_objective_set"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_objective_set"]["responses"][200]["content"]["application/json"] };
+  "campaign.reach": { input: NonNullable<operations["campaign_reach"]["parameters"]["query"]>; output: operations["campaign_reach"]["responses"][200]["content"]["application/json"] };
   "campaign.update": { input: NonNullable<operations["campaign_update"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_update"]["responses"][200]["content"]["application/json"] };
   "connection.create": { input: NonNullable<operations["connection_create"]["requestBody"]>["content"]["application/json"]; output: operations["connection_create"]["responses"][200]["content"]["application/json"] };
   "connection.list": { input: Record<string, never>; output: operations["connection_list"]["responses"][200]["content"]["application/json"] };

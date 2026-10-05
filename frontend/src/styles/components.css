@@ -286,3 +286,12 @@
 }
 .kg-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px 16px; margin: 0; }
 .kg-facts dd { margin: 2px 0 0; overflow-wrap: anywhere; }
+/* Reach funnel: the number is the meaning; the bar only echoes it. */
+.kg-funnel { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.kg-funnel li { display: grid; grid-template-columns: 150px minmax(60px, 1fr) minmax(0, 1.4fr); gap: 10px; align-items: center; }
+.kg-funnel__bar { display: block; height: 10px; border-radius: 3px; background: var(--sunken); }
+.kg-funnel__bar span { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+.kg-funnel__value b { font-weight: 600; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  .kg-funnel li { grid-template-columns: 1fr; gap: 2px; }
+}
