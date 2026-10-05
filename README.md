@@ -6,7 +6,9 @@ licensed modules and run on the customer's own servers.
 
 This repository is at **R0 Workstream E**: the action layer (A), the core data
 model (B), ingestion (C), auth, access and the licence (D), and the design system
-with the app shell and admin screens (E). Domain modules come in later releases.
+with the app shell and admin screens (E). R1 (Scorecards and manual input) is in
+progress: the scorecard taxonomy, profile-to-metric assignment and the target
+workbench are in; scoring, period close, the scorecard UI and manual input follow.
 
 ## The one rule
 
@@ -130,6 +132,21 @@ gate exactly as kpiGo will.
 python3 validator.py --template actual_monthly --file actuals.csv --contract contract.json --report rejections.csv
 ```
 
+## Scorecards: targets
+
+Targets are set in the workbench (Admin → Targets) before anything is scored.
+Upload a sheet (CSV/XLSX, one row per metric, scope and period) or copy a
+period forward with an uplift; both land as drafts. The coverage grid shows each
+profile × period as published, draft, partial or missing, and the weight check
+sums each profile's (and subject's) weights against the configured total. A
+publish creates a batch, supersedes the previous version and is approved under
+`target_publish`; a batch whose periods are all in the future can be reverted.
+
+```bash
+uv run python manage.py action target.upload --user ama --json '{"rows": [...], "check_only": true}'
+uv run python manage.py action target.publish --user ama --json '{"period_keys": ["202611"]}'
+```
+
 ## Layout
 
 ```
@@ -145,6 +162,7 @@ kpigo/
     validator.py     the feed contract and six gates; also the standalone validator
   access/            users, roles, page access, data scope grants, sign-in, directory import
     auth/            local + LDAP, OIDC, SAML, Entra Graph
+  scorecards/        taxonomy, profile metrics, rating bands, target workbench
   licence/           signed licence, fingerprint, grace states, the pipeline's licence gate
 tools/licence_vendor.py  vendor-side key generation and licence signing
 frontend/

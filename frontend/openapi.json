@@ -579,6 +579,283 @@
         "title": "AssignmentOut",
         "type": "object"
       },
+      "BandIn": {
+        "properties": {
+          "colour_hex": {
+            "anyOf": [
+              {
+                "pattern": "^#[0-9A-Fa-f]{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Colour Hex"
+          },
+          "label": {
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "ramp_position": {
+            "maximum": 7,
+            "minimum": 1,
+            "title": "Ramp Position",
+            "type": "integer"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,4}|(?=[\\d.]{1,9}0*$)\\d{0,4}\\.\\d{0,4}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Threshold"
+          }
+        },
+        "required": [
+          "label",
+          "threshold",
+          "ramp_position"
+        ],
+        "title": "BandIn",
+        "type": "object"
+      },
+      "BandListOut": {
+        "properties": {
+          "bands": {
+            "items": {
+              "$ref": "#/components/schemas/BandOut"
+            },
+            "title": "Bands",
+            "type": "array"
+          },
+          "is_default": {
+            "title": "Is Default",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "is_default",
+          "bands"
+        ],
+        "title": "BandListOut",
+        "type": "object"
+      },
+      "BandOut": {
+        "properties": {
+          "band_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band Id"
+          },
+          "colour_hex": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Colour Hex"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "ramp_position": {
+            "title": "Ramp Position",
+            "type": "integer"
+          },
+          "threshold": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Threshold",
+            "type": "string"
+          }
+        },
+        "required": [
+          "band_id",
+          "label",
+          "threshold",
+          "ramp_position",
+          "colour_hex"
+        ],
+        "title": "BandOut",
+        "type": "object"
+      },
+      "BandSetIn": {
+        "properties": {
+          "bands": {
+            "items": {
+              "$ref": "#/components/schemas/BandIn"
+            },
+            "maxItems": 7,
+            "title": "Bands",
+            "type": "array"
+          }
+        },
+        "required": [
+          "bands"
+        ],
+        "title": "BandSetIn",
+        "type": "object"
+      },
+      "BatchListInQuery": {
+        "properties": {
+          "limit": {
+            "default": 50,
+            "maximum": 500,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "BatchListInQuery",
+        "type": "object"
+      },
+      "BatchListOut": {
+        "properties": {
+          "batches": {
+            "items": {
+              "$ref": "#/components/schemas/BatchOut"
+            },
+            "title": "Batches",
+            "type": "array"
+          }
+        },
+        "required": [
+          "batches"
+        ],
+        "title": "BatchListOut",
+        "type": "object"
+      },
+      "BatchOut": {
+        "properties": {
+          "batch_id": {
+            "format": "uuid",
+            "title": "Batch Id",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "period_keys": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Period Keys",
+            "type": "array"
+          },
+          "published_at": {
+            "format": "date-time",
+            "title": "Published At",
+            "type": "string"
+          },
+          "published_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published By"
+          },
+          "reverted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reverted At"
+          },
+          "row_count": {
+            "title": "Row Count",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "weight_check_result": {
+            "additionalProperties": true,
+            "title": "Weight Check Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "batch_id",
+          "period_keys",
+          "published_at",
+          "published_by",
+          "row_count",
+          "note",
+          "status",
+          "reverted_at",
+          "weight_check_result"
+        ],
+        "title": "BatchOut",
+        "type": "object"
+      },
+      "BatchRevertIn": {
+        "properties": {
+          "batch_id": {
+            "format": "uuid",
+            "title": "Batch Id",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "batch_id",
+          "reason"
+        ],
+        "title": "BatchRevertIn",
+        "type": "object"
+      },
+      "BatchRevertOut": {
+        "properties": {
+          "batch": {
+            "$ref": "#/components/schemas/BatchOut"
+          },
+          "restored": {
+            "title": "Restored",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "batch",
+          "restored"
+        ],
+        "title": "BatchRevertOut",
+        "type": "object"
+      },
       "BindingIn": {
         "properties": {
           "is_active": {
@@ -1218,6 +1495,208 @@
           "contract"
         ],
         "title": "ContractOut",
+        "type": "object"
+      },
+      "CopyForwardIn": {
+        "properties": {
+          "check_only": {
+            "default": false,
+            "title": "Check Only",
+            "type": "boolean"
+          },
+          "from_period": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "From Period",
+            "type": "string"
+          },
+          "metric_uplift": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Metric Uplift",
+            "type": "object"
+          },
+          "months": {
+            "default": 12,
+            "maximum": 60,
+            "minimum": 1,
+            "title": "Months",
+            "type": "integer"
+          },
+          "to_period": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "To Period",
+            "type": "string"
+          },
+          "uplift_pct": {
+            "anyOf": [
+              {
+                "maximum": 1000.0,
+                "minimum": -100.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "0",
+            "title": "Uplift Pct"
+          }
+        },
+        "required": [
+          "from_period",
+          "to_period"
+        ],
+        "title": "CopyForwardIn",
+        "type": "object"
+      },
+      "CoverageCellOut": {
+        "properties": {
+          "drafts": {
+            "title": "Drafts",
+            "type": "integer"
+          },
+          "expected": {
+            "title": "Expected",
+            "type": "integer"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "profile_code": {
+            "title": "Profile Code",
+            "type": "string"
+          },
+          "published": {
+            "title": "Published",
+            "type": "integer"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "target_scope": {
+            "title": "Target Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_code",
+          "metric_code",
+          "period_key",
+          "target_scope",
+          "state",
+          "expected",
+          "published",
+          "drafts"
+        ],
+        "title": "CoverageCellOut",
+        "type": "object"
+      },
+      "CoverageInQuery": {
+        "properties": {
+          "period_key": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Key"
+          },
+          "profile_code": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Code"
+          }
+        },
+        "title": "CoverageInQuery",
+        "type": "object"
+      },
+      "CoverageOut": {
+        "properties": {
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/CoverageCellOut"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "cycle_name": {
+            "title": "Cycle Name",
+            "type": "string"
+          },
+          "drafts": {
+            "title": "Drafts",
+            "type": "integer"
+          },
+          "gaps": {
+            "title": "Gaps",
+            "type": "integer"
+          },
+          "period_keys": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Period Keys",
+            "type": "array"
+          },
+          "profiles": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Profiles",
+            "type": "array"
+          },
+          "weights": {
+            "items": {
+              "$ref": "#/components/schemas/WeightCheckOut"
+            },
+            "title": "Weights",
+            "type": "array"
+          }
+        },
+        "required": [
+          "cycle_name",
+          "period_keys",
+          "profiles",
+          "cells",
+          "weights",
+          "complete",
+          "gaps",
+          "drafts"
+        ],
+        "title": "CoverageOut",
         "type": "object"
       },
       "CreateIn": {
@@ -3134,6 +3613,65 @@
         "title": "Finding",
         "type": "object"
       },
+      "FindingOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "column": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Column"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "row_no": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Row No"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "severity",
+          "row_no",
+          "column",
+          "value"
+        ],
+        "title": "FindingOut",
+        "type": "object"
+      },
       "FreshnessChange": {
         "properties": {
           "after": {
@@ -4727,6 +5265,76 @@
         "title": "NoAccessOut",
         "type": "object"
       },
+      "NodeDeleteIn": {
+        "properties": {
+          "node_id": {
+            "format": "uuid",
+            "title": "Node Id",
+            "type": "string"
+          },
+          "template_id": {
+            "format": "uuid",
+            "title": "Template Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_id",
+          "node_id"
+        ],
+        "title": "NodeDeleteIn",
+        "type": "object"
+      },
+      "NodeSaveIn": {
+        "properties": {
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "node_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Node Id"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "sort_order": {
+            "default": 0,
+            "title": "Sort Order",
+            "type": "integer"
+          },
+          "template_id": {
+            "format": "uuid",
+            "title": "Template Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_id",
+          "label"
+        ],
+        "title": "NodeSaveIn",
+        "type": "object"
+      },
       "OidcCompleteIn": {
         "properties": {
           "code": {
@@ -4889,6 +5497,141 @@
           "grace_until"
         ],
         "title": "PeriodStatusOut",
+        "type": "object"
+      },
+      "PlacementClearIn": {
+        "properties": {
+          "metric_code": {
+            "maxLength": 80,
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "profile_code": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Code"
+          },
+          "template_id": {
+            "format": "uuid",
+            "title": "Template Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_id",
+          "metric_code"
+        ],
+        "title": "PlacementClearIn",
+        "type": "object"
+      },
+      "PlacementOut": {
+        "properties": {
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "metric_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Name"
+          },
+          "node_id": {
+            "format": "uuid",
+            "title": "Node Id",
+            "type": "string"
+          },
+          "placement_id": {
+            "format": "uuid",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "profile_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Code"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "placement_id",
+          "node_id",
+          "metric_code",
+          "metric_name",
+          "profile_code",
+          "sort_order"
+        ],
+        "title": "PlacementOut",
+        "type": "object"
+      },
+      "PlacementSetIn": {
+        "properties": {
+          "metric_code": {
+            "maxLength": 80,
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "node_id": {
+            "format": "uuid",
+            "title": "Node Id",
+            "type": "string"
+          },
+          "profile_code": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Code"
+          },
+          "sort_order": {
+            "default": 0,
+            "title": "Sort Order",
+            "type": "integer"
+          },
+          "template_id": {
+            "format": "uuid",
+            "title": "Template Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_id",
+          "node_id",
+          "metric_code"
+        ],
+        "title": "PlacementSetIn",
         "type": "object"
       },
       "PlanOut": {
@@ -5264,6 +6007,117 @@
         "title": "ProfileAssignIn",
         "type": "object"
       },
+      "ProfileCardListInQuery": {
+        "properties": {
+          "period_key": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Key"
+          }
+        },
+        "title": "ProfileCardListInQuery",
+        "type": "object"
+      },
+      "ProfileCardListOut": {
+        "properties": {
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "profiles": {
+            "items": {
+              "$ref": "#/components/schemas/ProfileCardOut"
+            },
+            "title": "Profiles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "period_key",
+          "profiles"
+        ],
+        "title": "ProfileCardListOut",
+        "type": "object"
+      },
+      "ProfileCardOut": {
+        "properties": {
+          "member_count": {
+            "title": "Member Count",
+            "type": "integer"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/ProfileMetricOut"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "profile_code": {
+            "title": "Profile Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_code",
+          "member_count",
+          "metrics"
+        ],
+        "title": "ProfileCardOut",
+        "type": "object"
+      },
+      "ProfileMetricOut": {
+        "properties": {
+          "collection_method": {
+            "title": "Collection Method",
+            "type": "string"
+          },
+          "direction": {
+            "title": "Direction",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "path": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Path",
+            "type": "array"
+          },
+          "target_scope": {
+            "title": "Target Scope",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric_code",
+          "display_name",
+          "target_scope",
+          "unit",
+          "direction",
+          "collection_method",
+          "path"
+        ],
+        "title": "ProfileMetricOut",
+        "type": "object"
+      },
       "ProfileOut": {
         "properties": {
           "effective_from": {
@@ -5299,6 +6153,74 @@
           "effective_to"
         ],
         "title": "ProfileOut",
+        "type": "object"
+      },
+      "ProfileSetIn": {
+        "properties": {
+          "effective_from": {
+            "format": "date",
+            "title": "Effective From",
+            "type": "string"
+          },
+          "metric_codes": {
+            "items": {
+              "maxLength": 80,
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Metric Codes",
+            "type": "array"
+          },
+          "profile_code": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+            "title": "Profile Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_code",
+          "metric_codes",
+          "effective_from"
+        ],
+        "title": "ProfileSetIn",
+        "type": "object"
+      },
+      "ProfileSetOut": {
+        "properties": {
+          "added": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Added",
+            "type": "array"
+          },
+          "effective_from": {
+            "format": "date",
+            "title": "Effective From",
+            "type": "string"
+          },
+          "profile_code": {
+            "title": "Profile Code",
+            "type": "string"
+          },
+          "removed": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Removed",
+            "type": "array"
+          }
+        },
+        "required": [
+          "profile_code",
+          "effective_from",
+          "added",
+          "removed"
+        ],
+        "title": "ProfileSetOut",
         "type": "object"
       },
       "Proposal": {
@@ -5366,6 +6288,64 @@
           "saml"
         ],
         "title": "ProvidersOut",
+        "type": "object"
+      },
+      "PublishIn": {
+        "properties": {
+          "metric_codes": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 80,
+                  "pattern": "^[a-z][a-z0-9_]*$",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Codes"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Note",
+            "type": "string"
+          },
+          "period_keys": {
+            "items": {
+              "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+              "type": "string"
+            },
+            "maxItems": 24,
+            "minItems": 1,
+            "title": "Period Keys",
+            "type": "array"
+          }
+        },
+        "required": [
+          "period_keys"
+        ],
+        "title": "PublishIn",
+        "type": "object"
+      },
+      "PublishOut": {
+        "properties": {
+          "batch": {
+            "$ref": "#/components/schemas/BatchOut"
+          },
+          "superseded": {
+            "title": "Superseded",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "batch",
+          "superseded"
+        ],
+        "title": "PublishOut",
         "type": "object"
       },
       "RateIn": {
@@ -6450,6 +7430,132 @@
         "title": "SamlAcsIn",
         "type": "object"
       },
+      "ScorecardSettingsOut": {
+        "properties": {
+          "cap_max_ratio": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Cap Max Ratio",
+            "type": "string"
+          },
+          "cap_min_ratio": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Cap Min Ratio",
+            "type": "string"
+          },
+          "denominator_policy": {
+            "title": "Denominator Policy",
+            "type": "string"
+          },
+          "weight_tolerance": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Weight Tolerance",
+            "type": "string"
+          },
+          "weight_total": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Weight Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "weight_total",
+          "weight_tolerance",
+          "cap_min_ratio",
+          "cap_max_ratio",
+          "denominator_policy"
+        ],
+        "title": "ScorecardSettingsOut",
+        "type": "object"
+      },
+      "ScorecardSettingsSetIn": {
+        "properties": {
+          "cap_max_ratio": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 10.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap Max Ratio"
+          },
+          "cap_min_ratio": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 10.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap Min Ratio"
+          },
+          "denominator_policy": {
+            "anyOf": [
+              {
+                "enum": [
+                  "reduced",
+                  "redistribute"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Denominator Policy"
+          },
+          "weight_tolerance": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Tolerance"
+          },
+          "weight_total": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1000.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Total"
+          }
+        },
+        "title": "ScorecardSettingsSetIn",
+        "type": "object"
+      },
       "ServiceOut": {
         "properties": {
           "detail": {
@@ -6666,6 +7772,52 @@
           "product_version"
         ],
         "title": "SetupStatusOut",
+        "type": "object"
+      },
+      "SheetResultOut": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "boolean"
+          },
+          "errors": {
+            "title": "Errors",
+            "type": "integer"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/FindingOut"
+            },
+            "title": "Findings",
+            "type": "array"
+          },
+          "rows_read": {
+            "title": "Rows Read",
+            "type": "integer"
+          },
+          "rows_valid": {
+            "title": "Rows Valid",
+            "type": "integer"
+          },
+          "warnings": {
+            "title": "Warnings",
+            "type": "integer"
+          },
+          "written": {
+            "title": "Written",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rows_read",
+          "rows_valid",
+          "errors",
+          "warnings",
+          "findings",
+          "written",
+          "accepted"
+        ],
+        "title": "SheetResultOut",
         "type": "object"
       },
       "SimilarFamily": {
@@ -7260,6 +8412,656 @@
         "title": "TableSize",
         "type": "object"
       },
+      "TargetDiscardIn": {
+        "properties": {
+          "target_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 5000,
+            "minItems": 1,
+            "title": "Target Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "target_ids"
+        ],
+        "title": "TargetDiscardIn",
+        "type": "object"
+      },
+      "TargetDiscardOut": {
+        "properties": {
+          "discarded": {
+            "title": "Discarded",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "discarded"
+        ],
+        "title": "TargetDiscardOut",
+        "type": "object"
+      },
+      "TargetGetInQuery": {
+        "properties": {
+          "target_id": {
+            "format": "uuid",
+            "title": "Target Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_id"
+        ],
+        "title": "TargetGetInQuery",
+        "type": "object"
+      },
+      "TargetHistoryOut": {
+        "properties": {
+          "target": {
+            "$ref": "#/components/schemas/TargetOut"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/TargetOut"
+            },
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "target",
+          "versions"
+        ],
+        "title": "TargetHistoryOut",
+        "type": "object"
+      },
+      "TargetListInQuery": {
+        "properties": {
+          "limit": {
+            "default": 500,
+            "maximum": 5000,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "metric_code": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Code"
+          },
+          "period_key": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Key"
+          },
+          "scope_code": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Code"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "draft",
+                  "published",
+                  "superseded"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          }
+        },
+        "title": "TargetListInQuery",
+        "type": "object"
+      },
+      "TargetListOut": {
+        "properties": {
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/TargetOut"
+            },
+            "title": "Targets",
+            "type": "array"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "targets",
+          "truncated"
+        ],
+        "title": "TargetListOut",
+        "type": "object"
+      },
+      "TargetOut": {
+        "properties": {
+          "batch_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Id"
+          },
+          "cap": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap"
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "metric_name": {
+            "title": "Metric Name",
+            "type": "string"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "scope_code": {
+            "title": "Scope Code",
+            "type": "string"
+          },
+          "scope_label": {
+            "title": "Scope Label",
+            "type": "string"
+          },
+          "scope_type": {
+            "title": "Scope Type",
+            "type": "string"
+          },
+          "series_type": {
+            "title": "Series Type",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "target_id": {
+            "format": "uuid",
+            "title": "Target Id",
+            "type": "string"
+          },
+          "target_type": {
+            "title": "Target Type",
+            "type": "string"
+          },
+          "target_value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Target Value",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight"
+          }
+        },
+        "required": [
+          "target_id",
+          "metric_code",
+          "metric_name",
+          "scope_type",
+          "scope_code",
+          "scope_label",
+          "period_key",
+          "series_type",
+          "target_value",
+          "target_type",
+          "weight",
+          "cap",
+          "currency_code",
+          "version",
+          "state",
+          "source",
+          "batch_id",
+          "published_at"
+        ],
+        "title": "TargetOut",
+        "type": "object"
+      },
+      "TargetRowIn": {
+        "properties": {
+          "cap": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap"
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "scope_code": {
+            "title": "Scope Code",
+            "type": "string"
+          },
+          "scope_type": {
+            "title": "Scope Type",
+            "type": "string"
+          },
+          "series_type": {
+            "default": "target",
+            "title": "Series Type",
+            "type": "string"
+          },
+          "target_type": {
+            "default": "monthly",
+            "title": "Target Type",
+            "type": "string"
+          },
+          "target_value": {
+            "title": "Target Value",
+            "type": "string"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight"
+          }
+        },
+        "required": [
+          "metric_code",
+          "scope_type",
+          "scope_code",
+          "period_key",
+          "target_value"
+        ],
+        "title": "TargetRowIn",
+        "type": "object"
+      },
+      "TargetSheet": {
+        "description": "A CSV or XLSX target sheet with the ``tmpl_target`` columns.",
+        "properties": {
+          "content_base64": {
+            "minLength": 1,
+            "title": "Content Base64",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          }
+        },
+        "required": [
+          "filename",
+          "content_base64"
+        ],
+        "title": "TargetSheet",
+        "type": "object"
+      },
+      "TaxonomyLevelOut": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "level_no": {
+            "title": "Level No",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "level_no",
+          "label"
+        ],
+        "title": "TaxonomyLevelOut",
+        "type": "object"
+      },
+      "TaxonomyNodeOut": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "level_no": {
+            "title": "Level No",
+            "type": "integer"
+          },
+          "node_id": {
+            "format": "uuid",
+            "title": "Node Id",
+            "type": "string"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "node_id",
+          "level_no",
+          "parent_id",
+          "label",
+          "sort_order"
+        ],
+        "title": "TaxonomyNodeOut",
+        "type": "object"
+      },
+      "TemplateActivateIn": {
+        "properties": {
+          "template_id": {
+            "format": "uuid",
+            "title": "Template Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_id"
+        ],
+        "title": "TemplateActivateIn",
+        "type": "object"
+      },
+      "TemplateGetInQuery": {
+        "properties": {
+          "template_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          }
+        },
+        "title": "TemplateGetInQuery",
+        "type": "object"
+      },
+      "TemplateGetOut": {
+        "properties": {
+          "template": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TemplateOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "template"
+        ],
+        "title": "TemplateGetOut",
+        "type": "object"
+      },
+      "TemplateListOut": {
+        "properties": {
+          "templates": {
+            "items": {
+              "$ref": "#/components/schemas/TemplateSummary"
+            },
+            "title": "Templates",
+            "type": "array"
+          }
+        },
+        "required": [
+          "templates"
+        ],
+        "title": "TemplateListOut",
+        "type": "object"
+      },
+      "TemplateOut": {
+        "properties": {
+          "level_count": {
+            "title": "Level Count",
+            "type": "integer"
+          },
+          "levels": {
+            "items": {
+              "$ref": "#/components/schemas/TaxonomyLevelOut"
+            },
+            "title": "Levels",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/TaxonomyNodeOut"
+            },
+            "title": "Nodes",
+            "type": "array"
+          },
+          "placements": {
+            "items": {
+              "$ref": "#/components/schemas/PlacementOut"
+            },
+            "title": "Placements",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "template_id": {
+            "format": "uuid",
+            "title": "Template Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_id",
+          "name",
+          "level_count",
+          "status",
+          "levels",
+          "nodes",
+          "placements"
+        ],
+        "title": "TemplateOut",
+        "type": "object"
+      },
+      "TemplateSaveIn": {
+        "properties": {
+          "levels": {
+            "items": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Levels",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          }
+        },
+        "required": [
+          "name",
+          "levels"
+        ],
+        "title": "TemplateSaveIn",
+        "type": "object"
+      },
+      "TemplateSummary": {
+        "properties": {
+          "level_count": {
+            "title": "Level Count",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "node_count": {
+            "title": "Node Count",
+            "type": "integer"
+          },
+          "placement_count": {
+            "title": "Placement Count",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "template_id": {
+            "format": "uuid",
+            "title": "Template Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_id",
+          "name",
+          "level_count",
+          "status",
+          "node_count",
+          "placement_count"
+        ],
+        "title": "TemplateSummary",
+        "type": "object"
+      },
       "TestInQuery": {
         "properties": {
           "source": {
@@ -7424,6 +9226,42 @@
           "content_base64"
         ],
         "title": "Upload",
+        "type": "object"
+      },
+      "UploadIn": {
+        "properties": {
+          "check_only": {
+            "default": false,
+            "title": "Check Only",
+            "type": "boolean"
+          },
+          "rows": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TargetRowIn"
+                },
+                "maxItems": 50000,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows"
+          },
+          "sheet": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TargetSheet"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "UploadIn",
         "type": "object"
       },
       "UserGetInQuery": {
@@ -7759,6 +9597,65 @@
           "reason"
         ],
         "title": "Waiting",
+        "type": "object"
+      },
+      "WeightCheckOut": {
+        "properties": {
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "expected": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Expected",
+            "type": "string"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "profile_code": {
+            "title": "Profile Code",
+            "type": "string"
+          },
+          "subjects_off": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Subjects Off",
+            "type": "array"
+          },
+          "weight_sum": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Weight Sum",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_code",
+          "period_key",
+          "weight_sum",
+          "expected",
+          "complete",
+          "ok",
+          "missing",
+          "subjects_off"
+        ],
+        "title": "WeightCheckOut",
         "type": "object"
       }
     },
@@ -8286,6 +10183,192 @@
           "platform"
         ],
         "x-kpigo-action": "auth.password.change"
+      }
+    },
+    "/api/v1/actions/band.list": {
+      "get": {
+        "operationId": "band_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BandListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "The Scorecards rating bands, lowest first.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "band.list"
+      }
+    },
+    "/api/v1/actions/band.set": {
+      "post": {
+        "operationId": "band_set",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BandSetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BandListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Replace the Scorecards rating bands: label, threshold and ramp step.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "band.set"
       }
     },
     "/api/v1/actions/calendar.business_date": {
@@ -14687,6 +16770,1218 @@
         "x-kpigo-action": "scope.grant.end"
       }
     },
+    "/api/v1/actions/scorecard.node.delete": {
+      "post": {
+        "operationId": "scorecard_node_delete",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NodeDeleteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Remove a node that has no children and no metrics placed under it.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.node.delete"
+      }
+    },
+    "/api/v1/actions/scorecard.node.save": {
+      "post": {
+        "operationId": "scorecard_node_save",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NodeSaveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Add a node to the taxonomy, or rename or reorder one.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.node.save"
+      }
+    },
+    "/api/v1/actions/scorecard.placement.clear": {
+      "post": {
+        "operationId": "scorecard_placement_clear",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlacementClearIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Remove a metric's placement; it then shows under the default, or ungrouped.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.placement.clear"
+      }
+    },
+    "/api/v1/actions/scorecard.placement.set": {
+      "post": {
+        "operationId": "scorecard_placement_set",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlacementSetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Place a metric under a node of the taxonomy, by default or for one profile.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.placement.set"
+      }
+    },
+    "/api/v1/actions/scorecard.profile.list": {
+      "get": {
+        "operationId": "scorecard_profile_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileCardListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Each profile's scorecard metrics and headcount in a period.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.profile.list"
+      }
+    },
+    "/api/v1/actions/scorecard.profile.set_metrics": {
+      "post": {
+        "operationId": "scorecard_profile_set_metrics",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileSetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileSetOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Set a profile's Scorecards metrics from a date; earlier months keep theirs.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.profile.set_metrics"
+      }
+    },
+    "/api/v1/actions/scorecard.settings.get": {
+      "get": {
+        "operationId": "scorecard_settings_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScorecardSettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Weight total and tolerance, cap plausibility and the denominator policy.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.settings.get"
+      }
+    },
+    "/api/v1/actions/scorecard.settings.set": {
+      "post": {
+        "operationId": "scorecard_settings_set",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScorecardSettingsSetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScorecardSettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Change the scoring settings.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.settings.set"
+      }
+    },
+    "/api/v1/actions/scorecard.template.activate": {
+      "post": {
+        "operationId": "scorecard_template_activate",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplateActivateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Make a template the one every scorecard renders from.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.template.activate"
+      }
+    },
+    "/api/v1/actions/scorecard.template.get": {
+      "get": {
+        "operationId": "scorecard_template_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "template_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Template Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateGetOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "A template with its levels, nodes and metric placements.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.template.get"
+      }
+    },
+    "/api/v1/actions/scorecard.template.list": {
+      "get": {
+        "operationId": "scorecard_template_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Scorecard templates, the active one first.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.template.list"
+      }
+    },
+    "/api/v1/actions/scorecard.template.save": {
+      "post": {
+        "operationId": "scorecard_template_save",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplateSaveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Create a scorecard template, or rename it and relabel its levels.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.template.save"
+      }
+    },
     "/api/v1/actions/settings.get": {
       "get": {
         "operationId": "settings_get",
@@ -15332,6 +18627,977 @@
           "platform"
         ],
         "x-kpigo-action": "subject.update"
+      }
+    },
+    "/api/v1/actions/target.batch.list": {
+      "get": {
+        "operationId": "target_batch_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Publish batches, newest first.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "target.batch.list"
+      }
+    },
+    "/api/v1/actions/target.batch.revert": {
+      "post": {
+        "operationId": "target_batch_revert",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchRevertIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchRevertOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Revert a publish while its periods are still in the future.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "target.batch.revert"
+      }
+    },
+    "/api/v1/actions/target.copy_forward": {
+      "post": {
+        "operationId": "target_copy_forward",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopyForwardIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SheetResultOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Copy published targets forward as drafts, with an optional uplift.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "target.copy_forward"
+      }
+    },
+    "/api/v1/actions/target.coverage": {
+      "get": {
+        "operationId": "target_coverage",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period Key"
+            }
+          },
+          {
+            "in": "query",
+            "name": "profile_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Profile Code"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoverageOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "The coverage grid: profile \u00d7 metric \u00d7 period, what is set, missing or draft.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "target.coverage"
+      }
+    },
+    "/api/v1/actions/target.draft.discard": {
+      "post": {
+        "operationId": "target_draft_discard",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetDiscardIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetDiscardOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Throw away drafts. Published targets are never deleted.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "target.draft.discard"
+      }
+    },
+    "/api/v1/actions/target.get": {
+      "get": {
+        "operationId": "target_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "target_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Target Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetHistoryOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "One target and every version of it.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "target.get"
+      }
+    },
+    "/api/v1/actions/target.list": {
+      "get": {
+        "operationId": "target_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period Key"
+            }
+          },
+          {
+            "in": "query",
+            "name": "metric_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "pattern": "^[a-z][a-z0-9_]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Metric Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scope_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scope Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "draft",
+                    "published",
+                    "superseded"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 500,
+              "maximum": 5000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Targets on the workbench, filtered by period, metric, scope or state.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "target.list"
+      }
+    },
+    "/api/v1/actions/target.publish": {
+      "post": {
+        "operationId": "target_publish",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Publish drafts as one versioned batch, after the weight-sum check.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "target.publish"
+      }
+    },
+    "/api/v1/actions/target.upload": {
+      "post": {
+        "operationId": "target_upload",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SheetResultOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Validate a target sheet and, when it is clean, save it as drafts.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "target.upload"
       }
     },
     "/api/v1/actions/user.disable": {

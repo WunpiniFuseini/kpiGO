@@ -199,6 +199,8 @@ APPROVAL_CLASSES = (
     "period_close",
     "config_change",
     "access_change",
+    "target_publish",
+    "manual_input",
 )
 
 

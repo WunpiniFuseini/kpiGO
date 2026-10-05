@@ -8,6 +8,7 @@ export const PAGE_PATHS: Record<string, string> = {
   "admin.users": "/admin/users",
   "admin.metrics": "/admin/metrics",
   "admin.targets": "/admin/targets",
+  "admin.scorecard_setup": "/admin/scorecard-setup",
   "admin.calendar": "/admin/calendar",
   "admin.product_lines": "/admin/product-lines",
   "admin.data_integration": "/admin/data-integration",
