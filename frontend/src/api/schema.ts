@@ -761,7 +761,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Send the one reminder for inputs still owed as their deadline nears (scheduled daily). */
+        /** Send the one reminder for inputs still owed as their deadline nears, in-app and by email when a relay is set (scheduled daily). */
         post: operations["input_remind"];
         delete?: never;
         options?: never;
@@ -4340,6 +4340,8 @@ export interface components {
              * Format: date-time
              */
             due_at: string;
+            /** Email Reminders */
+            email_reminders: boolean;
             /** Locked */
             locked: boolean;
             /** Period Key */
@@ -4408,6 +4410,16 @@ export interface components {
         };
         /** InputRemindOut */
         InputRemindOut: {
+            /**
+             * Emailed
+             * @default 0
+             */
+            emailed?: number;
+            /**
+             * Not Emailed
+             * @default []
+             */
+            not_emailed?: string[];
             /** Recipients */
             recipients: string[];
             /** Reminded */

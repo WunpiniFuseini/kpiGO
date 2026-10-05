@@ -84,4 +84,6 @@ const admin = (list: typeof assignments, metrics = manualMetrics): Story => ({
 /** Admin view: a named contributor, a line-manager slice that resolves to nobody, and an unassigned metric. */
 export const AdminAssignments: Story = admin(assignments);
 export const AdminNothingAssigned: Story = admin(noAssignments);
+/** No mail relay on this install: reminders are in-app only, and the page says so. */
+export const AdminEmailOff: Story = admin({ ...assignments, email_reminders: false });
 export const AdminNoManualMetrics: Story = admin(noAssignments, []);

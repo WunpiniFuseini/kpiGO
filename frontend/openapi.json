@@ -4905,6 +4905,10 @@
             "title": "Due At",
             "type": "string"
           },
+          "email_reminders": {
+            "title": "Email Reminders",
+            "type": "boolean"
+          },
           "locked": {
             "title": "Locked",
             "type": "boolean"
@@ -4926,7 +4930,8 @@
           "due_at",
           "locked",
           "assignments",
-          "unassigned"
+          "unassigned",
+          "email_reminders"
         ],
         "title": "InputAssignmentListOut",
         "type": "object"
@@ -5109,6 +5114,19 @@
       },
       "InputRemindOut": {
         "properties": {
+          "emailed": {
+            "default": 0,
+            "title": "Emailed",
+            "type": "integer"
+          },
+          "not_emailed": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Not Emailed",
+            "type": "array"
+          },
           "recipients": {
             "items": {
               "type": "string"
@@ -17416,7 +17434,7 @@
             "SessionAuth": []
           }
         ],
-        "summary": "Send the one reminder for inputs still owed as their deadline nears (scheduled daily).",
+        "summary": "Send the one reminder for inputs still owed as their deadline nears, in-app and by email when a relay is set (scheduled daily).",
         "tags": [
           "scorecards"
         ],

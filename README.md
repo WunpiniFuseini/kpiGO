@@ -52,8 +52,9 @@ TLS joins at R5 packaging.
 
 After expiry a licence gives 30 days of full function, then 45 days read-only,
 then locks to the licence screen. Data is never touched at any stage. The
-licence heartbeat (`KPIGO_LICENCE_HEARTBEAT_URL`) is the only outbound call and
-sends the licence key, install fingerprint and product version, nothing else.
+licence heartbeat (`KPIGO_LICENCE_HEARTBEAT_URL`) is the only outbound call to
+kpiGo and sends the licence key, install fingerprint and product version, nothing
+else. Email, when `KPIGO_EMAIL_HOST` is set, goes only to the bank's own relay.
 
 Licences are signed with `tools/licence_vendor.py` (vendor side, offline). The
 public keys a build trusts are in `kpigo/licence/document.py`.
@@ -208,8 +209,12 @@ every member of the slice. Values are editable until the deadline, then locked; 
 later correction is a new version, only while the month is being restated. Until
 the month closes, manual values are hidden from everyone's scorecard but an
 Admin's. Period close names who still owes an input. `input.remind` sends one
-reminder per slice (set `KPIGO_INPUT_REMINDER_USER` to schedule it daily); the
-escalation ladder and compliance view are R1.5.
+reminder per slice (set `KPIGO_INPUT_REMINDER_USER` to schedule it daily): in-app
+always, and by email when a mail relay is configured (`KPIGO_EMAIL_HOST`,
+`KPIGO_EMAIL_FROM` and the other `KPIGO_EMAIL_*` settings in `.env.example`;
+`KPIGO_PUBLIC_URL` adds a link). Each contributor gets one email listing every
+input they owe. A relay failure is audited and never stops the in-app reminder.
+The escalation ladder and compliance view are R1.5.
 
 ## Layout
 

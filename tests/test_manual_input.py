@@ -300,3 +300,67 @@ def test_one_reminder_per_slice(people: dict[str, Any], monkeypatch: pytest.Monk
     assert run("input.remind", people["admin"]).reminded == 0
     assert run("input.task.list", people["kofi"], period_key=P).tasks[0].reminded_at is not None
     assert AuditLog.objects.filter(event="input.reminded").count() == 2
+
+
+@pytest.fixture
+def due_now(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        inputs, "remind_on", lambda org_id, period_key: date.today() - timedelta(days=1)
+    )
+
+
+@pytest.fixture
+def relay(settings: Any) -> None:
+    settings.KPIGO_EMAIL_HOST = "relay.bank.example"
+    settings.KPIGO_PUBLIC_URL = "https://kpigo.bank.example"
+
+
+def test_without_a_relay_reminders_stay_in_app(
+    people: dict[str, Any], due_now: None, mailoutbox: list[Any]
+) -> None:
+    assign(people)
+    out = run("input.remind", people["admin"])
+    assert out.reminded == 2 and out.emailed == 0 and out.not_emailed == []
+    assert mailoutbox == []
+    assert run("input.assignment.list", people["admin"]).email_reminders is False
+
+
+def test_with_a_relay_each_contributor_gets_one_email(
+    people: dict[str, Any], due_now: None, relay: None, mailoutbox: list[Any]
+) -> None:
+    assign(people)
+    assert run("input.assignment.list", people["admin"]).email_reminders is True
+    # A dry run reminds nobody and sends nothing.
+    run("input.remind", replace(people["admin"], dry_run=True))
+    assert mailoutbox == []
+    out = run("input.remind", people["admin"])
+    assert out.reminded == 2 and out.emailed == 1
+    (message,) = mailoutbox
+    assert message.to == ["kofi@test.example"]
+    assert message.subject == "kpiGo: 2 input(s) due soon"
+    # Both months' slices in one message, each naming the metric and who it is for.
+    assert message.body.count(f"Customer satisfaction, for Everyone on {PROFILE}") == 2
+    assert "https://kpigo.bank.example/my-inputs" in message.body
+    assert AuditLog.objects.filter(event="input.reminder_emailed").count() == 1
+    # Still one reminder: the next run sends nothing.
+    assert run("input.remind", people["admin"]).emailed == 0
+    assert len(mailoutbox) == 1
+
+
+def test_a_relay_failure_still_reminds_in_app(
+    people: dict[str, Any],
+    due_now: None,
+    relay: None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from kpigo.platform import mail
+
+    def refuse(*args: Any, **kwargs: Any) -> int:
+        raise ConnectionRefusedError
+
+    monkeypatch.setattr(mail, "send_mail", refuse)
+    assign(people)
+    out = run("input.remind", people["admin"])
+    assert out.reminded == 2 and out.emailed == 0 and out.not_emailed == ["kofi"]
+    assert AuditLog.objects.filter(event="input.reminded").count() == 2
+    assert AuditLog.objects.filter(event="input.reminder_email_failed").count() == 1

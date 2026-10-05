@@ -65,6 +65,13 @@ describe("manual input assignments", () => {
     expect(screen.getByRole("option", { name: /Their line manager/ })).toBeInTheDocument();
   });
 
+  it("says whether reminders also go by email", () => {
+    const { rerender } = render(<ManualInputView list={assignments} metrics={manualMetrics} users={people} onChanged={noop} />);
+    expect(screen.getByText(/one reminder, in kpiGo and by email/)).toBeInTheDocument();
+    rerender(<ManualInputView list={{ ...assignments, email_reminders: false }} metrics={manualMetrics} users={people} onChanged={noop} />);
+    expect(screen.getByText(/Email is off because no mail relay is set/)).toBeInTheDocument();
+  });
+
   it("explains an empty registry", () => {
     render(<ManualInputView list={noAssignments} metrics={[]} users={people} onChanged={noop} />);
     expect(screen.getByText(/Set a metric's collection to manual input/)).toBeInTheDocument();

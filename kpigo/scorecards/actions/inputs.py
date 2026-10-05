@@ -14,7 +14,7 @@ ladder and the compliance view are R1.5.
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import Annotated, Literal
 
@@ -29,6 +29,7 @@ from kpigo.hierarchy.models import Subject
 from kpigo.hierarchy.scope import current_period_key
 from kpigo.metrics.actions.metric import MetricCode
 from kpigo.metrics.models import Metric
+from kpigo.platform import mail
 from kpigo.platform.config import reporting_zone
 from kpigo.platform.db import conflicts
 from kpigo.platform.vocab import PeriodKey
@@ -308,6 +309,8 @@ class InputAssignmentListOut(BaseModel):
     assignments: list[InputAssignmentOut]
     # Manual-input Scorecards metrics nobody is asked to enter this month.
     unassigned: list[UnassignedMetricOut]
+    # Whether reminders also go by email (a relay is configured for this install).
+    email_reminders: bool
 
 
 @action(
@@ -345,6 +348,7 @@ def list_assignments(params: InputAssignmentListIn, ctx: ActionContext) -> Input
             for m in manual
             if m.metric_code not in covered
         ],
+        email_reminders=mail.enabled(),
     )
 
 
@@ -687,11 +691,15 @@ class InputRemindOut(BaseModel):
     recipients: list[str]
     # Slices nobody could be reminded for: a role that resolves to no account.
     unresolved: int
+    # Contributors emailed (one message each, listing every slice they owe).
+    emailed: int = 0
+    # Contributors the relay refused or who have no address; reminded in-app only.
+    not_emailed: list[str] = []
 
 
 @action(
     name="input.remind",
-    summary="Send the one reminder for inputs still owed as their deadline nears (scheduled daily).",
+    summary="Send the one reminder for inputs still owed as their deadline nears, in-app and by email when a relay is set (scheduled daily).",
     schema=InputRemindIn,
     output=InputRemindOut,
     permission="input.manage",
@@ -706,6 +714,7 @@ def remind(params: InputRemindIn, ctx: ActionContext) -> InputRemindOut:
     current = current_period_key(ctx.org_id)
     reminded, unresolved = 0, 0
     recipients: set[str] = set()
+    owed: dict[str, tuple[AppUser, list[tuple[str, InputAssignment, datetime]]]] = {}
     for period_key in (shift(current, -1), current):
         if inputs.locked(ctx.org_id, period_key, now) or today < inputs.remind_on(
             ctx.org_id, period_key
@@ -748,4 +757,69 @@ def remind(params: InputRemindIn, ctx: ActionContext) -> InputRemindOut:
             )
             reminded += 1
             recipients.add(who.display_name)
-    return InputRemindOut(reminded=reminded, recipients=sorted(recipients), unresolved=unresolved)
+            owed.setdefault(str(who.user_id), (who, []))[1].append((period_key, ia, due))
+    emailed, not_emailed = _email_reminders(ctx, owed)
+    return InputRemindOut(
+        reminded=reminded,
+        recipients=sorted(recipients),
+        unresolved=unresolved,
+        emailed=emailed,
+        not_emailed=not_emailed,
+    )
+
+
+def _email_reminders(
+    ctx: ActionContext,
+    owed: dict[str, tuple[AppUser, list[tuple[str, InputAssignment, datetime]]]],
+) -> tuple[int, list[str]]:
+    """One email per contributor listing every slice they owe; none on a dry run."""
+    if not mail.enabled() or ctx.dry_run or not owed:
+        return 0, []
+    zone = reporting_zone(ctx.org_id)
+    sent, missed = 0, []
+    for who, items in owed.values():
+        lines = []
+        for period_key in sorted({p for p, _, _ in items}):
+            rows = [ia for p, ia, _ in items if p == period_key]
+            names = _metric_names(ctx.org_id, sorted({ia.metric_code for ia in rows}), period_key)
+            labels = _labels(ctx.org_id, rows)
+            due = next(d for p, _, d in items if p == period_key)
+            # The deadline is the start of the next day; people read the day itself.
+            last = (due.astimezone(zone) - timedelta(seconds=1)).date()
+            month = date(int(period_key[:4]), int(period_key[4:]), 1)
+            lines.append(f"{month:%B %Y}, due by the end of {last.day} {last:%B %Y}:")
+            for ia in rows:
+                m = names.get(ia.metric_code)
+                lines.append(
+                    f"  - {m.display_name if m else ia.metric_code}, for {labels[str(ia.assignment_id)]}"
+                )
+            lines.append("")
+        where = mail.link("/my-inputs")
+        body = "\n".join(
+            [
+                f"Hello {who.display_name},",
+                "",
+                "These kpiGo inputs are still waiting for you:",
+                "",
+                *lines,
+                f"Enter them on My inputs: {where}"
+                if where
+                else "Enter them on the My inputs page in kpiGo.",
+                "Values left unsubmitted at the deadline stay unreported for that month.",
+                "",
+                "This is the one reminder kpiGo sends for these inputs.",
+            ]
+        )
+        ok = bool(who.email) and mail.send(
+            who.email, f"kpiGo: {len(items)} input(s) due soon", body
+        )
+        ctx.audit(
+            "input.reminder_emailed" if ok else "input.reminder_email_failed",
+            to_user_id=str(who.user_id),
+            slices=len(items),
+        )
+        if ok:
+            sent += 1
+        else:
+            missed.append(who.display_name)
+    return sent, sorted(missed)

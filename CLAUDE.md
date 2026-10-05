@@ -103,8 +103,9 @@ Checklist for every new action (the review gate):
 
 ## Deployment constraints
 
-- No telemetry, no error reporting home. The only outbound call is the licence
-  heartbeat.
+- No telemetry, no error reporting home. The only outbound call to kpiGo is the
+  licence heartbeat. Email goes only to the install's own relay (`KPIGO_EMAIL_*`),
+  is off when none is set, and never carries scores or values.
 - Must work fully with no LLM configured. CI boots the stack without one.
 - Migrations are additive only: new columns nullable or defaulted, drops deferred
   a full major version, backfills are jobs not migrations, every migration
