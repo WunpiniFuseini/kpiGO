@@ -5,6 +5,8 @@ set -euo pipefail
 
 COMPOSE=${COMPOSE:-docker compose}
 BASE_URL=${BASE_URL:-http://localhost:8000}
+# The web front: the UI and the API on one origin. SKIP_WEB=1 when running without it.
+WEB_URL=${WEB_URL:-http://localhost:8080}
 # Must match the stack's KPIGO_SETUP_TOKEN (CI writes both).
 KPIGO_SETUP_TOKEN=${KPIGO_SETUP_TOKEN:?set KPIGO_SETUP_TOKEN to the setup token the stack runs with}
 exec_app() { $COMPOSE exec -T app "$@"; }
@@ -58,6 +60,26 @@ curl -sS -c "$norole" -o /dev/null -H 'Content-Type: application/json' \
 code=$(curl -sS -b "$norole" -o /dev/null -w "%{http_code}" "$BASE_URL/api/v1/hello")
 [ "$code" = "403" ] || { echo "a user with no role got $code from hello" >&2; exit 1; }
 rm -f "$jar" "$norole"
+
+if [ "${SKIP_WEB:-0}" != "1" ]; then
+  echo "== web front: the UI is served and the API is reachable on the same origin"
+  curl -sSf "$WEB_URL/" | grep -q '<div id="root">'
+  curl -sSf "$WEB_URL/admin/users" | grep -q '<div id="root">'   # client-side routes fall back to the app
+  curl -sSfI "$WEB_URL/" | grep -qi "content-security-policy: default-src 'self'"
+  curl -sSf "$WEB_URL/api/v1/auth/providers" | grep -q '"password"'
+  web=$(mktemp)
+  code=$(curl -sS -c "$web" -b "$web" -o /dev/null -w "%{http_code}" -H 'Content-Type: application/json' \
+    -d "{\"email\": \"$STAFF\", \"password\": \"$PASS\"}" "$WEB_URL/api/v1/auth/login")
+  [ "$code" = "200" ] || { echo "login through the web front returned $code" >&2; exit 1; }
+  curl -sSf -b "$web" "$WEB_URL/api/v1/auth/me" | grep -q '"page_key": "scorecards"'
+  code=$(curl -sS -b "$web" -o /dev/null -w "%{http_code}" -X POST -H 'Content-Type: application/json' -d '{}' "$WEB_URL/api/v1/auth/logout")
+  [ "$code" = "403" ] || { echo "a session write without the CSRF token returned $code" >&2; exit 1; }
+  token=$(awk '$6 == "csrftoken" {print $7}' "$web")
+  code=$(curl -sS -b "$web" -o /dev/null -w "%{http_code}" -X POST -H 'Content-Type: application/json' \
+    -H "X-CSRFToken: $token" -d '{}' "$WEB_URL/api/v1/auth/logout")
+  [ "$code" = "200" ] || { echo "sign-out with the CSRF token returned $code" >&2; exit 1; }
+  rm -f "$web"
+fi
 
 echo "== health page (R0 exit: reports service, database and feed status)"
 exec_app python manage.py action system.health --user "$ADMIN" | python3 -c '

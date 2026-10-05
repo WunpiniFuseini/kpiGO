@@ -4,9 +4,9 @@ On-premise performance tracking for financial institutions: Scorecards, Agent
 Performance, Campaign Manager and Executive Dashboard, sold as separately
 licensed modules and run on the customer's own servers.
 
-This repository is at **R0 Workstream C**: the action layer (A), the core data
-model (B) and ingestion (C). Auth, the licence service and the design system come
-next; domain modules in later releases.
+This repository is at **R0 Workstream E**: the action layer (A), the core data
+model (B), ingestion (C), auth, access and the licence (D), and the design system
+with the app shell and admin screens (E). Domain modules come in later releases.
 
 ## The one rule
 
@@ -20,18 +20,20 @@ Everything runs in Docker Compose with no internet access needed at runtime.
 ```bash
 cp .env.example .env          # set KPIGO_SECRET_KEY and the Postgres password
 docker compose up -d --build --wait
-scripts/smoke.sh              # hello over HTTP, CLI and a worker job, plus audit
+scripts/smoke.sh              # HTTP, CLI, a worker job, the web front, plus audit
 ```
 
-Services: `postgres` (16), `redis`, `migrate` (one-shot), `app` (ASGI on :8000),
-`worker` and `beat` (Celery). nginx with TLS joins at R5 packaging.
+Open <http://localhost:8080>. Services: `postgres` (16), `redis`, `migrate`
+(one-shot), `app` (ASGI on :8000), `worker` and `beat` (Celery), and `web`
+(nginx on :8080: the UI, with `/api` proxied to the app on the same origin).
+TLS joins at R5 packaging.
 
 ## First run, sign-in and the licence
 
 1. Set `KPIGO_SETUP_TOKEN` in `.env`, start the stack, and create the first
    Admin: `docker compose exec app python manage.py action setup.bootstrap --json
    '{"setup_token": "...", "email": "...", "display_name": "...", "password": "..."}'`
-   (or the setup screen). It works only while no Admin exists.
+   or the setup screen at `/setup`. It works only while no Admin exists.
 2. `setup.status` shows the **install fingerprint**. kpiGo issues a signed
    licence for it; the Admin activates it with `licence.activate`, offline.
    Modules load from the licence file on the next restart. A production install
@@ -77,6 +79,27 @@ uv run python manage.py action platform.hello --user ama --enqueue   # via a wor
 Over HTTP the same action is `GET /api/v1/hello?name=Wunpini` with a Django
 session. `GET /api/v1/registry` lists every action with its schemas (admin
 only). OpenAPI docs are at `/api/v1/docs` for staff.
+
+## Frontend
+
+React 18 + TypeScript + Vite in `frontend/`. Node 22.
+
+```bash
+cd frontend
+npm ci
+npm run dev                 # http://localhost:5173, proxies /api to the app on :8000
+npm run typecheck && npm run lint && npm test
+npm run storybook           # every component and screen in every state
+npm run build-storybook && npm run a11y   # axe-core, WCAG 2.1 AA, every story
+```
+
+The UI calls actions and nothing else: `invoke("metric.register", {...})` in
+`src/api/client.ts`. Routes and types are generated from the registry's OpenAPI
+document, so after changing an action's input or output run
+`uv run python scripts/export_openapi.py frontend/openapi.json` and
+`npm run gen:api`; CI fails if either is stale. Design tokens are in
+`src/styles/tokens.css` (Design Brief §4 verbatim, plus darker text variants so
+every text pairing meets 4.5:1; `src/test/tokens.test.ts` holds the ratios).
 
 ## Ingestion
 
@@ -124,6 +147,14 @@ kpigo/
     auth/            local + LDAP, OIDC, SAML, Entra Graph
   licence/           signed licence, fingerprint, grace states, the pipeline's licence gate
 tools/licence_vendor.py  vendor-side key generation and licence signing
+frontend/
+  src/api/           generated routes and types, invoke(), useQuery/useMutation
+  src/styles/        tokens, base, components, shell CSS
+  src/components/    primitives (GradeBanner, MetricCard, RankedList, TrendChart, ...)
+  src/shell/         rail, topbar, view container, page key → path
+  src/pages/         sign-in, first run, invite, OIDC callback, admin screens
+  scripts/a11y.mjs   the axe-core gate over every story
+deploy/nginx/        the web front's config (static UI, /api proxy, CSP)
 tests/               pipeline, permission matrix, surfaces, governing rule
 ```
 
@@ -132,6 +163,9 @@ tests/               pipeline, permission matrix, surfaces, governing rule
 - **Lint and typecheck**: ruff, ruff format, mypy (strict on `kpigo/action`).
 - **Tests**: Postgres 16 + Redis services, migrations forward/back, the
   permission matrix generated from the registry, then the full suite.
+- **Frontend**: generated API types current, tsc, ESLint, Vitest, the build,
+  Storybook, then axe-core over every story in Chromium (WCAG 2.1 AA, and no
+  horizontal scroll at phone width on screens).
 - **No-inference boot gate**: boots the whole Compose stack with no model
   configured, runs the smoke test, then the full suite inside the stack. If
   kpiGo ever needs a model to work, this fails.

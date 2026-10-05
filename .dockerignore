@@ -6,3 +6,7 @@
 .ruff_cache
 staticfiles
 .env
+frontend/node_modules
+frontend/dist
+frontend/storybook-static
+frontend/test-results

@@ -25,11 +25,11 @@ def admin_exists(org_id: str) -> bool:
     return AppUser.objects.filter(org_id=org_id, status="active", roles__role_code="admin").exists()
 
 
-class StatusIn(BaseModel):
+class SetupStatusIn(BaseModel):
     pass
 
 
-class StatusOut(BaseModel):
+class SetupStatusOut(BaseModel):
     needs_admin: bool
     setup_token_configured: bool
     licence_state: str
@@ -41,16 +41,16 @@ class StatusOut(BaseModel):
 @action(
     name="setup.status",
     summary="What first run still needs: an Admin, a licence. Shows the install fingerprint.",
-    schema=StatusIn,
-    output=StatusOut,
+    schema=SetupStatusIn,
+    output=SetupStatusOut,
     read_only=True,
     public=True,
     http={"method": "GET", "path": "/setup"},
     example={},
 )
-def status(params: StatusIn, ctx: ActionContext) -> StatusOut:
+def status(params: SetupStatusIn, ctx: ActionContext) -> SetupStatusOut:
     licence = current(ctx.org_id)
-    return StatusOut(
+    return SetupStatusOut(
         needs_admin=not admin_exists(ctx.org_id),
         setup_token_configured=bool(getattr(settings, "KPIGO_SETUP_TOKEN", None)),
         licence_state=licence.state,

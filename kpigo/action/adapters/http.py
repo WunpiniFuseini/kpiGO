@@ -248,6 +248,8 @@ def build_api(registry: Registry, *, urls_namespace: str = "kpigo-api") -> Ninja
             tags=[definition.module],
             auth=None if definition.public else django_auth,
             url_name=definition.name.replace(".", "-"),
+            # The frontend's generated client keys every route by this name.
+            openapi_extra={"x-kpigo-action": definition.name},
         )
     return api
 

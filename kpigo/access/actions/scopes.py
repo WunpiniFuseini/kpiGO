@@ -164,28 +164,28 @@ def end(params: EndIn, ctx: ActionContext) -> GrantOut:
     return grant_out(grant)
 
 
-class ListIn(BaseModel):
+class GrantListIn(BaseModel):
     module: Literal["executive", "campaign"] | None = None
     role_code: str | None = None
     user_id: uuid.UUID | None = None
     in_force_only: bool = True
 
 
-class ListOut(BaseModel):
+class GrantListOut(BaseModel):
     grants: list[GrantOut]
 
 
 @action(
     name="scope.grant.list",
     summary="List data scope grants.",
-    schema=ListIn,
-    output=ListOut,
+    schema=GrantListIn,
+    output=GrantListOut,
     permission="scope.view",
     read_only=True,
     http={"method": "GET", "path": "/scope-grants"},
     example={"module": "executive"},
 )
-def list_grants(params: ListIn, ctx: ActionContext) -> ListOut:
+def list_grants(params: GrantListIn, ctx: ActionContext) -> GrantListOut:
     query = DataScopeGrant.objects.filter(org_id=ctx.org_id)
     if params.module:
         query = query.filter(module=params.module)
@@ -196,4 +196,4 @@ def list_grants(params: ListIn, ctx: ActionContext) -> ListOut:
     if params.in_force_only:
         query = query.filter(in_force(timezone.localdate()))
     rows = query.order_by("module", "dimension_type", "member_code")
-    return ListOut(grants=[grant_out(g) for g in rows])
+    return GrantListOut(grants=[grant_out(g) for g in rows])

@@ -10,27 +10,27 @@ from kpigo.action import ActionContext, action
 from kpigo.platform.models import APPROVAL_CLASSES, ApprovalPolicy
 
 
-class PolicyOut(BaseModel):
+class ApprovalPolicyOut(BaseModel):
     approval_class: str
     enabled: bool
     forced_by_install: bool
 
 
-class ListIn(BaseModel):
+class ApprovalPolicyListIn(BaseModel):
     pass
 
 
-class ListOut(BaseModel):
-    policies: list[PolicyOut]
+class ApprovalPolicyListOut(BaseModel):
+    policies: list[ApprovalPolicyOut]
 
 
-def _policies(org_id: str) -> list[PolicyOut]:
+def _policies(org_id: str) -> list[ApprovalPolicyOut]:
     stored = dict(
         ApprovalPolicy.objects.filter(org_id=org_id).values_list("approval_class", "enabled")
     )
     forced = set(getattr(settings, "KPIGO_APPROVAL_CLASSES_ENABLED", ()))
     return [
-        PolicyOut(
+        ApprovalPolicyOut(
             approval_class=c,
             enabled=c in forced or bool(stored.get(c, False)),
             forced_by_install=c in forced,
@@ -42,15 +42,15 @@ def _policies(org_id: str) -> list[PolicyOut]:
 @action(
     name="approval.policy.list",
     summary="Which action classes need a second Admin's approval.",
-    schema=ListIn,
-    output=ListOut,
+    schema=ApprovalPolicyListIn,
+    output=ApprovalPolicyListOut,
     permission="approval.policy.manage",
     read_only=True,
     http={"method": "GET", "path": "/approval-policies"},
     example={},
 )
-def list_policies(params: ListIn, ctx: ActionContext) -> ListOut:
-    return ListOut(policies=_policies(ctx.org_id))
+def list_policies(params: ApprovalPolicyListIn, ctx: ActionContext) -> ApprovalPolicyListOut:
+    return ApprovalPolicyListOut(policies=_policies(ctx.org_id))
 
 
 class SetIn(BaseModel):
@@ -62,7 +62,7 @@ class SetIn(BaseModel):
     name="approval.policy.set",
     summary="Turn maker-checker on or off for an action class.",
     schema=SetIn,
-    output=ListOut,
+    output=ApprovalPolicyListOut,
     permission="approval.policy.manage",
     read_only=False,
     # Switching a control off is itself a configuration change a checker sees.
@@ -70,7 +70,7 @@ class SetIn(BaseModel):
     audit="approval.policy.set",
     example={"approval_class": "access_change", "enabled": True},
 )
-def set_policy(params: SetIn, ctx: ActionContext) -> ListOut:
+def set_policy(params: SetIn, ctx: ActionContext) -> ApprovalPolicyListOut:
     from kpigo.action import InvalidInput
 
     if params.approval_class not in APPROVAL_CLASSES:
@@ -92,4 +92,4 @@ def set_policy(params: SetIn, ctx: ActionContext) -> ListOut:
             "updated_by": ctx.user_id,
         },
     )
-    return ListOut(policies=_policies(ctx.org_id))
+    return ApprovalPolicyListOut(policies=_policies(ctx.org_id))

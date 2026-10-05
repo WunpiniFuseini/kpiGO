@@ -172,7 +172,7 @@ def list_edges(params: EdgeListIn, ctx: ActionContext) -> EdgeListOut:
 # ── rollup_policy ───────────────────────────────────────────────────────────
 
 
-class PolicyOut(BaseModel):
+class RollupPolicyOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     policy_id: uuid.UUID
@@ -195,7 +195,7 @@ class PolicySetIn(_Ranged):
     name="rollup_policy.set",
     summary="Override whether a line type counts toward roll-up for a role or profile.",
     schema=PolicySetIn,
-    output=PolicyOut,
+    output=RollupPolicyOut,
     permission="hierarchy.manage",
     read_only=False,
     requires_approval="hierarchy_change",
@@ -209,7 +209,7 @@ class PolicySetIn(_Ranged):
         "effective_from": "2026-10-01",
     },
 )
-def set_policy(params: PolicySetIn, ctx: ActionContext) -> PolicyOut:
+def set_policy(params: PolicySetIn, ctx: ActionContext) -> RollupPolicyOut:
     with conflicts(_CONFLICTS):
         policy = RollupPolicy.objects.create(
             org_id=ctx.org_id,
@@ -217,7 +217,7 @@ def set_policy(params: PolicySetIn, ctx: ActionContext) -> PolicyOut:
             created_by=ctx.user_id,
             updated_by=ctx.user_id,
         )
-    return PolicyOut.model_validate(policy)
+    return RollupPolicyOut.model_validate(policy)
 
 
 class PolicyListIn(BaseModel):
@@ -225,7 +225,7 @@ class PolicyListIn(BaseModel):
 
 
 class PolicyListOut(BaseModel):
-    policies: list[PolicyOut]
+    policies: list[RollupPolicyOut]
 
 
 @action(
@@ -243,7 +243,7 @@ def list_policies(params: PolicyListIn, ctx: ActionContext) -> PolicyListOut:
         rows = rows.filter(scope_type=params.scope_type)
     return PolicyListOut(
         policies=[
-            PolicyOut.model_validate(p)
+            RollupPolicyOut.model_validate(p)
             for p in rows.order_by("scope_type", "scope_code", "effective_from")
         ]
     )

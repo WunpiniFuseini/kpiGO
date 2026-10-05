@@ -56,6 +56,32 @@ jobs:
       - name: Full suite
         run: uv run pytest -q
 
+  frontend:
+    name: Frontend (types, tests, Storybook, axe-core)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Generated API types match frontend/openapi.json
+        run: npm run gen:api && git diff --exit-code -- src/api
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npm run build-storybook
+      - name: Install Chromium for the accessibility gate
+        run: npx playwright install --with-deps chromium
+      - name: Accessibility (axe-core, WCAG 2.1 AA, every story)
+        run: npm run a11y
+
   no-inference:
     name: No-inference boot gate
     # Standing gate (Brief R7, TDD §13): boot the whole stack with no inference
@@ -77,7 +103,7 @@ jobs:
           printf 'KPIGO_DEBUG=true\nKPIGO_SETUP_TOKEN=%s\n' "$KPIGO_SETUP_TOKEN" > .env
       - name: Boot the stack
         run: docker compose up -d --build --wait --wait-timeout 300
-      - name: Smoke test hello over HTTP, CLI and a worker job
+      - name: Smoke test HTTP, CLI, a worker job and the web front
         run: scripts/smoke.sh
       - name: Full suite inside the booted stack
         run: >-

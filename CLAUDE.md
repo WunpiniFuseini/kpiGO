@@ -122,4 +122,19 @@ uv run pytest
 uv run ruff check . && uv run ruff format --check . && uv run mypy kpigo tests
 scripts/migrations_roundtrip.sh   # forward, every app to zero, forward again
 docker compose up -d --build --wait && scripts/smoke.sh
+
+# frontend/
+npm ci && npm run typecheck && npm run lint && npm test
+npm run build-storybook && npm run a11y
+uv run python scripts/export_openapi.py frontend/openapi.json && npm run gen:api   # after any action change
 ```
+
+## Frontend rules
+
+- The UI calls actions only through `invoke()` in `frontend/src/api/client.ts`,
+  typed from the generated `actions.ts`. No hand-written fetch to `/api`.
+- Pydantic model names must be unique across actions (`tests/test_openapi.py`):
+  OpenAPI names schemas by class name, so two `ListOut`s become one.
+- Use tokens, never raw hex. Text on a tint uses the `-ink` token; `--ink-3` is
+  never text. Grade colours (standing) and `--pos/--neg/--warn` (movement) stay apart.
+- A component is done when every state has a story; `npm run a11y` checks them all.
