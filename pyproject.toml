@@ -24,6 +24,7 @@ dependencies = [
     "ldap3>=2.9",
     "lxml>=5",
     "joserfc>=1.0",
+    "polars>=1.9,<2",
 ]
 
 [dependency-groups]

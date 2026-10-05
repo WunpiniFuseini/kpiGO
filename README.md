@@ -8,7 +8,8 @@ This repository is at **R0 Workstream E**: the action layer (A), the core data
 model (B), ingestion (C), auth, access and the licence (D), and the design system
 with the app shell and admin screens (E). R1 (Scorecards and manual input) is in
 progress: the scorecard taxonomy, profile-to-metric assignment and the target
-workbench are in; scoring, period close, the scorecard UI and manual input follow.
+workbench are in, with the scoring engine and overrides; period close, the scorecard
+UI and manual input follow.
 
 ## The one rule
 
@@ -147,6 +148,24 @@ uv run python manage.py action target.upload --user ama --json '{"rows": [...], 
 uv run python manage.py action target.publish --user ama --json '{"period_keys": ["202611"]}'
 ```
 
+## Scorecards: scoring
+
+Open periods are scored at query time through the assignment in force on the
+period's last day: its profile decides the metrics, its cycle (else the
+product's) adjusts yearly, cumulative, quarterly and prorated targets. Each
+metric scores `MIN(% achieved × weight, cap) ÷ 100`; a missing actual is
+`not_reported` and leaves the denominator, an explicit `0` scores. The band is
+read from the total scaled up by the weight still awaiting data, so a late feed
+never drops anyone a band. `scorecard.compute` is one subject (the per-subject
+path, with every input for provenance); `scorecard.period.list` scores everyone
+visible through the Polars bulk path. `tests/test_scoring_golden.py` holds both
+paths to identical output.
+
+Overrides (`override.request` → `override.approve` by a second person) change a
+target, weight, cap, actual or target type for a person, a profile or a
+branch/region/segment/portfolio over a range of months; person beats profile
+beats dimension.
+
 ## Layout
 
 ```
@@ -162,7 +181,8 @@ kpigo/
     validator.py     the feed contract and six gates; also the standalone validator
   access/            users, roles, page access, data scope grants, sign-in, directory import
     auth/            local + LDAP, OIDC, SAML, Entra Graph
-  scorecards/        taxonomy, profile metrics, rating bands, target workbench
+  scorecards/        taxonomy, profile metrics, bands, target workbench, overrides,
+                     scoring engine (engine.py rules, scoring.py per subject, bulk.py Polars)
   licence/           signed licence, fingerprint, grace states, the pipeline's licence gate
 tools/licence_vendor.py  vendor-side key generation and licence signing
 frontend/
