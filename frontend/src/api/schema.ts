@@ -871,6 +871,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/campaign.winback.retention.set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change how many days a win-back must hold before it is confirmed. */
+        post: operations["campaign_winback_retention_set"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/campaign.winbacks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Each event's win-backs: provisional, confirmed after the retention window, lapsed. */
+        get: operations["campaign_winbacks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/connection.create": {
         parameters: {
             query?: never;
@@ -4794,6 +4828,12 @@ export interface components {
             /** Withheld */
             withheld: ("not_published" | "no_outcomes_fed" | "contaminated_baseline" | "history_too_short") | null;
         };
+        /** CampaignEventWinbacksOut */
+        CampaignEventWinbacksOut: {
+            counts: components["schemas"]["CampaignWinbackCountsOut"] | null;
+            /** Event Id */
+            event_id: string;
+        };
         /** CampaignGetInQuery */
         CampaignGetInQuery: {
             /**
@@ -5069,6 +5109,53 @@ export interface components {
             };
             /** Version No */
             version_no: number;
+        };
+        /** CampaignWinbackCountsOut */
+        CampaignWinbackCountsOut: {
+            /** Confirmed */
+            confirmed: number;
+            /** Lapsed */
+            lapsed: number;
+            /** Next Confirmation */
+            next_confirmation: string | null;
+            /** Provisional */
+            provisional: number;
+            /** Qualified */
+            qualified: number;
+        };
+        /** CampaignWinbackRetentionIn */
+        CampaignWinbackRetentionIn: {
+            /** Days */
+            days: number;
+            /** Reason */
+            reason: string;
+        };
+        /** CampaignWinbackRetentionOut */
+        CampaignWinbackRetentionOut: {
+            counts: components["schemas"]["CampaignWinbackCountsOut"];
+            /** Retention Days */
+            retention_days: number;
+        };
+        /** CampaignWinbacksInQuery */
+        CampaignWinbacksInQuery: {
+            /**
+             * Campaign Id
+             * Format: uuid
+             */
+            campaign_id: string;
+        };
+        /** CampaignWinbacksOut */
+        CampaignWinbacksOut: {
+            /** Campaign Id */
+            campaign_id: string;
+            /** Earns Winbacks */
+            earns_winbacks: boolean;
+            /** Events */
+            events: components["schemas"]["CampaignEventWinbacksOut"][];
+            /** Fed */
+            fed: boolean;
+            /** Retention Days */
+            retention_days: number;
         };
         /** CampaignWindowOut */
         CampaignWindowOut: {
@@ -5379,7 +5466,7 @@ export interface components {
             /** Source Object */
             source_object?: string | null;
             /** Template */
-            template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact") | null;
+            template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback") | null;
         };
         /** ConnectionTestOut */
         ConnectionTestOut: {
@@ -6177,7 +6264,7 @@ export interface components {
             /** Freshness State */
             freshness_state?: ("never_loaded" | "fresh" | "stale") | null;
             /** Template */
-            template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact") | null;
+            template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback") | null;
         };
         /** FeedListOut */
         FeedListOut: {
@@ -6270,7 +6357,7 @@ export interface components {
              * Template
              * @enum {string}
              */
-            template: "actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact";
+            template: "actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback";
             /**
              * Volume Reject Pct
              * @default 75
@@ -13910,6 +13997,160 @@ export interface operations {
             };
         };
     };
+    campaign_winback_retention_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignWinbackRetentionIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignWinbackRetentionOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    campaign_winbacks: {
+        parameters: {
+            query: {
+                campaign_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignWinbacksOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     connection_create: {
         parameters: {
             query?: never;
@@ -14058,7 +14299,7 @@ export interface operations {
             query: {
                 name: string;
                 source_object?: string | null;
-                template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact") | null;
+                template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback") | null;
             };
             header?: never;
             path?: never;
@@ -15495,7 +15736,7 @@ export interface operations {
         parameters: {
             query?: {
                 freshness_state?: ("never_loaded" | "fresh" | "stale") | null;
-                template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact") | null;
+                template?: ("actual_monthly" | "actual_daily" | "actual_dimensional" | "campaign_outcome" | "campaign_population" | "campaign_contact" | "campaign_winback") | null;
             };
             header?: never;
             path?: never;

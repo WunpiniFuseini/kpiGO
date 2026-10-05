@@ -95,8 +95,15 @@ _DATE_RE = re.compile(r"^([0-9]{4})-([0-9]{2})-([0-9]{2})(?:[T ]00:00(?::00(?:\.
 NON_NEGATIVE_UNITS = frozenset({"count", "days", "hours"})
 # Period statuses that refuse writes unless the load is flagged as a restatement.
 LOCKED_STATUSES = frozenset({"closing", "closed", "restating"})
-# The day a row is about, by template: activity, contact or population snapshot.
-DATE_COLUMNS = ("activity_date", "contact_date", "snapshot_date")
+# The days a row is about, by template: activity, contact, population snapshot,
+# win-back qualification and retention. The first one present is the row's day.
+DATE_COLUMNS = (
+    "activity_date",
+    "contact_date",
+    "snapshot_date",
+    "qualified_at",
+    "retention_confirmed_at",
+)
 FLAG_TRUE = frozenset({"y", "yes", "true", "1"})
 FLAG_FALSE = frozenset({"n", "no", "false", "0"})
 # Campaign feeds describe a customer by these dimensions, never by a customer
@@ -322,6 +329,26 @@ TEMPLATES: dict[str, Template] = {
             grain=("customer_ref", "campaign_code", "channel", "contact_date"),
             loadable=True,
             value_column="responded",
+        ),
+        # Customers the client's own definition counts as won back (Scope §9.4):
+        # the day they qualified and whether they still do. A later load with
+        # winback_flag = N marks the win-back lapsed. retention_confirmed_at is the
+        # client's own confirmation; blank, kpiGo confirms it after the org's
+        # retention window.
+        Template(
+            "campaign_winback",
+            (
+                _c("customer_ref", "code"),
+                _c("campaign_code", "code", required=False, nullable=True),
+                _c("qualified_at", "date"),
+                _c("winback_flag", "flag"),
+                _c("account_status", "code", required=False, nullable=True),
+                _c("retention_confirmed_at", "date", required=False, nullable=True),
+                *_CUSTOMER,
+            ),
+            grain=("customer_ref", "qualified_at"),
+            loadable=True,
+            value_column="winback_flag",
         ),
     )
 }
@@ -1283,6 +1310,20 @@ def _domain(rows: list[Row], today: date) -> list[Issue]:
                     value=str(channel),
                 )
             )
+        confirmed, qualified = v.get("retention_confirmed_at"), v.get("qualified_at")
+        if isinstance(confirmed, date) and isinstance(qualified, date) and confirmed < qualified:
+            issues.append(
+                Issue(
+                    "domain",
+                    "retention_before_qualified",
+                    "error",
+                    f"retention_confirmed_at {confirmed.isoformat()} is before the customer "
+                    f"qualified on {qualified.isoformat()}.",
+                    row_no=row.row_no,
+                    column="retention_confirmed_at",
+                    value=confirmed.isoformat(),
+                )
+            )
         for name in ("actual_value", "target_value", "value", "activity_value", "customer_count"):
             number = v.get(name)
             if not isinstance(number, Decimal):
@@ -1550,14 +1591,15 @@ def _campaign(template: Template, rows: list[Row], ref: Reference) -> list[Issue
         if code is None:
             continue
         events = ref.campaigns.get(str(code))
-        if template.name == "campaign_outcome":
+        if template.name in ("campaign_outcome", "campaign_winback"):
             if events is None:
+                what = "outcome" if template.name == "campaign_outcome" else "win-back"
                 issues.append(
                     Issue(
                         "referential",
                         "unknown_campaign_tag",
                         "warning",
-                        f"No campaign has the code '{code}'. The outcome is matched to events "
+                        f"No campaign has the code '{code}'. The {what} is matched to events "
                         "by audience, product and window instead.",
                         row_no=row.row_no,
                         column="campaign_code",

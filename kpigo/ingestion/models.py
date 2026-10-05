@@ -374,6 +374,23 @@ class TmplCampaignContact(Landing):
         db_table = "tmpl_campaign_contact"
 
 
+class TmplCampaignWinback(Landing):
+    pk = models.CompositePrimaryKey("run_id", "row_no")
+    customer_ref = _text()
+    campaign_code = _text()
+    qualified_at = _text()
+    winback_flag = _text()
+    account_status = _text()
+    retention_confirmed_at = _text()
+    segment_code = _text()
+    product_code = _text()
+    region_code = _text()
+    branch_code = _text()
+
+    class Meta:
+        db_table = "tmpl_campaign_winback"
+
+
 LANDING: dict[str, type[Landing]] = {
     "subject": TmplSubject,
     "assignment": TmplAssignment,
@@ -386,6 +403,7 @@ LANDING: dict[str, type[Landing]] = {
     "campaign_outcome": TmplCampaignOutcome,
     "campaign_population": TmplCampaignPopulation,
     "campaign_contact": TmplCampaignContact,
+    "campaign_winback": TmplCampaignWinback,
 }
 assert set(LANDING) == set(TEMPLATES), "every template needs a landing table"
 

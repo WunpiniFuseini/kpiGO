@@ -1,5 +1,5 @@
 import type { Me } from "../session/Session";
-import type { Campaign, CampaignEvent, CampaignList, CampaignSummary, Estimate, EventReach, EventValue, Reach, Reference, ValueReport } from "../pages/campaigns/model";
+import type { Campaign, CampaignEvent, CampaignList, CampaignSummary, Estimate, EventReach, EventValue, Reach, Reference, ValueReport, Winbacks } from "../pages/campaigns/model";
 import { adminMe } from "./fixtures";
 
 export const campaignManagerMe: Me = {
@@ -356,4 +356,32 @@ export const campaignValueGross: ValueReport = {
   basis: "gross",
   basis_changed_at: "2026-10-03T09:12:00Z",
   events: [eventValue({ roi: "166.3000" }), campaignValue.events[1]],
+};
+
+// ── win-backs ───────────────────────────────────────────────────────────────
+
+/** An attrition win-back campaign: event 1 running, event 2 a draft. */
+export const campaignWinbackDetail: Campaign = {
+  ...campaignDetail,
+  code: "LAPSED-CA",
+  name: "Lapsed Current Account Win-back",
+  objective: "attrition_winback",
+  description: "Outbound calling to accounts dormant 90+ days, waived reactivation fee.",
+};
+
+export const campaignWinbacks: Winbacks = {
+  campaign_id: campaignDetail.campaign_id,
+  retention_days: 90,
+  fed: true,
+  earns_winbacks: true,
+  events: [
+    { event_id: "e1000000-0000-4000-8000-000000000001", counts: { qualified: 754, provisional: 558, confirmed: 184, lapsed: 12, next_confirmation: "2026-10-09" } },
+    { event_id: "e1000000-0000-4000-8000-000000000002", counts: null },
+  ],
+};
+
+export const campaignWinbacksNothingFed: Winbacks = {
+  ...campaignWinbacks,
+  fed: false,
+  events: campaignWinbacks.events.map((e) => ({ ...e, counts: null })),
 };

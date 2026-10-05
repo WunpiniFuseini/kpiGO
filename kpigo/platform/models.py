@@ -125,6 +125,8 @@ class OrgSettings(Tracked):
     campaign_value_basis = models.TextField(db_default="incremental")
     # When the basis last changed: affected views say so.
     value_basis_changed_at = models.DateTimeField(null=True)
+    # Days after qualifying before a win-back is confirmed (Scope §9.4).
+    winback_retention_days = models.SmallIntegerField(db_default=90)
     config_version = models.BigIntegerField(db_default=0)
 
     class Meta:
@@ -142,6 +144,10 @@ class OrgSettings(Tracked):
             models.CheckConstraint(
                 condition=models.Q(campaign_value_basis__in=("incremental", "gross")),
                 name="org_settings_value_basis_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(winback_retention_days__gte=1, winback_retention_days__lte=730),
+                name="org_settings_winback_retention_valid",
             ),
         ]
 

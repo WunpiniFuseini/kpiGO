@@ -324,10 +324,12 @@ export function CampaignPage() {
   const [data, reloadCampaign] = useQuery("campaign.get", { campaign_id: campaignId });
   const [reach, reloadReach] = useQuery("campaign.reach", { campaign_id: campaignId });
   const [value, reloadValue] = useQuery("campaign.value", { campaign_id: campaignId });
+  const [winbacks, reloadWinbacks] = useQuery("campaign.winbacks", { campaign_id: campaignId });
   const reload = () => {
     reloadCampaign();
     reloadReach();
     reloadValue();
+    reloadWinbacks();
   };
   const title = data.status === "ready" ? data.data.name : "Campaign";
   return (
@@ -352,9 +354,9 @@ export function CampaignPage() {
           <ErrorPanel error={data.error} retry={reload} what="The campaign" />
         )
       ) : canManage ? (
-        <ManagedCampaign campaign={data.data} onChanged={reload} reach={reach} value={value} />
+        <ManagedCampaign campaign={data.data} onChanged={reload} reach={reach} value={value} winbacks={winbacks} />
       ) : (
-        <CampaignDetailView campaign={data.data} canManage={false} reach={reach} value={value} />
+        <CampaignDetailView campaign={data.data} canManage={false} reach={reach} value={value} winbacks={winbacks} />
       )}
     </Page>
   );
@@ -362,7 +364,7 @@ export function CampaignPage() {
 
 type DetailProps = Parameters<typeof CampaignDetailView>[0];
 
-function ManagedCampaign({ campaign, onChanged, reach, value }: { campaign: DetailProps["campaign"]; onChanged: () => void; reach: DetailProps["reach"]; value: DetailProps["value"] }) {
+function ManagedCampaign({ campaign, onChanged, reach, value, winbacks }: { campaign: DetailProps["campaign"]; onChanged: () => void; reach: DetailProps["reach"]; value: DetailProps["value"]; winbacks: DetailProps["winbacks"] }) {
   const [ref, reload] = useQuery("campaign.builder.reference", {});
   if (ref.status === "loading") {
     return (
@@ -372,6 +374,6 @@ function ManagedCampaign({ campaign, onChanged, reach, value }: { campaign: Deta
     );
   }
   if (ref.status === "error") return <ErrorPanel error={ref.error} retry={reload} what="The campaign builder" />;
-  return <CampaignDetailView campaign={campaign} reference={ref.data} canManage onChanged={onChanged} reach={reach} value={value} />;
+  return <CampaignDetailView campaign={campaign} reference={ref.data} canManage onChanged={onChanged} reach={reach} value={value} winbacks={winbacks} />;
 }
 

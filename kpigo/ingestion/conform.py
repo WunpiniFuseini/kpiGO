@@ -17,13 +17,14 @@ from typing import Any
 from django.db import connection
 from django.db.models import Q
 
-from kpigo.campaigns import attribution
+from kpigo.campaigns import attribution, winbacks
 from kpigo.campaigns.models import (
     Campaign,
     CampaignContact,
     CampaignEvent,
     CampaignOutcome,
     CampaignPopulation,
+    CampaignWinback,
 )
 from kpigo.hierarchy.models import DimMember, ProductLine
 from kpigo.ingestion import validator as v
@@ -409,6 +410,53 @@ def write_campaign_contact(
         attribution.reattribute(str(feed.org_id), *reach)
 
 
+def write_campaign_winback(
+    feed: Feed, run: FeedRun, rows: list[v.Row], previous: list[str], now: datetime
+) -> None:
+    """Win-backs as of this load, then matched to events (Scope §9.4).
+
+    Each row is one customer's win-back as it now stands: a later load sends the
+    row again to change it (winback_flag = N lapses it). Rows a load leaves out
+    are kept, so a feed of changes only is enough.
+    """
+    campaigns = dict(Campaign.objects.filter(org_id=feed.org_id).values_list("code", "campaign_id"))
+    facts = [
+        CampaignWinback(
+            org_id=feed.org_id,
+            customer_ref=str(row.values["customer_ref"]),
+            campaign_code=row.values.get("campaign_code"),
+            campaign_id=campaigns.get(row.values.get("campaign_code") or ""),
+            qualified_at=row.values["qualified_at"],
+            winback_flag=bool(row.values["winback_flag"]),
+            account_status=row.values.get("account_status"),
+            retention_confirmed_at=row.values.get("retention_confirmed_at"),
+            run_id=run.run_id,
+            loaded_at=now,
+            created_by=run.created_by,
+            **_customer(row),
+        )
+        for row in rows
+    ]
+    for chunk in _chunks(facts):
+        CampaignWinback.objects.bulk_create(
+            chunk,
+            update_conflicts=True,
+            unique_fields=["org_id", "customer_ref", "qualified_at"],
+            update_fields=[
+                "campaign_code",
+                "campaign",
+                "winback_flag",
+                "account_status",
+                "retention_confirmed_at",
+                *v.CUSTOMER_DIMENSIONS.values(),
+                "run_id",
+                "loaded_at",
+            ],
+        )
+    org_id = str(feed.org_id)
+    winbacks.match(org_id, Q(run_id=run.run_id), attribution.events_for(org_id), now=now)
+
+
 WRITERS = {
     "actual_monthly": write_monthly,
     "actual_daily": write_daily,
@@ -416,5 +464,6 @@ WRITERS = {
     "campaign_outcome": write_campaign_outcome,
     "campaign_population": write_campaign_population,
     "campaign_contact": write_campaign_contact,
+    "campaign_winback": write_campaign_winback,
 }
 assert set(WRITERS) == set(v.LOADABLE_TEMPLATES), "every loadable template needs a writer"

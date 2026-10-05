@@ -38,6 +38,9 @@ CAMPAIGN_STATUSES = ("active", "closed")
 ATTRIBUTION_RULES = ("last_touch", "first_touch", "priority", "split_even")
 # How an outcome reached an event: the client's campaign tag, or the audience criteria.
 MATCH_VIA = ("tag", "criteria")
+# How a win-back found its event: the client's tag, a contact the event made, or its audience.
+WINBACK_VIA = ("tag", "contact", "criteria")
+DEFAULT_RETENTION_DAYS = 90
 # Why an attribution row has the rule it has: a collision rule, the only candidate, or
 # the customer sat in the event's control group and so cannot be credited to it.
 RULES_APPLIED = ("single", "holdout", *ATTRIBUTION_RULES)
@@ -379,6 +382,63 @@ class CampaignContact(Stamped):
 
     def __str__(self) -> str:
         return f"{self.event_id} {self.customer_ref} {self.contact_date}"
+
+
+class CampaignWinback(Stamped, CustomerDims):
+    """A customer the client counts as won back, one row of the win-back feed (Scope §9.4).
+
+    What "won back" means is the client's, by construction. kpiGo adds the
+    retention qualification: a win-back is provisional until the client confirms
+    it (``retention_confirmed_at``) or the org's retention window passes, and
+    lapsed once a later load says the customer no longer qualifies. ``event`` is
+    the attrition win-back event credited with it, after the collision rule.
+    """
+
+    winback_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    customer_ref = models.TextField()
+    campaign_code = models.TextField(null=True)
+    campaign = models.ForeignKey(Campaign, on_delete=models.PROTECT, null=True, related_name="+")
+    qualified_at = models.DateField()
+    winback_flag = models.BooleanField()
+    account_status = models.TextField(null=True)
+    retention_confirmed_at = models.DateField(null=True)
+    # Null: no event earned it.
+    event = models.ForeignKey(
+        CampaignEvent, on_delete=models.SET_NULL, null=True, related_name="winbacks"
+    )
+    via = models.TextField(null=True)
+    rule_applied = models.TextField(null=True)
+    # Events that could have earned it; more than one is a collision.
+    candidates = models.SmallIntegerField(db_default=0)
+    matched_at = models.DateTimeField(null=True)
+    run_id = models.UUIDField()
+    loaded_at = models.DateTimeField()
+
+    class Meta:
+        db_table = "campaign_winback"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["org_id", "customer_ref", "qualified_at"], name="campaign_winback_grain"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(via__isnull=True) | models.Q(via__in=WINBACK_VIA),
+                name="campaign_winback_via_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(retention_confirmed_at__isnull=True)
+                | models.Q(retention_confirmed_at__gte=models.F("qualified_at")),
+                name="campaign_winback_retention_valid",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["org_id", "qualified_at"], name="campaign_winback_day"),
+            models.Index(fields=["event"], name="campaign_winback_event"),
+            models.Index(fields=["run_id"], name="campaign_winback_run"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.customer_ref} {self.qualified_at}"
 
 
 # ── computed ─────────────────────────────────────────────────────────────────

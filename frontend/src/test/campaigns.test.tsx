@@ -17,6 +17,9 @@ import {
   campaignReachNothingFed,
   campaignValue,
   campaignValueGross,
+  campaignWinbackDetail,
+  campaignWinbacks,
+  campaignWinbacksNothingFed,
   estimate,
   eventValue,
   eventValueContaminated,
@@ -287,5 +290,30 @@ describe("value and return", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await screen.findByText("Draft saved.");
     expect(calls[0].body).toMatchObject({ holdout_pct: 0 });
+  });
+});
+
+describe("win-backs", () => {
+  const ready = <T,>(data: T) => ({ status: "ready" as const, data, refreshing: false });
+
+  it("counts confirmed, provisional and lapsed win-backs and says when the next confirm", () => {
+    routed(<CampaignDetailView campaign={campaignWinbackDetail} canManage={false} winbacks={ready(campaignWinbacks)} />);
+    const running = screen.getByRole("region", { name: "Event 1 · October SMS wave" });
+    const panel = within(running).getByRole("region", { name: "Win-backs" });
+    expect(within(panel).getByText("184")).toBeInTheDocument();
+    expect(within(panel).getByText("558")).toBeInTheDocument();
+    expect(panel).toHaveTextContent(`held for 90 days`);
+    expect(panel).toHaveTextContent(`The next provisional win-backs confirm on ${formatDate("2026-10-09")}.`);
+    // A draft earns nothing yet.
+    const draft = screen.getByRole("region", { name: "Event 2 · November SMS wave" });
+    expect(within(draft).queryByRole("region", { name: "Win-backs" })).not.toBeInTheDocument();
+  });
+
+  it("says why there are none, and shows nothing for a campaign that earns none", () => {
+    const { unmount } = routed(<CampaignDetailView campaign={campaignWinbackDetail} canManage={false} winbacks={ready(campaignWinbacksNothingFed)} />);
+    expect(screen.getByText(/No win-back feed has loaded yet/)).toBeInTheDocument();
+    unmount();
+    routed(<CampaignDetailView campaign={campaignDetail} canManage={false} winbacks={ready(campaignWinbacks)} />);
+    expect(screen.queryByRole("region", { name: "Win-backs" })).not.toBeInTheDocument();
   });
 });

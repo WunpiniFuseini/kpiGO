@@ -10,6 +10,9 @@ import {
   campaignReachNothingFed,
   campaignValue,
   campaignValueGross,
+  campaignWinbackDetail,
+  campaignWinbacks,
+  campaignWinbacksNothingFed,
   campaignList,
   campaignListEmpty,
   campaignListNoScope,
@@ -90,3 +93,11 @@ export const DetailNoEvents: Story = at(DETAIL, { "campaign.get": { data: campai
 export const DetailOutOfScope: Story = at(DETAIL, { "campaign.get": { error: { status: 404, error: "not_found", message: "No such campaign in your scope." } } });
 export const DetailLoading: Story = at(DETAIL, { "campaign.get": "pending" });
 export const DetailFailed: Story = at(DETAIL, { "campaign.get": { error: serverError } });
+
+const winbackOk = { "campaign.get": { data: campaignWinbackDetail }, "campaign.builder.reference": { data: reference }, ...reachOk } as const;
+/** An attrition win-back campaign: confirmed, provisional and lapsed win-backs, and when the next confirm. */
+export const DetailWinbacks: Story = at(DETAIL, { ...winbackOk, "campaign.winbacks": { data: campaignWinbacks } });
+/** No win-back feed yet: the panel says where win-backs come from. */
+export const DetailWinbacksNothingFed: Story = at(DETAIL, { ...winbackOk, "campaign.winbacks": { data: campaignWinbacksNothingFed } });
+export const DetailWinbacksLoading: Story = at(DETAIL, { ...winbackOk, "campaign.winbacks": "pending" });
+export const DetailWinbacksFailed: Story = at(DETAIL, { ...winbackOk, "campaign.winbacks": { error: serverError } });
