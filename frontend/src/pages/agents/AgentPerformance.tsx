@@ -7,6 +7,7 @@ import { formatDate, formatValue } from "../../lib/format";
 import { Page } from "../../shell/AppShell";
 import { useMe } from "../../session/Session";
 import { MatrixSection } from "./Matrix";
+import { PipelineSection, PipelineStagesQuick } from "./Pipeline";
 import { ProductLinesQuick } from "./ProductLines";
 import { PresetSectionView, type Preset } from "./Sections";
 import { VisibilityNote, VisibilityQuick } from "./Visibility";
@@ -88,6 +89,7 @@ export function AgentPerformancePage() {
             </div>
             <span className="kg-spacer" />
             {me.permissions.includes("agent.config.manage") ? <VisibilityQuick key={product} product={product} /> : null}
+            {me.permissions.includes("agent.config.manage") && product === "agent_sales" ? <PipelineStagesQuick product={product} /> : null}
             {me.permissions.includes("product_line.manage") ? <ProductLinesQuick /> : null}
           </div>
           {preset.status === "loading" ? (
@@ -118,6 +120,8 @@ export function PresetView({ product, preset }: { product: Product; preset: Pres
       {preset.sections.map((section) =>
         section.kind === "leaderboard" ? (
           <LeaderboardSection key={section.key} product={product} />
+        ) : section.kind === "pipeline" ? (
+          <PipelineSection key={section.key} product={product} title={section.title} caption={section.caption} />
         ) : section.kind === "matrix" ? (
           <MatrixSection key={section.key} product={product} title={section.title} caption={section.caption} />
         ) : (

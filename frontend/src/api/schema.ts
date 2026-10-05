@@ -191,6 +191,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/agent.pipeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The sales pipeline by stage for the agents in view, drilling region → branch → RM. */
+        get: operations["agent_pipeline"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/agent.preset": {
         parameters: {
             query?: never;
@@ -1545,6 +1562,57 @@ export interface paths {
         put?: never;
         /** Move a period through open, closing, closed and restating. */
         post: operations["period_transition"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/pipeline.stage.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A module's pipeline stages in order, and the snapshot metrics a stage can read. */
+        get: operations["pipeline_stage_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/pipeline.stage.remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Take a stage out of the funnel. The facts it read stay where they are. */
+        post: operations["pipeline_stage_remove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/pipeline.stage.set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add or change a pipeline stage: its name, place, and the snapshot metrics it reads. */
+        post: operations["pipeline_stage_set"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3405,6 +3473,44 @@ export interface components {
             product: string;
             window: components["schemas"]["WindowOut"];
         };
+        /** AgentPipelineInQuery */
+        AgentPipelineInQuery: {
+            /** As Of */
+            as_of?: string | null;
+            /** Branch Code */
+            branch_code?: string | null;
+            /**
+             * Level
+             * @default region
+             * @enum {string}
+             */
+            level?: "region" | "branch" | "rm";
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+            /** Region Code */
+            region_code?: string | null;
+            /** Window */
+            window?: ("month" | "week") | null;
+        };
+        /** AgentPipelineOut */
+        AgentPipelineOut: {
+            /** Breadcrumb */
+            breadcrumb: components["schemas"]["CrumbOut"][];
+            /** Level */
+            level: string;
+            /** Product */
+            product: string;
+            /** Rows */
+            rows: components["schemas"]["PipelineRowOut"][];
+            /** Stages */
+            stages: components["schemas"]["PipelineStageOut"][];
+            total: components["schemas"]["PipelineRowOut"] | null;
+            visibility: components["schemas"]["VisibilityOut"];
+            window: components["schemas"]["WindowOut"];
+        };
         /** AgentPresetInQuery */
         AgentPresetInQuery: {
             /** As Of */
@@ -3438,7 +3544,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "leaderboard" | "matrix" | "trend" | "heatmap" | "distribution";
+            kind: "leaderboard" | "pipeline" | "matrix" | "trend" | "heatmap" | "distribution";
             metric: components["schemas"]["RankKeyOut"] | null;
             /** Metric Options */
             metric_options: components["schemas"]["RankKeyOut"][];
@@ -6747,6 +6853,119 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** PipelineCellOut */
+        PipelineCellOut: {
+            /** Conversion */
+            conversion: string | null;
+            /** Count */
+            count: string | null;
+            /** Count Change */
+            count_change: string | null;
+            /** Currency Code */
+            currency_code: string | null;
+            /** Mixed Currency */
+            mixed_currency: boolean;
+            /** Reported */
+            reported: number;
+            /** Value */
+            value: string | null;
+            /** Value Change */
+            value_change: string | null;
+        };
+        /** PipelineMetricOut */
+        PipelineMetricOut: {
+            /** Display Name */
+            display_name: string;
+            /** Metric Code */
+            metric_code: string;
+            /** Unit */
+            unit: string;
+        };
+        /** PipelineRowOut */
+        PipelineRowOut: {
+            /** Agents */
+            agents: number;
+            /** Branch Code */
+            branch_code: string | null;
+            /** Cells */
+            cells: components["schemas"]["PipelineCellOut"][];
+            /** Drill Level */
+            drill_level: ("branch" | "rm") | null;
+            /** Key */
+            key: string;
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "region" | "branch" | "rm" | "total";
+            /** Name */
+            name: string;
+            /** Region Code */
+            region_code: string | null;
+        };
+        /** PipelineStageListInQuery */
+        PipelineStageListInQuery: {
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+        };
+        /** PipelineStageListOut */
+        PipelineStageListOut: {
+            /** Candidates */
+            candidates: components["schemas"]["PipelineMetricOut"][];
+            /** Product */
+            product: string;
+            /** Stages */
+            stages: components["schemas"]["PipelineStageOut"][];
+        };
+        /** PipelineStageOut */
+        PipelineStageOut: {
+            /** Code */
+            code: string;
+            /** Count Metric Code */
+            count_metric_code: string | null;
+            /** Display Name */
+            display_name: string;
+            /** Sort Order */
+            sort_order: number;
+            /** Value Metric Code */
+            value_metric_code: string | null;
+        };
+        /** PipelineStageRemoveIn */
+        PipelineStageRemoveIn: {
+            /** Code */
+            code: string;
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+        };
+        /** PipelineStageRemoveOut */
+        PipelineStageRemoveOut: {
+            /** Removed */
+            removed: boolean;
+        };
+        /** PipelineStageSetIn */
+        PipelineStageSetIn: {
+            /** Code */
+            code: string;
+            /** Count Metric Code */
+            count_metric_code?: string | null;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+            /** Sort Order */
+            sort_order?: number | null;
+            /** Value Metric Code */
+            value_metric_code?: string | null;
+        };
         /** PlacementClearIn */
         PlacementClearIn: {
             /** Metric Code */
@@ -9517,6 +9736,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentPaceOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    agent_pipeline: {
+        parameters: {
+            query: {
+                product: "agent_sales" | "agent_service";
+                as_of?: string | null;
+                window?: ("month" | "week") | null;
+                level?: "region" | "branch" | "rm";
+                region_code?: string | null;
+                branch_code?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentPipelineOut"];
                 };
             };
             /** @description Unauthorized */
@@ -15605,6 +15896,247 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PeriodStatusOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    pipeline_stage_list: {
+        parameters: {
+            query: {
+                product: "agent_sales" | "agent_service";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineStageListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    pipeline_stage_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineStageRemoveIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineStageRemoveOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    pipeline_stage_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PipelineStageSetIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineStageOut"];
                 };
             };
             /** @description Accepted */

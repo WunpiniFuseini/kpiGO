@@ -6,10 +6,10 @@ which metric each starts on. Sections only ever read the module's own metrics:
 the starter-pack codes (``so_tat`` for SO_TAT) are preferred when the client kept them, and otherwise a
 section picks the first metric that suits it.
 
-Sales opens on the leaderboard, the product mix (the product-line matrix) and
-month to date against target. Service opens on the SLA heatmap, the TAT
-distribution, the queue trend and a leaderboard ranked by resolution with TAT
-as the tie-break.
+Sales opens on the leaderboard, the pipeline, the product mix (the
+product-line matrix) and month to date against target. Service opens on the
+SLA heatmap, the TAT distribution, the queue trend and a leaderboard ranked
+by resolution with TAT as the tie-break.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from typing import Literal
 from kpigo.agents.pace import ADDITIVE
 from kpigo.metrics.models import Metric
 
-Kind = Literal["leaderboard", "matrix", "trend", "heatmap", "distribution"]
+Kind = Literal["leaderboard", "pipeline", "matrix", "trend", "heatmap", "distribution"]
 
 
 def _additive(m: Metric) -> bool:
@@ -90,6 +90,12 @@ PRESETS: dict[str, Preset] = {
         product="agent_sales",
         sections=(
             LEADERBOARD,
+            Section(
+                "pipeline",
+                "pipeline",
+                "Pipeline",
+                "What sits in each stage now, and how it moved this month.",
+            ),
             Section(
                 "product_mix",
                 "matrix",

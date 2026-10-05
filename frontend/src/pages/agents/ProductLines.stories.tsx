@@ -3,7 +3,7 @@ import { Route, Routes } from "react-router-dom";
 
 import { AppShell } from "../../shell/AppShell";
 import { useSession, type Me } from "../../session/Session";
-import { leaderboard, matrix, presetSales, productLineAdminMe, trend, registry, registryEmpty, registryFresh } from "../../stories/agentFixtures";
+import { leaderboard, matrix, pipeline, presetSales, productLineAdminMe, trend, registry, registryEmpty, registryFresh } from "../../stories/agentFixtures";
 import { serverError } from "../../stories/fixtures";
 import { withApp, type Handlers } from "../../stories/mockApi";
 import { AgentPerformancePage } from "./AgentPerformance";
@@ -50,5 +50,5 @@ export const QuickSettings: Story = {
       <AgentPerformancePage />
     </InShell>
   ),
-  decorators: [withApp({ me: productLineAdminMe, path: "/agent-performance", handlers: { "agent.preset": { data: presetSales }, "agent.leaderboard": { data: leaderboard }, "agent.matrix": { data: matrix }, "agent.trend": { data: trend }, "product_line.registry": { data: registry } } })],
+  decorators: [withApp({ me: productLineAdminMe, path: "/agent-performance", handlers: { "agent.preset": { data: presetSales }, "agent.leaderboard": { data: leaderboard }, "agent.matrix": { data: matrix }, "agent.pipeline": { data: pipeline }, "agent.trend": { data: trend }, "product_line.registry": { data: registry } } })],
 };

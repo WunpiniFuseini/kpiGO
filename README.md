@@ -308,8 +308,8 @@ the daily totals after every load.
 ### Sales and Service presets, and who sees whom
 
 The two modules share the engine and differ in the page they open on
-(`agent.preset`). Sales: the leaderboard, the product mix (the matrix) and month to
-date against target (`agent.trend`). Service: the SLA heatmap (`agent.heatmap`,
+(`agent.preset`). Sales: the leaderboard, the pipeline, the product mix (the matrix)
+and month to date against target (`agent.trend`). Service: the SLA heatmap (`agent.heatmap`,
 branches by day against target), the TAT distribution (`agent.distribution`), the
 queue trend, then a leaderboard ranked by resolution with TAT as the tie-break
 until an Admin saves the module's own settings. Each section starts on the
@@ -321,6 +321,20 @@ or the agents of a profile, to their team (visibility closure), their own region
 or branch, or themselves; `all` keeps them open. A viewer's rules add up and the
 widest wins; their own figures always show. Every Agent Performance read applies it,
 and says when it did.
+
+### Sales pipeline
+
+The pipeline needs no new feed template. Each stage reads one or two snapshot
+metrics (aggregation `latest`, bound to the module) that the DE team adds to the
+daily view they already expose, for example `pipeline_proposal_value` and
+`pipeline_proposal_count`: what sits in the stage per agent that day. An Admin
+orders them into the funnel with `pipeline.stage.set` (a config change, so it can
+need approval); `pipeline.stage.remove` takes a stage out and never touches the
+facts. `agent.pipeline` reads one level of the drill: per stage, the sum over
+distinct agents of each agent's latest snapshot in the window to the as-of day,
+its movement since each agent's first snapshot in the window, and conversion
+from the stage before (deals over deals, otherwise value over value in one
+currency). An agent with no snapshot adds nothing; who-sees-whom applies.
 
 ## Layout
 

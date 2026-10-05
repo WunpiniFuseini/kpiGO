@@ -134,3 +134,39 @@ class AgentVisibilityRule(Tracked):
 
     def __str__(self) -> str:
         return f"{self.product} {self.applies_to} {self.applies_code}: {self.scope}"
+
+
+class PipelineStage(Tracked):
+    """One stage of a module's sales pipeline (Scope §8.2), read from the daily feed.
+
+    A stage is a pair of snapshot metrics the feed already carries through
+    ``actual_daily``: what sits in the stage on a day, by value and by count.
+    kpiGo adds no template for it: the DE team adds the stage metrics to the
+    daily view they already expose, and an Admin orders them into a funnel.
+    """
+
+    stage_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    product = models.TextField()
+    code = models.TextField()
+    display_name = models.TextField()
+    sort_order = models.IntegerField(db_default=0)
+    value_metric_code = models.TextField(null=True)
+    count_metric_code = models.TextField(null=True)
+
+    class Meta:
+        db_table = "pipeline_stage"
+        constraints = [
+            one_of("product", AGENT_PRODUCTS, "pipeline_stage_product_valid"),
+            models.UniqueConstraint(
+                fields=["org_id", "product", "code"], name="pipeline_stage_unique"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(value_metric_code__isnull=False)
+                | models.Q(count_metric_code__isnull=False),
+                name="pipeline_stage_has_metric",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.product} pipeline stage {self.code}"

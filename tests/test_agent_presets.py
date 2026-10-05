@@ -94,9 +94,12 @@ def sections(product: str) -> list[tuple[str, str, str | None]]:
     return [(s.key, s.kind, s.metric.key if s.metric else None) for s in out.sections]
 
 
-def test_sales_opens_on_the_leaderboard_product_mix_and_month_to_date(org: dict[str, str]) -> None:
+def test_sales_opens_on_the_leaderboard_pipeline_product_mix_and_month_to_date(
+    org: dict[str, str],
+) -> None:
     assert sections(PRODUCT) == [
         ("leaderboard", "leaderboard", None),
+        ("pipeline", "pipeline", None),
         ("product_mix", "matrix", None),
         # No starter-pack code here: the first sum or count by name.
         ("to_date", "trend", "accounts_opened"),

@@ -766,6 +766,149 @@
         "title": "AgentPaceOut",
         "type": "object"
       },
+      "AgentPipelineInQuery": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "branch_code": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Code"
+          },
+          "level": {
+            "default": "region",
+            "enum": [
+              "region",
+              "branch",
+              "rm"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          },
+          "region_code": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region Code"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "enum": [
+                  "month",
+                  "week"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "title": "AgentPipelineInQuery",
+        "type": "object"
+      },
+      "AgentPipelineOut": {
+        "properties": {
+          "breadcrumb": {
+            "items": {
+              "$ref": "#/components/schemas/CrumbOut"
+            },
+            "title": "Breadcrumb",
+            "type": "array"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineStageOut"
+            },
+            "title": "Stages",
+            "type": "array"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PipelineRowOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/VisibilityOut"
+          },
+          "window": {
+            "$ref": "#/components/schemas/WindowOut"
+          }
+        },
+        "required": [
+          "product",
+          "window",
+          "level",
+          "breadcrumb",
+          "stages",
+          "rows",
+          "total",
+          "visibility"
+        ],
+        "title": "AgentPipelineOut",
+        "type": "object"
+      },
       "AgentPresetInQuery": {
         "properties": {
           "as_of": {
@@ -839,6 +982,7 @@
           "kind": {
             "enum": [
               "leaderboard",
+              "pipeline",
               "matrix",
               "trend",
               "heatmap",
@@ -11163,6 +11307,406 @@
         "title": "PeriodStatusOut",
         "type": "object"
       },
+      "PipelineCellOut": {
+        "properties": {
+          "conversion": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversion"
+          },
+          "count": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          },
+          "count_change": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count Change"
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
+          "mixed_currency": {
+            "title": "Mixed Currency",
+            "type": "boolean"
+          },
+          "reported": {
+            "title": "Reported",
+            "type": "integer"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "value_change": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Change"
+          }
+        },
+        "required": [
+          "value",
+          "count",
+          "value_change",
+          "count_change",
+          "reported",
+          "conversion",
+          "currency_code",
+          "mixed_currency"
+        ],
+        "title": "PipelineCellOut",
+        "type": "object"
+      },
+      "PipelineMetricOut": {
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric_code",
+          "display_name",
+          "unit"
+        ],
+        "title": "PipelineMetricOut",
+        "type": "object"
+      },
+      "PipelineRowOut": {
+        "properties": {
+          "agents": {
+            "title": "Agents",
+            "type": "integer"
+          },
+          "branch_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Code"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineCellOut"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "drill_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "branch",
+                  "rm"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Drill Level"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "region",
+              "branch",
+              "rm",
+              "total"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "region_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region Code"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "level",
+          "drill_level",
+          "region_code",
+          "branch_code",
+          "agents",
+          "cells"
+        ],
+        "title": "PipelineRowOut",
+        "type": "object"
+      },
+      "PipelineStageListInQuery": {
+        "properties": {
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "title": "PipelineStageListInQuery",
+        "type": "object"
+      },
+      "PipelineStageListOut": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineMetricOut"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineStageOut"
+            },
+            "title": "Stages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "product",
+          "stages",
+          "candidates"
+        ],
+        "title": "PipelineStageListOut",
+        "type": "object"
+      },
+      "PipelineStageOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "count_metric_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count Metric Code"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          },
+          "value_metric_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Metric Code"
+          }
+        },
+        "required": [
+          "code",
+          "display_name",
+          "sort_order",
+          "value_metric_code",
+          "count_metric_code"
+        ],
+        "title": "PipelineStageOut",
+        "type": "object"
+      },
+      "PipelineStageRemoveIn": {
+        "properties": {
+          "code": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+            "title": "Code",
+            "type": "string"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product",
+          "code"
+        ],
+        "title": "PipelineStageRemoveIn",
+        "type": "object"
+      },
+      "PipelineStageRemoveOut": {
+        "properties": {
+          "removed": {
+            "title": "Removed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "removed"
+        ],
+        "title": "PipelineStageRemoveOut",
+        "type": "object"
+      },
+      "PipelineStageSetIn": {
+        "properties": {
+          "code": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+            "title": "Code",
+            "type": "string"
+          },
+          "count_metric_code": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count Metric Code"
+          },
+          "display_name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          },
+          "sort_order": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sort Order"
+          },
+          "value_metric_code": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Metric Code"
+          }
+        },
+        "required": [
+          "product",
+          "code",
+          "display_name"
+        ],
+        "title": "PipelineStageSetIn",
+        "type": "object"
+      },
       "PlacementClearIn": {
         "properties": {
           "metric_code": {
@@ -18448,6 +18992,188 @@
           "agent_performance"
         ],
         "x-kpigo-action": "agent.pace"
+      }
+    },
+    "/api/v1/actions/agent.pipeline": {
+      "get": {
+        "operationId": "agent_pipeline",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product",
+            "required": true,
+            "schema": {
+              "enum": [
+                "agent_sales",
+                "agent_service"
+              ],
+              "title": "Product",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "in": "query",
+            "name": "window",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "month",
+                    "week"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Window"
+            }
+          },
+          {
+            "in": "query",
+            "name": "level",
+            "required": false,
+            "schema": {
+              "default": "region",
+              "enum": [
+                "region",
+                "branch",
+                "rm"
+              ],
+              "title": "Level",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "region_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "branch_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Branch Code"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentPipelineOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "The sales pipeline by stage for the agents in view, drilling region \u2192 branch \u2192 RM.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.pipeline"
       }
     },
     "/api/v1/actions/agent.preset": {
@@ -26748,6 +27474,314 @@
           "platform"
         ],
         "x-kpigo-action": "period.transition"
+      }
+    },
+    "/api/v1/actions/pipeline.stage.list": {
+      "get": {
+        "operationId": "pipeline_stage_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product",
+            "required": true,
+            "schema": {
+              "enum": [
+                "agent_sales",
+                "agent_service"
+              ],
+              "title": "Product",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineStageListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "A module's pipeline stages in order, and the snapshot metrics a stage can read.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "pipeline.stage.list"
+      }
+    },
+    "/api/v1/actions/pipeline.stage.remove": {
+      "post": {
+        "operationId": "pipeline_stage_remove",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineStageRemoveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineStageRemoveOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Take a stage out of the funnel. The facts it read stay where they are.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "pipeline.stage.remove"
+      }
+    },
+    "/api/v1/actions/pipeline.stage.set": {
+      "post": {
+        "operationId": "pipeline_stage_set",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineStageSetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineStageOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Add or change a pipeline stage: its name, place, and the snapshot metrics it reads.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "pipeline.stage.set"
       }
     },
     "/api/v1/actions/platform.approval.approve": {
