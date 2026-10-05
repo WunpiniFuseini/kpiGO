@@ -6,6 +6,7 @@ import { CardSkeleton, EmptyState, ErrorPanel, Loading, MetricCard, RankedList, 
 import { formatDate, formatValue } from "../../lib/format";
 import { Page } from "../../shell/AppShell";
 import { useMe } from "../../session/Session";
+import { ProductLinesQuick } from "./ProductLines";
 
 export type Leaderboard = Output<"agent.leaderboard">;
 export type AgentPace = Output<"agent.pace">;
@@ -84,22 +85,26 @@ export function AgentPerformancePage() {
         </EmptyState>
       ) : (
         <div className="kg-stack">
-          <div className="kg-seg" role="group" aria-label="Module">
-            {PRODUCTS.map((p) => (
-              <button
-                key={p.value}
-                type="button"
-                aria-pressed={product === p.value}
-                onClick={() => {
-                  setProduct(p.value);
-                  setCohortCode(undefined);
-                  setRankBy(undefined);
-                  setSelected(null);
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
+          <div style={{ display: "flex", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
+            <div className="kg-seg" role="group" aria-label="Module">
+              {PRODUCTS.map((p) => (
+                <button
+                  key={p.value}
+                  type="button"
+                  aria-pressed={product === p.value}
+                  onClick={() => {
+                    setProduct(p.value);
+                    setCohortCode(undefined);
+                    setRankBy(undefined);
+                    setSelected(null);
+                  }}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <span className="kg-spacer" />
+            {me.permissions.includes("product_line.manage") ? <ProductLinesQuick /> : null}
           </div>
           <section className="kg-card" aria-labelledby="leaderboard-heading">
             <div className="kg-sechead">

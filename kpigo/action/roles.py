@@ -88,6 +88,9 @@ INPUT_FOLLOWUP = "input.followup"
 AGENT_VIEW = "agent.view"
 # Module settings, and daily retention (AP-12).
 AGENT_ADMIN = ("agent.config.manage", "agent.retention.manage")
+# The product-line registry (Scope §8.5): the handshake, groups, moves, retirement.
+# Product lines are a dimension, so stewards hold it with Admins (pages.py).
+PRODUCT_LINES = "product_line.manage"
 
 SYSTEM_ROLES: dict[str, RoleSpec] = {
     r.code: r
@@ -115,6 +118,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *INPUT_MANAGE,
             AGENT_VIEW,
             *AGENT_ADMIN,
+            PRODUCT_LINES,
         ),
         _role(
             "executive",
@@ -157,6 +161,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "licence.view",
             "system.health.view",
             "agent.retention.manage",
+            PRODUCT_LINES,
         ),
         _role("contributor", "Contributor", *EVERYONE, "input.submit"),
         _role(

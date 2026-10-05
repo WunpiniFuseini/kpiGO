@@ -235,6 +235,7 @@ def month_targets(org_id: str, codes: Sequence[str], months: Sequence[str]) -> T
         metric__metric_code__in=list(codes),
         period_key__in=list(months),
         series_type="target",
+        product_line_code="",
         state="published",
     ).select_related("metric")
     for t in rows:

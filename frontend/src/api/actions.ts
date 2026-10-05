@@ -101,7 +101,14 @@ export const ROUTES = {
   "platform.hello": { method: "GET", path: "/api/v1/hello", pathParams: [], public: false },
   "platform.migrations.plan": { method: "GET", path: "/api/v1/actions/platform.migrations.plan", pathParams: [], public: false },
   "platform.registry.list": { method: "GET", path: "/api/v1/registry", pathParams: [], public: false },
+  "product_group.set": { method: "POST", path: "/api/v1/actions/product_group.set", pathParams: [], public: false },
+  "product_line.activate": { method: "POST", path: "/api/v1/actions/product_line.activate", pathParams: [], public: false },
   "product_line.list": { method: "GET", path: "/api/v1/actions/product_line.list", pathParams: [], public: false },
+  "product_line.move": { method: "POST", path: "/api/v1/actions/product_line.move", pathParams: [], public: false },
+  "product_line.registry": { method: "GET", path: "/api/v1/actions/product_line.registry", pathParams: [], public: false },
+  "product_line.reorder": { method: "POST", path: "/api/v1/actions/product_line.reorder", pathParams: [], public: false },
+  "product_line.retire": { method: "POST", path: "/api/v1/actions/product_line.retire", pathParams: [], public: false },
+  "product_line.update": { method: "POST", path: "/api/v1/actions/product_line.update", pathParams: [], public: false },
   "reporting_edge.create": { method: "POST", path: "/api/v1/actions/reporting_edge.create", pathParams: [], public: false },
   "reporting_edge.end": { method: "POST", path: "/api/v1/actions/reporting_edge.end", pathParams: [], public: false },
   "reporting_edge.list": { method: "GET", path: "/api/v1/actions/reporting_edge.list", pathParams: [], public: false },
@@ -273,7 +280,14 @@ export interface Actions {
   "platform.hello": { input: NonNullable<operations["platform_hello"]["parameters"]["query"]>; output: operations["platform_hello"]["responses"][200]["content"]["application/json"] };
   "platform.migrations.plan": { input: Record<string, never>; output: operations["platform_migrations_plan"]["responses"][200]["content"]["application/json"] };
   "platform.registry.list": { input: NonNullable<operations["platform_registry_list"]["parameters"]["query"]>; output: operations["platform_registry_list"]["responses"][200]["content"]["application/json"] };
+  "product_group.set": { input: NonNullable<operations["product_group_set"]["requestBody"]>["content"]["application/json"]; output: operations["product_group_set"]["responses"][200]["content"]["application/json"] };
+  "product_line.activate": { input: NonNullable<operations["product_line_activate"]["requestBody"]>["content"]["application/json"]; output: operations["product_line_activate"]["responses"][200]["content"]["application/json"] };
   "product_line.list": { input: NonNullable<operations["product_line_list"]["parameters"]["query"]>; output: operations["product_line_list"]["responses"][200]["content"]["application/json"] };
+  "product_line.move": { input: NonNullable<operations["product_line_move"]["requestBody"]>["content"]["application/json"]; output: operations["product_line_move"]["responses"][200]["content"]["application/json"] };
+  "product_line.registry": { input: NonNullable<operations["product_line_registry"]["parameters"]["query"]>; output: operations["product_line_registry"]["responses"][200]["content"]["application/json"] };
+  "product_line.reorder": { input: NonNullable<operations["product_line_reorder"]["requestBody"]>["content"]["application/json"]; output: operations["product_line_reorder"]["responses"][200]["content"]["application/json"] };
+  "product_line.retire": { input: NonNullable<operations["product_line_retire"]["requestBody"]>["content"]["application/json"]; output: operations["product_line_retire"]["responses"][200]["content"]["application/json"] };
+  "product_line.update": { input: NonNullable<operations["product_line_update"]["requestBody"]>["content"]["application/json"]; output: operations["product_line_update"]["responses"][200]["content"]["application/json"] };
   "reporting_edge.create": { input: NonNullable<operations["reporting_edge_create"]["requestBody"]>["content"]["application/json"]; output: operations["reporting_edge_create"]["responses"][200]["content"]["application/json"] };
   "reporting_edge.end": { input: NonNullable<operations["reporting_edge_end"]["requestBody"]>["content"]["application/json"]; output: operations["reporting_edge_end"]["responses"][200]["content"]["application/json"] };
   "reporting_edge.list": { input: NonNullable<operations["reporting_edge_list"]["parameters"]["query"]>; output: operations["reporting_edge_list"]["responses"][200]["content"]["application/json"] };

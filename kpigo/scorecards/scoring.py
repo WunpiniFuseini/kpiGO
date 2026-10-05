@@ -108,6 +108,7 @@ def score_subject(
             metric_id__in=ids,
             period_key=period_key,
             series_type="target",
+            product_line_code="",
             state="published",
         ).filter(
             Q(scope_type="profile", scope_code=a.profile_code)

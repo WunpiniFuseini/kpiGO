@@ -17,6 +17,8 @@ RELATIONSHIP_TYPES = ("solid", "dotted")
 # ``available``: seen in a feed but not yet reviewed; an Admin activates it (PRD IN-11).
 MEMBER_STATUSES = ("available", "active", "inactive")
 PRODUCT_LINE_STATUSES = ("available", "active", "retired")
+# Which Agent Performance module shows a line or group: both, or one of them.
+PRODUCT_LINE_MODULES = ("agent_performance", "agent_sales", "agent_service")
 VISIBILITY_VIA = ("self", "solid", "dotted")
 DIMENSION_TYPE_PATTERN = r"^[a-z][a-z0-9_]*$"
 
@@ -218,6 +220,7 @@ class ProductGroup(Tracked):
         constraints = [
             models.UniqueConstraint(fields=["org_id", "code"], name="product_group_code_unique"),
             one_of("status", ("active", "retired"), "product_group_status_valid"),
+            one_of("module", PRODUCT_LINE_MODULES, "product_group_module_valid"),
         ]
 
     def __str__(self) -> str:
@@ -230,6 +233,8 @@ class ProductLine(Tracked):
     A line enters as ``available`` when ingestion sees a code with data and no
     line, so an Admin can never activate a line with no data behind it. It has
     no group until the Admin names and groups it; activating it requires one.
+    ``group`` is the group in force now; ``product_line_group`` keeps the
+    effective-dated history, so a past period keeps the grouping it had.
     """
 
     line_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -246,12 +251,21 @@ class ProductLine(Tracked):
     first_detected_at = models.DateTimeField(null=True)
     effective_from = models.DateField()
     effective_to = models.DateField(null=True)
+    # Per-line RAG thresholds on % achieved; null takes the module's.
+    rag_green = models.DecimalField(max_digits=6, decimal_places=3, null=True)
+    rag_amber = models.DecimalField(max_digits=6, decimal_places=3, null=True)
 
     class Meta:
         db_table = "product_line"
         constraints = [
             models.UniqueConstraint(fields=["org_id", "code"], name="product_line_code_unique"),
             one_of("status", PRODUCT_LINE_STATUSES, "product_line_status_valid"),
+            one_of("module", PRODUCT_LINE_MODULES, "product_line_module_valid"),
+            models.CheckConstraint(
+                condition=(models.Q(rag_green__isnull=True) & models.Q(rag_amber__isnull=True))
+                | (models.Q(rag_amber__gt=0) & models.Q(rag_green__gte=models.F("rag_amber"))),
+                name="product_line_rag_valid",
+            ),
             models.CheckConstraint(
                 condition=models.Q(status="available") | models.Q(group__isnull=False),
                 name="product_line_grouped_unless_available",
@@ -261,3 +275,23 @@ class ProductLine(Tracked):
 
     def __str__(self) -> str:
         return f"{self.code} ({self.status})"
+
+
+class ProductLineGroup(Tracked):
+    """Which group a line sat in, and when (Scope §8.5): a move is effective-dated."""
+
+    membership_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    line = models.ForeignKey(ProductLine, on_delete=models.PROTECT, related_name="groupings")
+    group = models.ForeignKey(ProductGroup, on_delete=models.PROTECT, related_name="+")
+    effective_from = models.DateField()
+    effective_to = models.DateField(null=True)
+
+    class Meta:
+        db_table = "product_line_group"
+        constraints = [
+            valid_range("product_line_group_range_valid"),
+            no_overlap("product_line_group_no_overlap", "line"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.line_id} in {self.group_id}"

@@ -312,6 +312,9 @@ class Target(Tracked):
     weight = models.DecimalField(max_digits=6, decimal_places=3, null=True)
     cap = models.DecimalField(max_digits=6, decimal_places=3, null=True)
     currency_code = models.CharField(max_length=3, null=True)
+    # An Agent Performance target for one product line (Scope §8.5); "" is the
+    # metric's own target across every line, the only kind Scorecards reads.
+    product_line_code = models.TextField(db_default="")
     version = models.IntegerField()
     state = models.TextField(db_default="draft")
     source = models.TextField(db_default="workbench")
@@ -337,20 +340,35 @@ class Target(Tracked):
                     "scope_code",
                     "period_key",
                     "series_type",
+                    "product_line_code",
                     "version",
                 ],
-                name="target_version_unique",
+                name="target_line_version_unique",
             ),
             # At most one draft and one live version per target key.
             models.UniqueConstraint(
-                fields=["metric", "scope_type", "scope_code", "period_key", "series_type"],
+                fields=[
+                    "metric",
+                    "scope_type",
+                    "scope_code",
+                    "period_key",
+                    "series_type",
+                    "product_line_code",
+                ],
                 condition=models.Q(state="draft"),
-                name="target_one_draft",
+                name="target_line_one_draft",
             ),
             models.UniqueConstraint(
-                fields=["metric", "scope_type", "scope_code", "period_key", "series_type"],
+                fields=[
+                    "metric",
+                    "scope_type",
+                    "scope_code",
+                    "period_key",
+                    "series_type",
+                    "product_line_code",
+                ],
                 condition=models.Q(state="published"),
-                name="target_one_published",
+                name="target_line_one_published",
             ),
             models.CheckConstraint(
                 condition=models.Q(weight__isnull=True) | models.Q(weight__gte=0),

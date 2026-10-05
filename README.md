@@ -275,6 +275,23 @@ It reads `mv_leaderboard_daily` (one row per agent, metric and day, summed acros
 product lines), which every daily load refreshes in its own transaction, as do
 archive and restore; `agent.leaderboard.refresh` refreshes it on demand.
 
+### Product lines
+
+Lines are never typed in. When a daily load carries data for a `product_line_code`
+no line has, ingestion registers it as **available** with the day it was detected.
+An Admin or Data Steward (`product_line.manage`) names it, groups it and switches it
+on (`product_line.activate`), from quick settings on the Agent Performance page or
+Administer → Product lines; it shows from the first day the feed carried it. The
+first line switched on with no group named goes into a default "Products" group.
+Moves between groups (`product_line.move`) and retirement (`product_line.retire`)
+are effective-dated: earlier periods keep the grouping and the columns they had, and
+facts are never touched. `product_line.registry` answers what was in the matrix on
+any day. A line can carry its own RAG thresholds (`product_line.update`).
+
+Line targets go through the target workbench: a row with a `product_line_code`
+targets that line (Agent Performance metrics only, no weight). Scorecards and pacing
+read only the metric's own target, the row with no line.
+
 ## Layout
 
 ```

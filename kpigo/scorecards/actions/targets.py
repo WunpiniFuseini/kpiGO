@@ -60,6 +60,8 @@ class TargetRowIn(BaseModel):
     weight: str | None = None
     cap: str | None = None
     currency_code: str | None = None
+    # An Agent Performance target for one product line; omitted for the metric's own.
+    product_line_code: str | None = None
 
 
 class FindingOut(BaseModel):
@@ -279,6 +281,8 @@ class TargetOut(BaseModel):
     weight: Decimal | None
     cap: Decimal | None
     currency_code: str | None
+    # "" for the metric's own target; else the product line it is for.
+    product_line_code: str
     version: int
     state: str
     source: str
@@ -291,6 +295,8 @@ class TargetListIn(BaseModel):
     metric_code: MetricCode | None = None
     scope_code: Code | None = None
     state: Literal["draft", "published", "superseded"] | None = None
+    # "" for the metrics' own targets only; a code for one line's.
+    product_line_code: str | None = Field(default=None, max_length=64)
     limit: int = Field(default=500, ge=1, le=5000)
 
 
@@ -320,6 +326,7 @@ def target_rows(rows: list[Target]) -> list[TargetOut]:
             weight=t.weight,
             cap=t.cap,
             currency_code=t.currency_code,
+            product_line_code=t.product_line_code,
             version=t.version,
             state=t.state,
             source=t.source,
@@ -352,10 +359,17 @@ def list_targets(params: TargetListIn, ctx: ActionContext) -> TargetListOut:
         rows = rows.filter(scope_code__in=codes)
     if params.state is not None:
         rows = rows.filter(state=params.state)
+    if params.product_line_code is not None:
+        rows = rows.filter(product_line_code=params.product_line_code)
     found = list(
-        rows.order_by("period_key", "metric__metric_code", "scope_type", "scope_code", "-version")[
-            : params.limit + 1
-        ]
+        rows.order_by(
+            "period_key",
+            "metric__metric_code",
+            "scope_type",
+            "scope_code",
+            "product_line_code",
+            "-version",
+        )[: params.limit + 1]
     )
     return TargetListOut(
         targets=target_rows(found[: params.limit]), truncated=len(found) > params.limit
@@ -592,6 +606,7 @@ def get_target(params: TargetGetIn, ctx: ActionContext) -> TargetHistoryOut:
             Q(metric_id=t.metric_id)
             & Q(scope_type=t.scope_type, scope_code=t.scope_code)
             & Q(period_key=t.period_key, series_type=t.series_type)
+            & Q(product_line_code=t.product_line_code)
         )
         .select_related("metric")
         .order_by("-version")
