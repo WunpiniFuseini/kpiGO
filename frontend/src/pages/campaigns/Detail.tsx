@@ -3,12 +3,14 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { ApiError, invoke, isProposal } from "../../api/client";
 import { useQuery, type QueryState } from "../../api/useAction";
 import { Chip, EmptyState, ErrorPanel, Loading, Notice, SelectField, Skeleton, TextField } from "../../components";
-import { formatDate, formatDateTime } from "../../lib/format";
+import { formatDate, formatDateTime, formatDelta } from "../../lib/format";
 import { EventFields } from "./EventFields";
 import {
   blankEvent,
+  BASES,
   budgetError,
   channelLabel,
+  controlText,
   count,
   describeEstimate,
   describeAudience,
@@ -17,17 +19,22 @@ import {
   hasErrors,
   money,
   objectiveLabel,
+  percent,
+  roiText,
   RULES,
   shareOf,
   span,
   statusOf,
   validateEvent,
+  withheldText,
   type Campaign,
   type CampaignEvent,
   type EventDraft,
   type EventReach,
+  type EventValue,
   type Reach,
   type Reference,
+  type ValueReport,
 } from "./model";
 
 type Message = { tone: "info" | "neg"; text: string } | null;
@@ -40,6 +47,7 @@ export function CampaignDetailView({
   canManage,
   onChanged,
   reach,
+  value,
 }: {
   campaign: Campaign;
   reference?: Reference;
@@ -47,6 +55,8 @@ export function CampaignDetailView({
   onChanged?: () => void;
   /** Each event's reach and funnel; absent, the panels are left out. */
   reach?: QueryState<Reach>;
+  /** Each event's value, control group and return; absent, the cards are left out. */
+  value?: QueryState<ValueReport>;
 }) {
   const [message, setMessage] = useState<Message>(null);
   const [busy, setBusy] = useState(false);
@@ -77,6 +87,11 @@ export function CampaignDetailView({
           {message.text}
         </Notice>
       ) : null}
+      {value?.status === "ready" && value.data.basis_changed_at ? (
+        <Notice tone="info" title={`Campaign value leads with ${BASES[value.data.basis]} value.`}>
+          The basis was changed on {formatDateTime(value.data.basis_changed_at)}. Reports from before then led with {BASES[value.data.basis === "gross" ? "incremental" : "gross"]} value.
+        </Notice>
+      ) : null}
 
       <section className="kg-card kg-stack" aria-labelledby="campaign-summary">
         <div className="kg-row">
@@ -97,7 +112,7 @@ export function CampaignDetailView({
       </section>
 
       {campaign.events.length ? (
-        campaign.events.map((e) => <EventPanel key={e.event_id} event={e} campaign={campaign} reference={reference} canManage={editable && !closed} busy={busy} act={act} reach={reach} />)
+        campaign.events.map((e) => <EventPanel key={e.event_id} event={e} campaign={campaign} reference={reference} canManage={editable && !closed} busy={busy} act={act} reach={reach} value={value} />)
       ) : (
         <EmptyState kind="none" title="This campaign has no events yet">
           An event is one run: its dates, its budget and who it is for. {editable ? "Add the first one below." : null}
@@ -176,7 +191,7 @@ function CampaignEdits({ campaign, busy, act }: { campaign: Campaign; busy: bool
 
 type Panel = "edit" | "budget" | "repeat" | null;
 
-function EventPanel({ event: e, campaign, reference, canManage, busy, act, reach }: { event: CampaignEvent; campaign: Campaign; reference?: Reference; canManage: boolean; busy: boolean; act: Act; reach?: QueryState<Reach> }) {
+function EventPanel({ event: e, campaign, reference, canManage, busy, act, reach, value }: { event: CampaignEvent; campaign: Campaign; reference?: Reference; canManage: boolean; busy: boolean; act: Act; reach?: QueryState<Reach>; value?: QueryState<ValueReport> }) {
   const [panel, setPanel] = useState<Panel>(null);
   const [confirm, setConfirm] = useState<"close" | "delete" | null>(null);
   const status = statusOf(e.status);
@@ -204,6 +219,7 @@ function EventPanel({ event: e, campaign, reference, canManage, busy, act, reach
         </Fact>
         <Fact term="Channels">{e.channels.length ? e.channels.map(channelLabel).join(", ") : "–"}</Fact>
         <Fact term="Audience">{describeAudience(e.audience, reference?.dimensions)}</Fact>
+        <Fact term="Control group">{e.holdout_pct === null ? "None" : `${e.holdout_pct}% held out`}</Fact>
         {!draft ? <Fact term="Version">{e.version}</Fact> : null}
       </dl>
       {e.pending_budget ? (
@@ -212,6 +228,7 @@ function EventPanel({ event: e, campaign, reference, canManage, busy, act, reach
         </Notice>
       ) : null}
       {reach ? <ReachPanel event={e} campaign={campaign} reach={reach} reference={reference} /> : null}
+      {value && !draft ? <ValuePanel event={e} value={value} /> : null}
 
       {open ? (
         <div className="kg-row" style={{ justifyContent: "flex-start", flexWrap: "wrap" }}>
@@ -342,6 +359,7 @@ function ReachNotes({ all, r, objective }: { all: Reach; r: EventReach; objectiv
   else if (r.estimate.as_of) notes.push(`Targeted is sized from the customer population on ${formatDate(r.estimate.as_of)}.`);
   if (!all.contacts_fed) notes.push("No contact feed has loaded yet, so contacted, delivered and responded are not known.");
   else if (r.contacted !== null && (r.delivered === null || r.responded === null)) notes.push("The contact feed does not say whether contacts were delivered or answered.");
+  if (r.held_out) notes.push(`${count(r.held_out)} ${r.held_out === 1 ? "customer was" : "customers were"} held out as the control group and are not counted as contacted.`);
   if (!all.outcome_metric_codes.length) notes.push(`The ${objectiveLabel(objective).toLowerCase()} objective counts no outcome metrics yet, so nothing is attributed. An Admin names them in the objective settings.`);
   else if (!all.outcomes_fed) notes.push("No outcomes have loaded yet.");
   if (r.matched_customers !== null && r.converted_customers !== null && r.matched_customers > r.converted_customers) {
@@ -362,6 +380,102 @@ function ReachNotes({ all, r, objective }: { all: Reach; r: EventReach; objectiv
         </p>
       ))}
     </>
+  );
+}
+
+function ValuePanel({ event: e, value }: { event: CampaignEvent; value: QueryState<ValueReport> }) {
+  if (value.status === "loading") {
+    return (
+      <Loading label={`Loading the value of ${e.event_name}`}>
+        <Skeleton height={96} />
+      </Loading>
+    );
+  }
+  if (value.status === "error") return <p className="kg-cap">The value of this event could not be loaded just now.</p>;
+  const v = value.data.events.find((x) => x.event_id === e.event_id);
+  return v ? <BudgetRoiCard value={v} basis={value.data.basis} name={e.event_name} /> : null;
+}
+
+/**
+ * What the event was worth against what it cost (Design Brief, `BudgetRoiCard`).
+ * The basis leads, with the other figure beside it and the method named; a
+ * withheld figure reads "—" with the reason, never zero.
+ */
+export function BudgetRoiCard({ value: v, basis, name }: { value: EventValue; basis: ValueReport["basis"]; name: string }) {
+  const title = `value-${v.event_id}`;
+  const cash = (amount: string | null) => (amount === null ? "—" : money(amount, v.currency));
+  const lead = basis === "incremental" ? v.incremental : v.gross;
+  const beside = basis === "incremental" ? v.gross : v.incremental;
+  const leadLabel = basis === "incremental" ? "Incremental value" : "Gross value";
+  const besideLabel = basis === "incremental" ? "Gross" : "Incremental";
+  const notes = [withheldText(v), roiText(v)].filter(Boolean);
+  const c = v.control;
+  const lift = controlText(v);
+  return (
+    <section className="kg-stack kg-roi" aria-labelledby={title}>
+      <h3 id={title} className="kg-eyebrow">
+        Value and return
+      </h3>
+      {v.gross === null ? (
+        <p className="kg-cap">{withheldText(v)}</p>
+      ) : (
+        <>
+          <div className="kg-roi__lead">
+            <div>
+              <span className="kg-cap">{leadLabel}</span>
+              <b className="kg-roi__figure" aria-label={`${leadLabel} of ${name}: ${lead === null ? "withheld" : cash(lead)}`}>
+                {cash(lead)}
+              </b>
+            </div>
+            <div>
+              <span className="kg-cap">{besideLabel}</span>
+              <b>{cash(beside)}</b>
+            </div>
+            <div>
+              <span className="kg-cap">Budget</span>
+              <b>{cash(v.budget)}</b>
+            </div>
+          </div>
+          <dl className="kg-facts">
+            <Fact term={`Return (${BASES[basis]})`}>{percent(v.roi)}</Fact>
+            <Fact term="Return on gross">{percent(v.gross_roi)}</Fact>
+            <Fact term="Cost per converted customer">{cash(v.cost_per_outcome)}</Fact>
+            <Fact term="Budget used">{v.utilisation === null ? "No spend fed" : percent(v.utilisation, 0)}</Fact>
+            <Fact term="Converted customers">
+              {v.converted_customers === null ? "—" : count(v.converted_customers)}
+              {v.new_customers ? <span className="kg-cap"> · {count(v.new_customers)} new</span> : null}
+            </Fact>
+          </dl>
+          <p className="kg-cap">
+            Incremental is gross less each converted customer's own value from {formatDate(v.baseline_start)} to {formatDate(v.baseline_end)}, the same length of time before the event. New customers have no earlier value, so theirs counts in full.
+          </p>
+          {v.other_currencies.length ? <p className="kg-cap">Also credited, not in the budget's currency and not converted: {v.other_currencies.map((a) => (a.currency ? money(a.amount, a.currency) : `${count(Number(a.amount))} (no currency)`)).join(" · ")}.</p> : null}
+          {notes.map((n) => (
+            <p key={n} className="kg-cap">
+              {n}
+            </p>
+          ))}
+        </>
+      )}
+      {c.treated !== null && c.control ? (
+        <div role="group" aria-label="Control group">
+          <dl className="kg-facts">
+            <Fact term="Contacted">
+              {count(c.treated)}
+              {c.treated_rate !== null ? <span className="kg-cap"> · {percent(c.treated_rate)} acted</span> : null}
+            </Fact>
+            <Fact term="Held out">
+              {count(c.control)}
+              {c.actual_pct !== null ? <span className="kg-cap"> ({c.actual_pct}%{c.planned_pct ? `, planned ${c.planned_pct}%` : ""})</span> : null}
+              {c.control_rate !== null ? <span className="kg-cap"> · {percent(c.control_rate)} acted</span> : null}
+            </Fact>
+            <Fact term="Lift">{c.lift_points === null ? "—" : `${formatDelta(Number(c.lift_points), 2)} points`}</Fact>
+            <Fact term="Incremental by control group">{cash(c.incremental)}</Fact>
+          </dl>
+        </div>
+      ) : null}
+      {lift ? <p className="kg-cap">{lift}</p> : null}
+    </section>
   );
 }
 
@@ -388,9 +502,10 @@ function EventEditor({ event: e, reference, objective, busy, act, onDone }: { ev
           attribution_window_days: p.attribution_window_days ?? e.attribution_window_days,
           channels: p.channels,
           audience: p.audience,
+          ...(started ? {} : { holdout_pct: p.holdout_pct ?? 0 }),
           ...(draft ? { budget_amount: p.budget_amount, budget_currency: p.budget_currency } : {}),
         }),
-      draft ? "Draft saved." : "Saved. The change is versioned; attribution is redone for this event on the next outcome load if its dates or audience changed.",
+      draft ? "Draft saved." : "Saved. The change is versioned, and if its dates or audience changed, outcomes are attributed to this event again.",
     );
     if (ok) onDone();
   };

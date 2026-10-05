@@ -1,6 +1,6 @@
 import type { Input, Output } from "../../api/actions";
 import type { ChipTone } from "../../components/Chip";
-import { formatDate, formatValue } from "../../lib/format";
+import { formatDate, formatDelta, formatValue } from "../../lib/format";
 
 export type CampaignList = Output<"campaign.list">;
 export type CampaignSummary = CampaignList["campaigns"][number];
@@ -16,6 +16,9 @@ export type Reach = Output<"campaign.reach">;
 export type EventReach = Reach["events"][number];
 export type Estimate = Output<"campaign.audience.estimate">;
 export type Rule = Reach["attribution_rule"];
+export type ValueReport = Output<"campaign.value">;
+export type EventValue = ValueReport["events"][number];
+export type Basis = ValueReport["basis"];
 
 export const OBJECTIVES: { value: Objective; label: string }[] = [
   { value: "deposit_growth", label: "Deposit growth" },
@@ -145,6 +148,8 @@ export interface EventDraft {
   budget_currency: string;
   channels: string[];
   audience: Criterion[];
+  /** Blank: no control group. */
+  holdout_pct: string;
 }
 
 export type EventErrors = Partial<Record<keyof EventDraft, string>>;
@@ -159,6 +164,7 @@ export function blankEvent(currency: string | null | undefined): EventDraft {
     budget_currency: currency ?? "",
     channels: [],
     audience: [],
+    holdout_pct: "",
   };
 }
 
@@ -172,8 +178,11 @@ export function draftOf(e: CampaignEvent): EventDraft {
     budget_currency: e.budget_currency,
     channels: e.channels,
     audience: e.audience,
+    holdout_pct: e.holdout_pct === null ? "" : String(e.holdout_pct),
   };
 }
+
+export const MAX_HOLDOUT_PCT = 50;
 
 const AMOUNT = /^\d{1,16}(\.\d{1,2})?$/;
 
@@ -194,6 +203,10 @@ export function validateEvent(d: EventDraft, { withBudget = true }: { withBudget
   if (d.attribution_window_days.trim()) {
     const w = Number(d.attribution_window_days);
     if (!Number.isInteger(w) || w < 0 || w > 730) errors.attribution_window_days = "A window is 0 to 730 whole days.";
+  }
+  if (d.holdout_pct.trim()) {
+    const h = Number(d.holdout_pct);
+    if (!Number.isInteger(h) || h < 1 || h > MAX_HOLDOUT_PCT) errors.holdout_pct = `A control group is 1 to ${MAX_HOLDOUT_PCT}% of the audience, in whole numbers.`;
   }
   if (withBudget) {
     const b = budgetError(d.budget_amount);
@@ -218,5 +231,60 @@ export function eventPayload(d: EventDraft) {
     budget_currency: d.budget_currency,
     channels: d.channels as Channel[],
     audience: d.audience,
+    ...(d.holdout_pct.trim() ? { holdout_pct: Number(d.holdout_pct) } : {}),
   };
+}
+
+// ── value and return ────────────────────────────────────────────────────────
+
+export const BASES: Record<Basis, string> = { incremental: "incremental", gross: "gross" };
+
+/** A ratio such as "-0.9972" as a signed percentage, "−99.7%". */
+export function percent(ratio: string | null, decimals = 1): string {
+  if (ratio === null) return "—";
+  return `${formatDelta(Number(ratio) * 100, decimals).replace(/^\+/, "")}%`;
+}
+
+/** Why incremental value is not shown; the gross figure still stands. */
+export function withheldText(v: EventValue): string {
+  switch (v.withheld) {
+    case "contaminated_baseline": {
+      const n = v.contaminated_customers ?? 0;
+      return `Withheld: another event reached ${count(n)} of these ${n === 1 ? "customer" : "customers"} in the baseline window, so their earlier value does not show what happens without a campaign.`;
+    }
+    case "history_too_short":
+      return `Withheld: the outcome feed does not reach back to ${formatDate(v.baseline_start)}, so the baseline would be incomplete.`;
+    case "no_outcomes_fed":
+      return "No outcomes have loaded yet.";
+    case "not_published":
+      return "Value is measured once the event is published.";
+    default:
+      return "";
+  }
+}
+
+export function roiText(v: EventValue): string {
+  switch (v.roi_reason) {
+    case "no_budget":
+      return "No budget, so no return to measure.";
+    case "no_value_in_budget_currency":
+      return `None of the credited value is in ${v.currency}, the budget's currency, so a return cannot be worked out.`;
+    default:
+      return "";
+  }
+}
+
+/** The control group in a sentence: why there is no lift, or how far to lean on it. */
+export function controlText(v: EventValue): string {
+  const c = v.control;
+  switch (c.reason) {
+    case "no_contacts_fed":
+      return c.planned_pct ? `A ${c.planned_pct}% control group is planned. The contact feed marks who was held out; none has loaded yet.` : "";
+    case "no_control_group":
+      return c.planned_pct ? `A ${c.planned_pct}% control group was planned, but the contact feed marks no one as held out.` : "No control group: every customer in the feed was contacted. The baseline is the only measure of lift.";
+    case "no_outcomes_fed":
+      return "The control group is known; lift follows once outcomes load.";
+    default:
+      return c.small ? "The control group has fewer than 30 customers, so read the lift as indicative only." : "";
+  }
 }

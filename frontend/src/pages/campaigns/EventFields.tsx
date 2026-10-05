@@ -2,7 +2,7 @@ import { useEffect, useId, useState } from "react";
 
 import { invoke } from "../../api/client";
 import { CheckboxGroup, SelectField, TextField } from "../../components";
-import { CHANNELS, describeAudience, describeEstimate, type Criterion, type Dimension, type Estimate, type EventDraft, type EventErrors } from "./model";
+import { CHANNELS, MAX_HOLDOUT_PCT, describeAudience, describeEstimate, type Criterion, type Dimension, type Estimate, type EventDraft, type EventErrors } from "./model";
 
 export type EstimateState = { status: "loading" } | { status: "ready"; data: Estimate } | { status: "error" };
 
@@ -129,7 +129,7 @@ export function AudienceCriteriaPicker({
 }
 
 /**
- * One event block of the builder: period, window, channels, budget, audience.
+ * One event block of the builder: period, window, budget, control group, channels, audience.
  * `mode` "live" hides the budget (it changes through approval) and fixes the
  * first day once the event has started.
  */
@@ -179,6 +179,20 @@ export function EventFields({
           <SelectField label="Currency" value={value.budget_currency} error={errors.budget_currency} onChange={(e) => set("budget_currency", e.target.value)} options={[...(value.budget_currency ? [] : [{ value: "", label: "Choose" }]), ...currencies.map((c) => ({ value: c, label: c }))]} />
         </div>
       ) : null}
+      <div className="kg-form-row">
+        <TextField
+          label="Control group (%)"
+          type="number"
+          min={1}
+          max={MAX_HOLDOUT_PCT}
+          inputMode="numeric"
+          value={value.holdout_pct}
+          disabled={started}
+          hint={started ? "Fixed: the event has started" : "Share of the audience held out and never contacted, to measure lift. Blank: none."}
+          error={errors.holdout_pct}
+          onChange={(e) => set("holdout_pct", e.target.value)}
+        />
+      </div>
       <CheckboxGroup legend="Channels" options={CHANNELS} value={value.channels} onChange={(next) => set("channels", next)} />
       <AudienceCriteriaPicker dimensions={dimensions} value={value.audience} onChange={(next) => set("audience", next)} error={errors.audience} estimate={estimate} />
     </div>

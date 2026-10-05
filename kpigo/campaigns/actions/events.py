@@ -31,7 +31,7 @@ from kpigo.campaigns.actions.campaigns import (
     create_event,
     ensure_still_visible,
 )
-from kpigo.campaigns.models import CampaignEvent, CampaignEventVersion
+from kpigo.campaigns.models import MAX_HOLDOUT_PCT, CampaignEvent, CampaignEventVersion
 from kpigo.campaigns.scope import get_visible, is_visible
 from kpigo.platform.vocab import CurrencyCode
 
@@ -130,6 +130,8 @@ class CampaignEventUpdateIn(BaseModel):
     # Draft only. A published event's budget goes through campaign.event.budget.set.
     budget_amount: Decimal | None = Field(default=None, ge=0, max_digits=18, decimal_places=2)
     budget_currency: CurrencyCode | None = None
+    # Planned control group share; 0 removes it. Fixed once the event has started.
+    holdout_pct: int | None = Field(default=None, ge=0, le=MAX_HOLDOUT_PCT)
 
 
 @action(
@@ -188,6 +190,15 @@ def update_event(params: CampaignEventUpdateIn, ctx: ActionContext) -> CampaignO
             event.budget_currency = params.budget_currency
         if params.budget_amount is not None:
             event.budget_amount = au.money(params.budget_amount)
+        holdout = None if params.holdout_pct in (None, 0) else params.holdout_pct
+        if params.holdout_pct is not None and holdout != event.holdout_pct:
+            if not draft and au.today() >= event.period_start:
+                raise Conflict(
+                    "The event has started, so its control group is fixed.",
+                    detail={"field": "holdout_pct"},
+                )
+            event.holdout_pct = holdout
+            fields_changed = True
         audience_changed = False
         if params.audience is not None:
             criteria = [(c.dimension_type, c.member_code) for c in params.audience]
@@ -397,6 +408,7 @@ def repeat_event(params: CampaignEventRepeatIn, ctx: ActionContext) -> CampaignO
                 budget_amount=source.budget_amount,
                 budget_currency=source.budget_currency,
                 channels=list(source.channels),
+                holdout_pct=source.holdout_pct,
                 created_by=ctx.user_id,
                 updated_by=ctx.user_id,
             )

@@ -93,6 +93,8 @@ class CampaignEventReachOut(BaseModel):
     estimate: CampaignReachEstimateOut
     # Distinct customers. None: nothing fed says (absent is not zero).
     contacted: int | None
+    # Held out as the control group, never contacted.
+    held_out: int | None
     delivered: int | None
     responded: int | None
     # Customers in the audience with a counted outcome in the window.
@@ -140,6 +142,7 @@ def campaign_reach(params: CampaignReachIn, ctx: ActionContext) -> CampaignReach
                 event_id=str(event.event_id),
                 estimate=CampaignReachEstimateOut.of(found.estimate),
                 contacted=found.contacted,
+                held_out=found.held_out,
                 delivered=found.delivered,
                 responded=found.responded,
                 matched_customers=found.matched_customers,

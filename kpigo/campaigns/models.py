@@ -38,6 +38,16 @@ CAMPAIGN_STATUSES = ("active", "closed")
 ATTRIBUTION_RULES = ("last_touch", "first_touch", "priority", "split_even")
 # How an outcome reached an event: the client's campaign tag, or the audience criteria.
 MATCH_VIA = ("tag", "criteria")
+# Why an attribution row has the rule it has: a collision rule, the only candidate, or
+# the customer sat in the event's control group and so cannot be credited to it.
+RULES_APPLIED = ("single", "holdout", *ATTRIBUTION_RULES)
+# Campaign value headline (Scope §9.2): incremental by default, gross always beside it.
+VALUE_BASES = ("incremental", "gross")
+# A customer's baseline: clean, absent because they have no history (new to bank),
+# or contaminated by an earlier event that reached them in the baseline window.
+BASELINE_CONFIDENCE = ("high", "new_customer", "low_contaminated_baseline")
+# The largest control group an event may hold out, in percent.
+MAX_HOLDOUT_PCT = 50
 # What is stored. ``scheduled``/``running`` are read from the dates of a live event.
 EVENT_STATES = ("draft", "live", "paused", "closed")
 EVENT_CHANGES = (
@@ -99,6 +109,9 @@ class CampaignEvent(Tracked):
     budget_currency = models.CharField(max_length=3)
     # Optional, where the client feeds spend; utilisation reads it.
     spend_to_date = models.DecimalField(max_digits=18, decimal_places=2, null=True)
+    # The share of the audience the DE team holds out as a control group, in percent.
+    # Null: no control group. Who was held out comes in on the contact feed.
+    holdout_pct = models.SmallIntegerField(null=True)
     channels = ArrayField(models.TextField(), default=list)
     state = models.TextField(db_default="draft")
     # Bumped on every change to a published event; each bump writes a version row.
@@ -135,6 +148,11 @@ class CampaignEvent(Tracked):
             models.CheckConstraint(
                 condition=models.Q(channels__contained_by=list(CHANNELS)),
                 name="campaign_event_channels_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(holdout_pct__isnull=True)
+                | models.Q(holdout_pct__gte=1, holdout_pct__lte=MAX_HOLDOUT_PCT),
+                name="campaign_event_holdout_valid",
             ),
         ]
         indexes = [
@@ -324,14 +342,20 @@ class CampaignPopulation(Stamped, CustomerDims):
 
 
 class CampaignContact(Stamped):
-    """One contact of a customer by an event, on a channel and day."""
+    """One contact of a customer by an event, on a channel and day.
+
+    A ``holdout`` row is the opposite: the customer was in the audience and was
+    deliberately not contacted, as the event's control group. Its channel is "".
+    """
 
     contact_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     org_id = models.UUIDField()
     event = models.ForeignKey(CampaignEvent, on_delete=models.CASCADE, related_name="contacts")
     customer_ref = models.TextField()
+    # "" on a holdout row: nobody was contacted.
     channel = models.TextField()
     contact_date = models.DateField()
+    holdout = models.BooleanField(db_default=False)
     # Null: the source did not say.
     delivered = models.BooleanField(null=True)
     responded = models.BooleanField(null=True)
@@ -345,7 +369,11 @@ class CampaignContact(Stamped):
                 fields=["event", "customer_ref", "channel", "contact_date"],
                 name="campaign_contact_grain",
             ),
-            one_of("channel", CHANNELS, "campaign_contact_channel_valid"),
+            models.CheckConstraint(
+                condition=models.Q(holdout=False, channel__in=CHANNELS)
+                | models.Q(holdout=True, channel=""),
+                name="campaign_contact_channel_fits",
+            ),
         ]
         indexes = [models.Index(fields=["run_id"], name="campaign_contact_run")]
 
@@ -381,7 +409,7 @@ class CampaignAttribution(Stamped):
     class Meta:
         db_table = "campaign_attribution"
         constraints = [
-            one_of("rule_applied", ("single", *ATTRIBUTION_RULES), "campaign_attribution_rule"),
+            one_of("rule_applied", RULES_APPLIED, "campaign_attribution_rule"),
             one_of("via", MATCH_VIA, "campaign_attribution_via_valid"),
             models.CheckConstraint(
                 condition=models.Q(attributed_value__gte=0, share__gte=0, share__lte=1),
@@ -396,3 +424,46 @@ class CampaignAttribution(Stamped):
 
     def __str__(self) -> str:
         return f"{self.outcome_id} -> {self.event_id} {self.attributed_value}"
+
+
+class CampaignBaseline(Stamped):
+    """A converted customer's pre-period baseline for an event (Scope §9.2).
+
+    Same customer, same metric, over an equal-length window immediately before the
+    event's span. ``gross`` is what the event was credited for the customer;
+    ``baseline`` is their pre-period value scaled by the share of their in-span
+    value the event was credited (so a split or a lost collision subtracts only its
+    part). ``incremental`` is ``gross - baseline``, negative when the month was
+    worse, and null when withheld: a contaminated baseline is not published.
+    """
+
+    pk = models.CompositePrimaryKey("event_id", "customer_ref", "metric_id", "currency_code")
+    org_id = models.UUIDField()
+    event = models.ForeignKey(CampaignEvent, on_delete=models.CASCADE, related_name="+")
+    customer_ref = models.TextField()
+    metric = models.ForeignKey("metrics.Metric", on_delete=models.PROTECT, related_name="+")
+    # "" when the outcomes carried no currency.
+    currency_code = models.CharField(max_length=3)
+    gross = models.DecimalField(max_digits=18, decimal_places=4)
+    baseline = models.DecimalField(max_digits=18, decimal_places=4, null=True)
+    incremental = models.DecimalField(max_digits=18, decimal_places=4, null=True)
+    confidence = models.TextField()
+    # The earlier event whose contacts fell in the baseline window, when contaminated.
+    contaminated_by = models.ForeignKey(
+        CampaignEvent, on_delete=models.SET_NULL, null=True, related_name="+"
+    )
+    computed_at = models.DateTimeField()
+
+    class Meta:
+        db_table = "campaign_baseline"
+        constraints = [
+            one_of("confidence", BASELINE_CONFIDENCE, "campaign_baseline_confidence_valid"),
+            models.CheckConstraint(
+                condition=~models.Q(confidence="low_contaminated_baseline")
+                | models.Q(incremental__isnull=True),
+                name="campaign_baseline_contaminated_withheld",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.event_id} {self.customer_ref} {self.confidence}"

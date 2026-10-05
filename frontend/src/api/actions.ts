@@ -60,6 +60,8 @@ export const ROUTES = {
   "campaign.objective.set": { method: "POST", path: "/api/v1/actions/campaign.objective.set", pathParams: [], public: false },
   "campaign.reach": { method: "GET", path: "/api/v1/actions/campaign.reach", pathParams: [], public: false },
   "campaign.update": { method: "POST", path: "/api/v1/actions/campaign.update", pathParams: [], public: false },
+  "campaign.value": { method: "GET", path: "/api/v1/actions/campaign.value", pathParams: [], public: false },
+  "campaign.value_basis.set": { method: "POST", path: "/api/v1/actions/campaign.value_basis.set", pathParams: [], public: false },
   "connection.create": { method: "POST", path: "/api/v1/actions/connection.create", pathParams: [], public: false },
   "connection.list": { method: "GET", path: "/api/v1/actions/connection.list", pathParams: [], public: false },
   "connection.test": { method: "GET", path: "/api/v1/actions/connection.test", pathParams: [], public: false },
@@ -273,6 +275,8 @@ export interface Actions {
   "campaign.objective.set": { input: NonNullable<operations["campaign_objective_set"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_objective_set"]["responses"][200]["content"]["application/json"] };
   "campaign.reach": { input: NonNullable<operations["campaign_reach"]["parameters"]["query"]>; output: operations["campaign_reach"]["responses"][200]["content"]["application/json"] };
   "campaign.update": { input: NonNullable<operations["campaign_update"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_update"]["responses"][200]["content"]["application/json"] };
+  "campaign.value": { input: NonNullable<operations["campaign_value"]["parameters"]["query"]>; output: operations["campaign_value"]["responses"][200]["content"]["application/json"] };
+  "campaign.value_basis.set": { input: NonNullable<operations["campaign_value_basis_set"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_value_basis_set"]["responses"][200]["content"]["application/json"] };
   "connection.create": { input: NonNullable<operations["connection_create"]["requestBody"]>["content"]["application/json"]; output: operations["connection_create"]["responses"][200]["content"]["application/json"] };
   "connection.list": { input: Record<string, never>; output: operations["connection_list"]["responses"][200]["content"]["application/json"] };
   "connection.test": { input: NonNullable<operations["connection_test"]["parameters"]["query"]>; output: operations["connection_test"]["responses"][200]["content"]["application/json"] };

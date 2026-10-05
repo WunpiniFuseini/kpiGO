@@ -837,6 +837,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/campaign.value": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Each event's gross and incremental value, control-group lift and ROI. */
+        get: operations["campaign_value"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/campaign.value_basis.set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change whether campaign value and ROI lead with incremental or gross. */
+        post: operations["campaign_value_basis_set"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/connection.create": {
         parameters: {
             query?: never;
@@ -4431,6 +4465,29 @@ export interface components {
              */
             campaign_id: string;
         };
+        /** CampaignControlOut */
+        CampaignControlOut: {
+            /** Actual Pct */
+            actual_pct: string | null;
+            /** Control */
+            control: number | null;
+            /** Control Rate */
+            control_rate: string | null;
+            /** Incremental */
+            incremental: string | null;
+            /** Lift Points */
+            lift_points: string | null;
+            /** Planned Pct */
+            planned_pct: number | null;
+            /** Reason */
+            reason: ("not_published" | "no_contacts_fed" | "no_control_group" | "no_outcomes_fed") | null;
+            /** Small */
+            small: boolean;
+            /** Treated */
+            treated: number | null;
+            /** Treated Rate */
+            treated_rate: string | null;
+        };
         /** CampaignCreateIn */
         CampaignCreateIn: {
             /** Campaign Type */
@@ -4500,6 +4557,8 @@ export interface components {
             channels?: ("sms" | "email" | "call" | "ussd" | "branch" | "app_push" | "whatsapp")[];
             /** Event Name */
             event_name: string;
+            /** Holdout Pct */
+            holdout_pct?: number | null;
             /**
              * Period End
              * Format: date
@@ -4532,6 +4591,8 @@ export interface components {
             channels?: ("sms" | "email" | "call" | "ussd" | "branch" | "app_push" | "whatsapp")[];
             /** Event Name */
             event_name: string;
+            /** Holdout Pct */
+            holdout_pct?: number | null;
             /**
              * Period End
              * Format: date
@@ -4561,6 +4622,8 @@ export interface components {
             event_id: string;
             /** Event Name */
             event_name: string;
+            /** Holdout Pct */
+            holdout_pct: number | null;
             pending_budget: components["schemas"]["CampaignPendingBudgetOut"] | null;
             /**
              * Period End
@@ -4605,6 +4668,8 @@ export interface components {
             estimate: components["schemas"]["CampaignReachEstimateOut"];
             /** Event Id */
             event_id: string;
+            /** Held Out */
+            held_out: number | null;
             /** Matched Customers */
             matched_customers: number | null;
             /** Responded */
@@ -4674,10 +4739,60 @@ export interface components {
             event_id: string;
             /** Event Name */
             event_name?: string | null;
+            /** Holdout Pct */
+            holdout_pct?: number | null;
             /** Period End */
             period_end?: string | null;
             /** Period Start */
             period_start?: string | null;
+        };
+        /** CampaignEventValueOut */
+        CampaignEventValueOut: {
+            /** Baseline */
+            baseline: string | null;
+            /**
+             * Baseline End
+             * Format: date
+             */
+            baseline_end: string;
+            /**
+             * Baseline Start
+             * Format: date
+             */
+            baseline_start: string;
+            /** Budget */
+            budget: string;
+            /** Contaminated Customers */
+            contaminated_customers: number | null;
+            control: components["schemas"]["CampaignControlOut"];
+            /** Converted Customers */
+            converted_customers: number | null;
+            /** Cost Per Outcome */
+            cost_per_outcome: string | null;
+            /** Currency */
+            currency: string;
+            /** Event Id */
+            event_id: string;
+            /** Gross */
+            gross: string | null;
+            /** Gross Roi */
+            gross_roi: string | null;
+            /** Incremental */
+            incremental: string | null;
+            /** New Customers */
+            new_customers: number | null;
+            /** Other Currencies */
+            other_currencies: components["schemas"]["CampaignValueOut"][];
+            /** Roi */
+            roi: string | null;
+            /** Roi Reason */
+            roi_reason: ("not_published" | "no_outcomes_fed" | "contaminated_baseline" | "history_too_short" | "no_value_in_budget_currency" | "no_budget") | null;
+            /** Spend To Date */
+            spend_to_date: string | null;
+            /** Utilisation */
+            utilisation: string | null;
+            /** Withheld */
+            withheld: ("not_published" | "no_outcomes_fed" | "contaminated_baseline" | "history_too_short") | null;
         };
         /** CampaignGetInQuery */
         CampaignGetInQuery: {
@@ -4889,12 +5004,54 @@ export interface components {
             /** Product Code */
             product_code?: string | null;
         };
+        /** CampaignValueBasisIn */
+        CampaignValueBasisIn: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "incremental" | "gross";
+            /** Reason */
+            reason: string;
+        };
+        /** CampaignValueBasisOut */
+        CampaignValueBasisOut: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "incremental" | "gross";
+            /** Basis Changed At */
+            basis_changed_at: string | null;
+        };
+        /** CampaignValueInQuery */
+        CampaignValueInQuery: {
+            /**
+             * Campaign Id
+             * Format: uuid
+             */
+            campaign_id: string;
+        };
         /** CampaignValueOut */
         CampaignValueOut: {
             /** Amount */
             amount: string;
             /** Currency */
             currency: string | null;
+        };
+        /** CampaignValueReportOut */
+        CampaignValueReportOut: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "incremental" | "gross";
+            /** Basis Changed At */
+            basis_changed_at: string | null;
+            /** Campaign Id */
+            campaign_id: string;
+            /** Events */
+            events: components["schemas"]["CampaignEventValueOut"][];
         };
         /** CampaignVersionOut */
         CampaignVersionOut: {
@@ -13541,6 +13698,160 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CampaignOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    campaign_value: {
+        parameters: {
+            query: {
+                campaign_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignValueReportOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    campaign_value_basis_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignValueBasisIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignValueBasisOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
                 };
             };
             /** @description Unauthorized */

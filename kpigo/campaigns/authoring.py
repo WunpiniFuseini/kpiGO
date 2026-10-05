@@ -204,6 +204,7 @@ def snapshot(event: CampaignEvent) -> dict[str, Any]:
         "budget_amount": str(event.budget_amount),
         "budget_currency": event.budget_currency,
         "channels": list(event.channels),
+        "holdout_pct": event.holdout_pct,
         "state": event.state,
         "audience": [{"dimension_type": d, "member_code": m} for d, m in criteria_of(event)],
     }

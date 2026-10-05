@@ -283,6 +283,7 @@ def test_split_and_allocate_never_credit_more_than_the_value() -> None:
             priority=rng.randint(1, 3),
             sequence_no=1,
             period_start=date(2026, 9, rng.randint(1, 20)),
+            period_end=date(2026, 9, 30),
             window_end=date(2026, 12, 31),
             metric_ids=frozenset(),
             products=None,

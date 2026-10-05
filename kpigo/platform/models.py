@@ -121,6 +121,10 @@ class OrgSettings(Tracked):
     business_day_cutoff = models.TimeField(null=True)
     # Campaign Manager's multi-touch collision rule, one per org (PRD CM-11, CM-12).
     attribution_rule = models.TextField(db_default="last_touch")
+    # Campaign value headline (Scope §9.2): incremental, gross beside it; or gross.
+    campaign_value_basis = models.TextField(db_default="incremental")
+    # When the basis last changed: affected views say so.
+    value_basis_changed_at = models.DateTimeField(null=True)
     config_version = models.BigIntegerField(db_default=0)
 
     class Meta:
@@ -134,6 +138,10 @@ class OrgSettings(Tracked):
                     attribution_rule__in=("last_touch", "first_touch", "priority", "split_even")
                 ),
                 name="org_settings_attribution_rule_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(campaign_value_basis__in=("incremental", "gross")),
+                name="org_settings_value_basis_valid",
             ),
         ]
 

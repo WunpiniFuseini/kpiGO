@@ -5,7 +5,8 @@
   only way to size an audience. It is unavailable, with the reason, when no
   population has been fed, or when the audience names a dimension the
   population is not broken down by.
-- **Contacted, delivered, responded** come from the contact feed.
+- **Contacted, delivered, responded** come from the contact feed; customers it
+  marks as held out are the control group, counted apart.
 - **Outcome reach** is the customers in the audience who did something the
   objective counts within the window; **converted** is those whose outcome was
   credited to this event after the collision rule. The gap between the two is
@@ -95,6 +96,8 @@ def estimate(
 class EventReach:
     estimate: Estimate
     contacted: int | None = None
+    # The control group: customers held out, never contacted.
+    held_out: int | None = None
     delivered: int | None = None
     responded: int | None = None
     matched_customers: int | None = None
@@ -137,8 +140,16 @@ def event_reach(
     if event.state == "draft":
         return reach
     if fed.contacts:
-        contacts = CampaignContact.objects.filter(event=event)
+        rows = CampaignContact.objects.filter(event=event)
+        contacts = rows.filter(holdout=False)
         reach.contacted = _distinct(contacts)
+        reach.held_out = (
+            rows.filter(holdout=True)
+            .exclude(customer_ref__in=contacts.values("customer_ref"))
+            .values("customer_ref")
+            .distinct()
+            .count()
+        )
         reach.delivered = _distinct(contacts, "delivered")
         reach.responded = _distinct(contacts, "responded")
     if fed.outcomes:

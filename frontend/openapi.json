@@ -2593,6 +2593,133 @@
         "title": "CampaignCloseIn",
         "type": "object"
       },
+      "CampaignControlOut": {
+        "properties": {
+          "actual_pct": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Pct"
+          },
+          "control": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Control"
+          },
+          "control_rate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Control Rate"
+          },
+          "incremental": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incremental"
+          },
+          "lift_points": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lift Points"
+          },
+          "planned_pct": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planned Pct"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "not_published",
+                  "no_contacts_fed",
+                  "no_control_group",
+                  "no_outcomes_fed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "small": {
+            "title": "Small",
+            "type": "boolean"
+          },
+          "treated": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Treated"
+          },
+          "treated_rate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Treated Rate"
+          }
+        },
+        "required": [
+          "planned_pct",
+          "treated",
+          "control",
+          "actual_pct",
+          "treated_rate",
+          "control_rate",
+          "lift_points",
+          "incremental",
+          "small",
+          "reason"
+        ],
+        "title": "CampaignControlOut",
+        "type": "object"
+      },
       "CampaignCreateIn": {
         "properties": {
           "campaign_type": {
@@ -2824,6 +2951,19 @@
             "title": "Event Name",
             "type": "string"
           },
+          "holdout_pct": {
+            "anyOf": [
+              {
+                "maximum": 50,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holdout Pct"
+          },
           "period_end": {
             "format": "date",
             "title": "Period End",
@@ -2929,6 +3069,19 @@
             "title": "Event Name",
             "type": "string"
           },
+          "holdout_pct": {
+            "anyOf": [
+              {
+                "maximum": 50,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holdout Pct"
+          },
           "period_end": {
             "format": "date",
             "title": "Period End",
@@ -2989,6 +3142,17 @@
           "event_name": {
             "title": "Event Name",
             "type": "string"
+          },
+          "holdout_pct": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holdout Pct"
           },
           "pending_budget": {
             "anyOf": [
@@ -3069,6 +3233,7 @@
           "spend_to_date",
           "channels",
           "audience",
+          "holdout_pct",
           "state",
           "status",
           "version",
@@ -3138,6 +3303,17 @@
             "title": "Event Id",
             "type": "string"
           },
+          "held_out": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Held Out"
+          },
           "matched_customers": {
             "anyOf": [
               {
@@ -3165,6 +3341,7 @@
           "event_id",
           "estimate",
           "contacted",
+          "held_out",
           "delivered",
           "responded",
           "matched_customers",
@@ -3356,6 +3533,19 @@
             ],
             "title": "Event Name"
           },
+          "holdout_pct": {
+            "anyOf": [
+              {
+                "maximum": 50,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holdout Pct"
+          },
           "period_end": {
             "anyOf": [
               {
@@ -3385,6 +3575,223 @@
           "event_id"
         ],
         "title": "CampaignEventUpdateIn",
+        "type": "object"
+      },
+      "CampaignEventValueOut": {
+        "properties": {
+          "baseline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline"
+          },
+          "baseline_end": {
+            "format": "date",
+            "title": "Baseline End",
+            "type": "string"
+          },
+          "baseline_start": {
+            "format": "date",
+            "title": "Baseline Start",
+            "type": "string"
+          },
+          "budget": {
+            "title": "Budget",
+            "type": "string"
+          },
+          "contaminated_customers": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contaminated Customers"
+          },
+          "control": {
+            "$ref": "#/components/schemas/CampaignControlOut"
+          },
+          "converted_customers": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Converted Customers"
+          },
+          "cost_per_outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Per Outcome"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "gross": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross"
+          },
+          "gross_roi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross Roi"
+          },
+          "incremental": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incremental"
+          },
+          "new_customers": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Customers"
+          },
+          "other_currencies": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignValueOut"
+            },
+            "title": "Other Currencies",
+            "type": "array"
+          },
+          "roi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roi"
+          },
+          "roi_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "not_published",
+                  "no_outcomes_fed",
+                  "contaminated_baseline",
+                  "history_too_short",
+                  "no_value_in_budget_currency",
+                  "no_budget"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roi Reason"
+          },
+          "spend_to_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spend To Date"
+          },
+          "utilisation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Utilisation"
+          },
+          "withheld": {
+            "anyOf": [
+              {
+                "enum": [
+                  "not_published",
+                  "no_outcomes_fed",
+                  "contaminated_baseline",
+                  "history_too_short"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withheld"
+          }
+        },
+        "required": [
+          "event_id",
+          "currency",
+          "budget",
+          "spend_to_date",
+          "baseline_start",
+          "baseline_end",
+          "gross",
+          "other_currencies",
+          "baseline",
+          "incremental",
+          "withheld",
+          "converted_customers",
+          "new_customers",
+          "contaminated_customers",
+          "roi",
+          "gross_roi",
+          "roi_reason",
+          "cost_per_outcome",
+          "utilisation",
+          "control"
+        ],
+        "title": "CampaignEventValueOut",
         "type": "object"
       },
       "CampaignGetInQuery": {
@@ -4107,6 +4514,74 @@
         "title": "CampaignUpdateIn",
         "type": "object"
       },
+      "CampaignValueBasisIn": {
+        "properties": {
+          "basis": {
+            "enum": [
+              "incremental",
+              "gross"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "basis",
+          "reason"
+        ],
+        "title": "CampaignValueBasisIn",
+        "type": "object"
+      },
+      "CampaignValueBasisOut": {
+        "properties": {
+          "basis": {
+            "enum": [
+              "incremental",
+              "gross"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "basis_changed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basis Changed At"
+          }
+        },
+        "required": [
+          "basis",
+          "basis_changed_at"
+        ],
+        "title": "CampaignValueBasisOut",
+        "type": "object"
+      },
+      "CampaignValueInQuery": {
+        "properties": {
+          "campaign_id": {
+            "format": "uuid",
+            "title": "Campaign Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "campaign_id"
+        ],
+        "title": "CampaignValueInQuery",
+        "type": "object"
+      },
       "CampaignValueOut": {
         "properties": {
           "amount": {
@@ -4130,6 +4605,49 @@
           "amount"
         ],
         "title": "CampaignValueOut",
+        "type": "object"
+      },
+      "CampaignValueReportOut": {
+        "properties": {
+          "basis": {
+            "enum": [
+              "incremental",
+              "gross"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "basis_changed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basis Changed At"
+          },
+          "campaign_id": {
+            "title": "Campaign Id",
+            "type": "string"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignEventValueOut"
+            },
+            "title": "Events",
+            "type": "array"
+          }
+        },
+        "required": [
+          "campaign_id",
+          "basis",
+          "basis_changed_at",
+          "events"
+        ],
+        "title": "CampaignValueReportOut",
         "type": "object"
       },
       "CampaignVersionOut": {
@@ -24828,6 +25346,203 @@
           "campaign"
         ],
         "x-kpigo-action": "campaign.update"
+      }
+    },
+    "/api/v1/actions/campaign.value": {
+      "get": {
+        "operationId": "campaign_value",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignValueReportOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Each event's gross and incremental value, control-group lift and ROI.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.value"
+      }
+    },
+    "/api/v1/actions/campaign.value_basis.set": {
+      "post": {
+        "operationId": "campaign_value_basis_set",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignValueBasisIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignValueBasisOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Change whether campaign value and ROI lead with incremental or gross.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.value_basis.set"
       }
     },
     "/api/v1/actions/connection.create": {
