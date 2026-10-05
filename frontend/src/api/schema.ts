@@ -89,6 +89,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/agent.distribution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** How the agents in view spread on one metric to date, in equal-width bins. */
+        get: operations["agent_distribution"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/agent.heatmap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Regions, branches or RMs by day: each day's figure against its target, with RAG. */
+        get: operations["agent_heatmap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/agent.leaderboard": {
         parameters: {
             query?: never;
@@ -157,6 +191,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/agent.preset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Sales or Service page: its sections in order, each with its starting metric. */
+        get: operations["agent_preset"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/agent.settings.get": {
         parameters: {
             query?: never;
@@ -185,6 +236,74 @@ export interface paths {
         put?: never;
         /** Set an Agent Performance module's grain (daily, or the weekly opt-in) and thresholds. */
         post: operations["agent_settings_set"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/agent.trend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Each day to date across the agents in view: the total or mean, against target. */
+        get: operations["agent_trend"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/agent.visibility.clear": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove a visibility rule: that role or profile goes back to the module's default. */
+        post: operations["agent_visibility_clear"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/agent.visibility.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who sees whom in an Agent Performance module: open unless a rule narrows it. */
+        get: operations["agent_visibility_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/agent.visibility.set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Narrow (or keep open) which agents a role or profile sees in a module. */
+        post: operations["agent_visibility_set"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3122,6 +3241,127 @@ export interface components {
             /** Restart Required */
             restart_required: boolean;
         };
+        /** AgentBinOut */
+        AgentBinOut: {
+            /** Agents */
+            agents: number;
+            /** High */
+            high: string;
+            /** Low */
+            low: string;
+            /** On Target */
+            on_target: number;
+        };
+        /** AgentDistributionInQuery */
+        AgentDistributionInQuery: {
+            /** As Of */
+            as_of?: string | null;
+            /** Branch Code */
+            branch_code?: string | null;
+            /** Metric Code */
+            metric_code?: string | null;
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+            /** Region Code */
+            region_code?: string | null;
+            /** Window */
+            window?: ("month" | "week") | null;
+        };
+        /** AgentDistributionOut */
+        AgentDistributionOut: {
+            /** Agents */
+            agents: number;
+            /** Bins */
+            bins: components["schemas"]["AgentBinOut"][];
+            /** Currency Code */
+            currency_code: string | null;
+            /** Median */
+            median: string | null;
+            metric: components["schemas"]["RankKeyOut"] | null;
+            /** Mixed Currency */
+            mixed_currency: boolean;
+            /** Product */
+            product: string;
+            /** Reported */
+            reported: number;
+            /** Target */
+            target: string | null;
+            visibility: components["schemas"]["VisibilityOut"];
+            window: components["schemas"]["WindowOut"];
+        };
+        /** AgentHeatCellOut */
+        AgentHeatCellOut: {
+            /** Achieved */
+            achieved: string | null;
+            /** Rag */
+            rag: ("green" | "amber" | "red") | null;
+            /** Reported */
+            reported: number;
+            /** Value */
+            value: string | null;
+        };
+        /** AgentHeatRowOut */
+        AgentHeatRowOut: {
+            /** Agents */
+            agents: number;
+            /** Branch Code */
+            branch_code: string | null;
+            /** Cells */
+            cells: components["schemas"]["AgentHeatCellOut"][];
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Region Code */
+            region_code: string | null;
+        };
+        /** AgentHeatmapInQuery */
+        AgentHeatmapInQuery: {
+            /** As Of */
+            as_of?: string | null;
+            /** Branch Code */
+            branch_code?: string | null;
+            /**
+             * Level
+             * @default branch
+             * @enum {string}
+             */
+            level?: "region" | "branch" | "rm";
+            /** Metric Code */
+            metric_code?: string | null;
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+            /** Region Code */
+            region_code?: string | null;
+            /** Window */
+            window?: ("month" | "week") | null;
+        };
+        /** AgentHeatmapOut */
+        AgentHeatmapOut: {
+            /** Currency Code */
+            currency_code: string | null;
+            /** Days */
+            days: string[];
+            /** Level */
+            level: string;
+            metric: components["schemas"]["RankKeyOut"] | null;
+            /** Mixed Currency */
+            mixed_currency: boolean;
+            /** Product */
+            product: string;
+            /** Rows */
+            rows: components["schemas"]["AgentHeatRowOut"][];
+            visibility: components["schemas"]["VisibilityOut"];
+            window: components["schemas"]["WindowOut"];
+            /** Working */
+            working: boolean[];
+        };
         /** AgentOut */
         AgentOut: {
             /** Branch Code */
@@ -3164,6 +3404,46 @@ export interface components {
             /** Product */
             product: string;
             window: components["schemas"]["WindowOut"];
+        };
+        /** AgentPresetInQuery */
+        AgentPresetInQuery: {
+            /** As Of */
+            as_of?: string | null;
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+        };
+        /** AgentPresetOut */
+        AgentPresetOut: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Product */
+            product: string;
+            /** Sections */
+            sections: components["schemas"]["AgentPresetSectionOut"][];
+            visibility: components["schemas"]["VisibilityOut"];
+        };
+        /** AgentPresetSectionOut */
+        AgentPresetSectionOut: {
+            /** Caption */
+            caption: string;
+            /** Key */
+            key: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "leaderboard" | "matrix" | "trend" | "heatmap" | "distribution";
+            metric: components["schemas"]["RankKeyOut"] | null;
+            /** Metric Options */
+            metric_options: components["schemas"]["RankKeyOut"][];
+            /** Title */
+            title: string;
         };
         /** AgentSettingsGetInQuery */
         AgentSettingsGetInQuery: {
@@ -3230,6 +3510,64 @@ export interface components {
             rank_metric_code?: string | null;
             /** Tiebreak Metric Code */
             tiebreak_metric_code?: string | null;
+        };
+        /** AgentTrendInQuery */
+        AgentTrendInQuery: {
+            /** As Of */
+            as_of?: string | null;
+            /** Branch Code */
+            branch_code?: string | null;
+            /** Metric Code */
+            metric_code?: string | null;
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+            /** Region Code */
+            region_code?: string | null;
+            /** Window */
+            window?: ("month" | "week") | null;
+        };
+        /** AgentTrendOut */
+        AgentTrendOut: {
+            /** Additive */
+            additive: boolean;
+            /** Agents */
+            agents: number;
+            /** Currency Code */
+            currency_code: string | null;
+            metric: components["schemas"]["RankKeyOut"] | null;
+            /** Mixed Currency */
+            mixed_currency: boolean;
+            /** Points */
+            points: components["schemas"]["AgentTrendPointOut"][];
+            /** Product */
+            product: string;
+            /** Reported */
+            reported: number;
+            visibility: components["schemas"]["VisibilityOut"];
+            window: components["schemas"]["WindowOut"];
+        };
+        /** AgentTrendPointOut */
+        AgentTrendPointOut: {
+            /** Cumulative */
+            cumulative: string | null;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Expected */
+            expected: string | null;
+            /** Reported */
+            reported: number;
+            /** Target */
+            target: string | null;
+            /** Value */
+            value: string | null;
+            /** Working */
+            working: boolean;
         };
         /** AppliedOverrideOut */
         AppliedOverrideOut: {
@@ -5549,6 +5887,7 @@ export interface components {
             tiebreak: components["schemas"]["RankKeyOut"] | null;
             /** Total */
             total: number;
+            visibility: components["schemas"]["VisibilityOut"];
             window: components["schemas"]["WindowOut"];
         };
         /** LeaderboardRefreshIn */
@@ -5832,6 +6171,7 @@ export interface components {
             total: components["schemas"]["MatrixRowOut"] | null;
             /** View */
             view: string;
+            visibility: components["schemas"]["VisibilityOut"];
             window: components["schemas"]["WindowOut"];
         };
         /** MatrixRowOut */
@@ -8234,6 +8574,91 @@ export interface components {
             /** Product Version */
             product_version: string;
         };
+        /** VisibilityClearIn */
+        VisibilityClearIn: {
+            /** Applies Code */
+            applies_code: string;
+            /**
+             * Applies To
+             * @enum {string}
+             */
+            applies_to: "role" | "profile";
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+        };
+        /** VisibilityClearOut */
+        VisibilityClearOut: {
+            /** Cleared */
+            cleared: boolean;
+        };
+        /** VisibilityListInQuery */
+        VisibilityListInQuery: {
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+        };
+        /** VisibilityListOut */
+        VisibilityListOut: {
+            /** Product */
+            product: string;
+            /** Rules */
+            rules: components["schemas"]["VisibilityRuleOut"][];
+        };
+        /**
+         * VisibilityOut
+         * @description What the reader sees: everyone, or the scopes a rule narrowed them to.
+         */
+        VisibilityOut: {
+            /** Because */
+            because: components["schemas"]["VisibilityRuleRefOut"][];
+            /** Restricted */
+            restricted: boolean;
+            /** Scopes */
+            scopes: string[];
+        };
+        /** VisibilityRuleOut */
+        VisibilityRuleOut: {
+            /** Applies Code */
+            applies_code: string;
+            /** Applies To */
+            applies_to: string;
+            /** Product */
+            product: string;
+            /** Scope */
+            scope: string;
+        };
+        /** VisibilityRuleRefOut */
+        VisibilityRuleRefOut: {
+            /** Applies Code */
+            applies_code: string;
+            /** Applies To */
+            applies_to: string;
+        };
+        /** VisibilitySetIn */
+        VisibilitySetIn: {
+            /** Applies Code */
+            applies_code: string;
+            /**
+             * Applies To
+             * @enum {string}
+             */
+            applies_to: "role" | "profile";
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "all" | "subtree" | "region" | "branch" | "self";
+        };
         /** VisibleInQuery */
         VisibleInQuery: {
             /** Period Key */
@@ -8701,6 +9126,151 @@ export interface operations {
             };
         };
     };
+    agent_distribution: {
+        parameters: {
+            query: {
+                product: "agent_sales" | "agent_service";
+                as_of?: string | null;
+                window?: ("month" | "week") | null;
+                metric_code?: string | null;
+                region_code?: string | null;
+                branch_code?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentDistributionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    agent_heatmap: {
+        parameters: {
+            query: {
+                product: "agent_sales" | "agent_service";
+                as_of?: string | null;
+                window?: ("month" | "week") | null;
+                metric_code?: string | null;
+                region_code?: string | null;
+                branch_code?: string | null;
+                level?: "region" | "branch" | "rm";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentHeatmapOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     agent_leaderboard: {
         parameters: {
             query: {
@@ -8996,6 +9566,74 @@ export interface operations {
             };
         };
     };
+    agent_preset: {
+        parameters: {
+            query: {
+                product: "agent_sales" | "agent_service";
+                as_of?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentPresetOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     agent_settings_get: {
         parameters: {
             query: {
@@ -9083,6 +9721,319 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentSettingsOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    agent_trend: {
+        parameters: {
+            query: {
+                product: "agent_sales" | "agent_service";
+                as_of?: string | null;
+                window?: ("month" | "week") | null;
+                metric_code?: string | null;
+                region_code?: string | null;
+                branch_code?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentTrendOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    agent_visibility_clear: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VisibilityClearIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisibilityClearOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    agent_visibility_list: {
+        parameters: {
+            query: {
+                product: "agent_sales" | "agent_service";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisibilityListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    agent_visibility_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VisibilitySetIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisibilityRuleOut"];
                 };
             };
             /** @description Accepted */

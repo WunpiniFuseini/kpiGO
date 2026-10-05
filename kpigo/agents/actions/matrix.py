@@ -20,11 +20,18 @@ from kpigo.access.preferences import preference
 from kpigo.action import ActionContext, InvalidInput, NotFound, action
 from kpigo.agents import matrix as mx
 from kpigo.agents.actions.leaderboard import RankKeyOut
-from kpigo.agents.actions.pace import MetricCode, WindowOut, resolve_window
+from kpigo.agents.actions.pace import (
+    MetricCode,
+    VisibilityOut,
+    WindowOut,
+    resolve_window,
+    visibility_out,
+)
 from kpigo.agents.config import AgentProduct, settings_for
 from kpigo.agents.daily import Pacer, agents_on, window_for
 from kpigo.agents.lines import lines_between
 from kpigo.agents.pace import ADDITIVE
+from kpigo.agents.visibility import visibility_for
 from kpigo.hierarchy.models import DimMember, ProductLine
 from kpigo.metrics.models import Metric
 from kpigo.platform.vocab import Code
@@ -107,6 +114,7 @@ class MatrixOut(BaseModel):
     total: MatrixRowOut | None
     # No line is switched on: only All products shows.
     no_lines: bool
+    visibility: VisibilityOut
 
 
 def _key_out(m: Metric) -> RankKeyOut:
@@ -167,6 +175,8 @@ def matrix(params: MatrixIn, ctx: ActionContext) -> MatrixOut:
     )
 
     agents, by_profile = agents_on(ctx.org_id, params.product, as_of)
+    seen = visibility_for(ctx, params.product, as_of)
+    agents = seen.filter(agents)
     additive = {
         m.metric_code: m for ms in by_profile.values() for m in ms if m.aggregation in ADDITIVE
     }
@@ -273,4 +283,5 @@ def matrix(params: MatrixIn, ctx: ActionContext) -> MatrixOut:
         rows=[_row_out(r) for r in built.rows],
         total=_row_out(built.total) if built.total else None,
         no_lines=not lines,
+        visibility=visibility_out(seen),
     )

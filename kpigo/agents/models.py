@@ -97,3 +97,40 @@ class AgentCohortMember(Tracked):
 
     def __str__(self) -> str:
         return f"{self.cohort_id} ∋ {self.subject_id}"
+
+
+# Who a viewer may see in a module (AP-7): open unless a rule restricts them.
+VISIBILITY_APPLIES_TO = ("role", "profile")
+# ``all`` lifts a restriction another rule would add; ``subtree`` is the viewer's
+# hierarchy (visibility closure); ``region``/``branch`` are the viewer's own on the day.
+VISIBILITY_SCOPES = ("all", "subtree", "region", "branch", "self")
+
+
+class AgentVisibilityRule(Tracked):
+    """Restricts which agents a role, or the agents of a profile, see in one module.
+
+    No rule for a viewer means the module's default: open. Rules a viewer matches
+    add up, so the widest one wins, as role grants do elsewhere.
+    """
+
+    rule_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    product = models.TextField()
+    applies_to = models.TextField()
+    applies_code = models.TextField()
+    scope = models.TextField()
+
+    class Meta:
+        db_table = "agent_visibility_rule"
+        constraints = [
+            one_of("product", AGENT_PRODUCTS, "agent_visibility_rule_product_valid"),
+            one_of("applies_to", VISIBILITY_APPLIES_TO, "agent_visibility_rule_applies_valid"),
+            one_of("scope", VISIBILITY_SCOPES, "agent_visibility_rule_scope_valid"),
+            models.UniqueConstraint(
+                fields=["org_id", "product", "applies_to", "applies_code"],
+                name="agent_visibility_rule_unique",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.product} {self.applies_to} {self.applies_code}: {self.scope}"

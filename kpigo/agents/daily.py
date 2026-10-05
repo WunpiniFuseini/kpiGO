@@ -292,6 +292,19 @@ class Board:
     working_days_total: int = 0
 
 
+@dataclass(frozen=True)
+class Plan:
+    """One agent on one metric over a window: the day plan and the figures."""
+
+    target: MonthTarget | None
+    currency_code: str | None
+    # The as-of month's share of the target (the comparison for non-additive metrics).
+    month_target: Decimal | None
+    days: list[DayPlan]
+    actuals: dict[date, Decimal]
+    missing_fx: bool
+
+
 class _Fx:
     def __init__(self, org_id: str) -> None:
         self.org_id = org_id
@@ -363,20 +376,21 @@ class Pacer:
             for month in self.window.months
         }
 
-    def pace(
+    def plan(
         self,
         agent: Agent,
         metric: Metric,
         found: dict[str, MonthTarget | None],
         series: dict[date, dict[str | None, Decimal]],
-    ) -> MetricPace:
+    ) -> Plan:
+        """Each day's target share and the agent's figures, in the target's currency."""
         months_in_cycle = self._months_in_cycle(agent)
         mine = found.get(self.as_of_month)
         currency = next(
             (t.currency_code for t in found.values() if t is not None and t.currency_code),
             None,
         )
-        plans: list[DayPlan] = []
+        days: list[DayPlan] = []
         for day in self.window.days:
             month = period_key_for(day)
             working = self.calendar.is_working(day, agent.region_code)
@@ -386,7 +400,7 @@ class Pacer:
                 n = self._working_in(agent.region_code, month)
                 month_value = month_share(t.stored, t.target_type, months_in_cycle)
                 share = month_value / n if working and n else Decimal(0)
-            plans.append(DayPlan(day=day, working=working, share=share))
+            days.append(DayPlan(day=day, working=working, share=share))
         actuals: dict[date, Decimal] = {}
         missing_fx = False
         for day, by_currency in series.items():
@@ -398,25 +412,44 @@ class Pacer:
                     continue
                 value += amount * rate
             actuals[day] = value
-        return MetricPace(
-            metric=metric,
+        return Plan(
             target=mine,
             currency_code=currency,
-            day_value=actuals.get(self.window.as_of),
+            month_target=(
+                month_share(mine.stored, mine.target_type, months_in_cycle)
+                if mine is not None
+                else None
+            ),
+            days=days,
+            actuals=actuals,
+            missing_fx=missing_fx,
+        )
+
+    def pace(
+        self,
+        agent: Agent,
+        metric: Metric,
+        found: dict[str, MonthTarget | None],
+        series: dict[date, dict[str | None, Decimal]],
+    ) -> MetricPace:
+        return self.paced(metric, self.plan(agent, metric, found, series))
+
+    def paced(self, metric: Metric, p: Plan) -> MetricPace:
+        return MetricPace(
+            metric=metric,
+            target=p.target,
+            currency_code=p.currency_code,
+            day_value=p.actuals.get(self.window.as_of),
             pace=pace(
                 PaceIn(
                     direction=metric.direction,
                     aggregation=metric.aggregation,
-                    days=plans,
+                    days=p.days,
                     as_of=self.window.as_of,
-                    actuals=actuals,
-                    month_target=(
-                        month_share(mine.stored, mine.target_type, months_in_cycle)
-                        if mine is not None
-                        else None
-                    ),
+                    actuals=p.actuals,
+                    month_target=p.month_target,
                     cap=self.settings.pace_cap,
-                    missing_fx=missing_fx,
+                    missing_fx=p.missing_fx,
                 )
             ),
         )

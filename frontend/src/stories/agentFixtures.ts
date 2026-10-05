@@ -21,11 +21,14 @@ function agent(id: string, name: string, branch: string, region: string) {
   return { subject_id: id, staff_no: id.slice(-3), full_name: name, role_code: "rm", profile_code: "sme_rm", branch_code: branch, region_code: region };
 }
 
+const open = { restricted: false, scopes: [], because: [] };
+
 const band = (ramp_position: number) => ({ label: ["", "Needs Focus", "Gaining Momentum", "On Target", "Exemplary"][ramp_position], ramp_position });
 
 export const leaderboard: Leaderboard = {
   product: "agent_sales",
   window,
+  visibility: open,
   cohort_type: "region",
   cohort: { code: "GA", name: "Greater Accra", agents: 5 },
   cohorts: [
@@ -213,6 +216,7 @@ const lineColumns: ProductMatrix["columns"] = [
 export const matrix: ProductMatrix = {
   product: "agent_sales",
   window,
+  visibility: open,
   metric: valueBooked,
   metric_options: [accounts, valueBooked],
   level: "region",
@@ -267,3 +271,136 @@ export const matrixNoLines: ProductMatrix = {
 
 /** No sum or count metric in the module. */
 export const matrixNoMetric: ProductMatrix = { ...matrix, metric: null, metric_options: [], rows: [], total: null };
+
+// ── presets and their sections ──────────────────────────────────────────────
+
+type Preset = Output<"agent.preset">;
+type Trend = Output<"agent.trend">;
+type Heatmap = Output<"agent.heatmap">;
+type Distribution = Output<"agent.distribution">;
+
+const tat = { key: "so_tat", display_name: "Average handling time", unit: "hours", decimal_places: 1, direction: "lower_is_better" };
+const breach = { key: "so_sla_breach", display_name: "SLA breach rate", unit: "percent", decimal_places: 1, direction: "lower_is_better" };
+const complaints = { key: "so_complaints", display_name: "Complaints handled", unit: "count", decimal_places: 0, direction: "higher_is_better" };
+const serviceOptions = [tat, complaints, breach];
+
+export const presetSales: Preset = {
+  product: "agent_sales",
+  as_of: "2026-06-17",
+  sections: [
+    { key: "leaderboard", kind: "leaderboard", title: "Leaderboard", caption: "Ranked within a peer group, to date.", metric: null, metric_options: [] },
+    { key: "product_mix", kind: "matrix", title: "Product mix", caption: "Actual against the target expected by now, per product line.", metric: null, metric_options: [] },
+    { key: "to_date", kind: "trend", title: "Month to date", caption: "What has been booked so far against where the target expects it.", metric: valueBooked, metric_options: [accounts, valueBooked] },
+  ],
+  visibility: open,
+};
+
+export const presetService: Preset = {
+  product: "agent_service",
+  as_of: "2026-06-17",
+  sections: [
+    { key: "sla", kind: "heatmap", title: "SLA by day", caption: "Each day against its target, by branch.", metric: breach, metric_options: serviceOptions },
+    { key: "tat", kind: "distribution", title: "TAT distribution", caption: "How agents spread on handling time, to date.", metric: tat, metric_options: serviceOptions },
+    { key: "queue", kind: "trend", title: "Queue trend", caption: "Work handled each day.", metric: complaints, metric_options: serviceOptions },
+    { key: "leaderboard", kind: "leaderboard", title: "Leaderboard", caption: "Ranked within a peer group, to date.", metric: null, metric_options: [] },
+  ],
+  visibility: open,
+};
+
+/** A Staff member narrowed to their branch. */
+export const presetRestricted: Preset = {
+  ...presetSales,
+  visibility: { restricted: true, scopes: ["branch"], because: [{ applies_to: "role", applies_code: "staff" }] },
+};
+
+const days = ["2026-06-12", "2026-06-13", "2026-06-14", "2026-06-15", "2026-06-16", "2026-06-17"];
+const working = [true, false, false, true, true, true];
+
+export const trend: Trend = {
+  product: "agent_sales",
+  window,
+  metric: valueBooked,
+  additive: true,
+  agents: 5,
+  reported: 4,
+  currency_code: "GHS",
+  mixed_currency: false,
+  points: days.map((day, i) => ({
+    day,
+    working: working[i],
+    value: working[i] ? String(3000 + i * 400) : null,
+    reported: working[i] ? 4 : 0,
+    cumulative: String(40000 + i * 3000),
+    expected: String(42000 + i * 3500),
+    target: null,
+  })),
+  visibility: open,
+};
+
+export const trendAverage: Trend = {
+  ...trend,
+  product: "agent_service",
+  metric: tat,
+  additive: false,
+  currency_code: null,
+  points: trend.points.map((p, i) => ({ ...p, value: p.working ? String(3.6 + i * 0.2) : null, cumulative: null, expected: null, target: "4.0000" })),
+};
+
+export const trendEmpty: Trend = { ...trend, reported: 0, points: trend.points.map((p) => ({ ...p, value: null, reported: 0, cumulative: "0", expected: p.expected })) };
+
+const heatDays = days.filter((_, i) => working[i]);
+const hc = (value: string | null, rag: "green" | "amber" | "red" | null, reported = 1) => ({ value, achieved: rag ? "1" : null, rag, reported: value === null ? 0 : reported });
+
+export const heatmap: Heatmap = {
+  product: "agent_service",
+  window,
+  metric: breach,
+  level: "branch",
+  days: heatDays,
+  working: heatDays.map(() => true),
+  rows: [
+    { key: "AS-01", name: "Kumasi Adum", region_code: "AS", branch_code: "AS-01", agents: 3, cells: [hc("4.2000", "green", 3), hc("6.1000", "amber", 3), hc(null, null), hc("8.4000", "red", 2)] },
+    { key: "GA-01", name: "Accra Central", region_code: "GA", branch_code: "GA-01", agents: 4, cells: [hc("3.1000", "green", 4), hc("3.9000", "green", 4), hc("5.2000", "amber", 4), hc("4.8000", "green", 4)] },
+  ],
+  currency_code: null,
+  mixed_currency: false,
+  visibility: open,
+};
+
+export const heatmapEmpty: Heatmap = { ...heatmap, rows: [] };
+
+export const distribution: Distribution = {
+  product: "agent_service",
+  window,
+  metric: tat,
+  agents: 9,
+  reported: 8,
+  bins: [
+    { low: "2.5000", high: "3.5000", agents: 2, on_target: 2 },
+    { low: "3.5000", high: "4.5000", agents: 4, on_target: 2 },
+    { low: "4.5000", high: "5.5000", agents: 1, on_target: 0 },
+    { low: "5.5000", high: "6.5000", agents: 1, on_target: 0 },
+  ],
+  target: "4.0000",
+  median: "3.9000",
+  currency_code: null,
+  mixed_currency: false,
+  visibility: open,
+};
+
+export const distributionEmpty: Distribution = { ...distribution, reported: 0, bins: [], median: null };
+
+export const visibilityRules: Output<"agent.visibility.list"> = {
+  product: "agent_sales",
+  rules: [
+    { product: "agent_sales", applies_to: "profile", applies_code: "sme_rm", scope: "self" },
+    { product: "agent_sales", applies_to: "role", applies_code: "staff", scope: "branch" },
+  ],
+};
+
+export const visibilityOpen: Output<"agent.visibility.list"> = { product: "agent_sales", rules: [] };
+
+export const agentAdminMe: Me = {
+  ...productLineAdminMe,
+  permissions: [...productLineAdminMe.permissions, "agent.config.manage"],
+};

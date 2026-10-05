@@ -142,6 +142,487 @@
         "title": "ActivateOut",
         "type": "object"
       },
+      "AgentBinOut": {
+        "properties": {
+          "agents": {
+            "title": "Agents",
+            "type": "integer"
+          },
+          "high": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "High",
+            "type": "string"
+          },
+          "low": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Low",
+            "type": "string"
+          },
+          "on_target": {
+            "title": "On Target",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "low",
+          "high",
+          "agents",
+          "on_target"
+        ],
+        "title": "AgentBinOut",
+        "type": "object"
+      },
+      "AgentDistributionInQuery": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "branch_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Code"
+          },
+          "metric_code": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Code"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          },
+          "region_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region Code"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "enum": [
+                  "month",
+                  "week"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "title": "AgentDistributionInQuery",
+        "type": "object"
+      },
+      "AgentDistributionOut": {
+        "properties": {
+          "agents": {
+            "title": "Agents",
+            "type": "integer"
+          },
+          "bins": {
+            "items": {
+              "$ref": "#/components/schemas/AgentBinOut"
+            },
+            "title": "Bins",
+            "type": "array"
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
+          "median": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median"
+          },
+          "metric": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RankKeyOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mixed_currency": {
+            "title": "Mixed Currency",
+            "type": "boolean"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "reported": {
+            "title": "Reported",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/VisibilityOut"
+          },
+          "window": {
+            "$ref": "#/components/schemas/WindowOut"
+          }
+        },
+        "required": [
+          "product",
+          "window",
+          "metric",
+          "agents",
+          "reported",
+          "bins",
+          "target",
+          "median",
+          "currency_code",
+          "mixed_currency",
+          "visibility"
+        ],
+        "title": "AgentDistributionOut",
+        "type": "object"
+      },
+      "AgentHeatCellOut": {
+        "properties": {
+          "achieved": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Achieved"
+          },
+          "rag": {
+            "anyOf": [
+              {
+                "enum": [
+                  "green",
+                  "amber",
+                  "red"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rag"
+          },
+          "reported": {
+            "title": "Reported",
+            "type": "integer"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "achieved",
+          "rag",
+          "reported"
+        ],
+        "title": "AgentHeatCellOut",
+        "type": "object"
+      },
+      "AgentHeatRowOut": {
+        "properties": {
+          "agents": {
+            "title": "Agents",
+            "type": "integer"
+          },
+          "branch_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Code"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/AgentHeatCellOut"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "region_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region Code"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "region_code",
+          "branch_code",
+          "agents",
+          "cells"
+        ],
+        "title": "AgentHeatRowOut",
+        "type": "object"
+      },
+      "AgentHeatmapInQuery": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "branch_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Code"
+          },
+          "level": {
+            "default": "branch",
+            "enum": [
+              "region",
+              "branch",
+              "rm"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "metric_code": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Code"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          },
+          "region_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region Code"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "enum": [
+                  "month",
+                  "week"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "title": "AgentHeatmapInQuery",
+        "type": "object"
+      },
+      "AgentHeatmapOut": {
+        "properties": {
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
+          "days": {
+            "items": {
+              "format": "date",
+              "type": "string"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "metric": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RankKeyOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mixed_currency": {
+            "title": "Mixed Currency",
+            "type": "boolean"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/AgentHeatRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/VisibilityOut"
+          },
+          "window": {
+            "$ref": "#/components/schemas/WindowOut"
+          },
+          "working": {
+            "items": {
+              "type": "boolean"
+            },
+            "title": "Working",
+            "type": "array"
+          }
+        },
+        "required": [
+          "product",
+          "window",
+          "metric",
+          "level",
+          "days",
+          "working",
+          "rows",
+          "currency_code",
+          "mixed_currency",
+          "visibility"
+        ],
+        "title": "AgentHeatmapOut",
+        "type": "object"
+      },
       "AgentOut": {
         "properties": {
           "branch_code": {
@@ -283,6 +764,120 @@
           "metrics"
         ],
         "title": "AgentPaceOut",
+        "type": "object"
+      },
+      "AgentPresetInQuery": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "title": "AgentPresetInQuery",
+        "type": "object"
+      },
+      "AgentPresetOut": {
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/AgentPresetSectionOut"
+            },
+            "title": "Sections",
+            "type": "array"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/VisibilityOut"
+          }
+        },
+        "required": [
+          "product",
+          "as_of",
+          "sections",
+          "visibility"
+        ],
+        "title": "AgentPresetOut",
+        "type": "object"
+      },
+      "AgentPresetSectionOut": {
+        "properties": {
+          "caption": {
+            "title": "Caption",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "leaderboard",
+              "matrix",
+              "trend",
+              "heatmap",
+              "distribution"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "metric": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RankKeyOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "metric_options": {
+            "items": {
+              "$ref": "#/components/schemas/RankKeyOut"
+            },
+            "title": "Metric Options",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "title",
+          "caption",
+          "metric",
+          "metric_options"
+        ],
+        "title": "AgentPresetSectionOut",
         "type": "object"
       },
       "AgentSettingsGetInQuery": {
@@ -474,6 +1069,233 @@
           "product"
         ],
         "title": "AgentSettingsSetIn",
+        "type": "object"
+      },
+      "AgentTrendInQuery": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "branch_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Code"
+          },
+          "metric_code": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "pattern": "^[a-z][a-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Code"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          },
+          "region_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region Code"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "enum": [
+                  "month",
+                  "week"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "title": "AgentTrendInQuery",
+        "type": "object"
+      },
+      "AgentTrendOut": {
+        "properties": {
+          "additive": {
+            "title": "Additive",
+            "type": "boolean"
+          },
+          "agents": {
+            "title": "Agents",
+            "type": "integer"
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
+          "metric": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RankKeyOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mixed_currency": {
+            "title": "Mixed Currency",
+            "type": "boolean"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/AgentTrendPointOut"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "reported": {
+            "title": "Reported",
+            "type": "integer"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/VisibilityOut"
+          },
+          "window": {
+            "$ref": "#/components/schemas/WindowOut"
+          }
+        },
+        "required": [
+          "product",
+          "window",
+          "metric",
+          "additive",
+          "agents",
+          "reported",
+          "currency_code",
+          "mixed_currency",
+          "points",
+          "visibility"
+        ],
+        "title": "AgentTrendOut",
+        "type": "object"
+      },
+      "AgentTrendPointOut": {
+        "properties": {
+          "cumulative": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cumulative"
+          },
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "expected": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected"
+          },
+          "reported": {
+            "title": "Reported",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "working": {
+            "title": "Working",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "day",
+          "working",
+          "value",
+          "reported",
+          "cumulative",
+          "expected",
+          "target"
+        ],
+        "title": "AgentTrendPointOut",
         "type": "object"
       },
       "AppliedOverrideOut": {
@@ -7275,6 +8097,9 @@
             "title": "Total",
             "type": "integer"
           },
+          "visibility": {
+            "$ref": "#/components/schemas/VisibilityOut"
+          },
           "window": {
             "$ref": "#/components/schemas/WindowOut"
           }
@@ -7290,7 +8115,8 @@
           "rank_options",
           "summary",
           "rows",
-          "total"
+          "total",
+          "visibility"
         ],
         "title": "LeaderboardOut",
         "type": "object"
@@ -8298,6 +9124,9 @@
             "title": "View",
             "type": "string"
           },
+          "visibility": {
+            "$ref": "#/components/schemas/VisibilityOut"
+          },
           "window": {
             "$ref": "#/components/schemas/WindowOut"
           }
@@ -8313,7 +9142,8 @@
           "columns",
           "rows",
           "total",
-          "no_lines"
+          "no_lines",
+          "visibility"
         ],
         "title": "MatrixOut",
         "type": "object"
@@ -15670,6 +16500,213 @@
         "title": "VersionOut",
         "type": "object"
       },
+      "VisibilityClearIn": {
+        "properties": {
+          "applies_code": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+            "title": "Applies Code",
+            "type": "string"
+          },
+          "applies_to": {
+            "enum": [
+              "role",
+              "profile"
+            ],
+            "title": "Applies To",
+            "type": "string"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product",
+          "applies_to",
+          "applies_code"
+        ],
+        "title": "VisibilityClearIn",
+        "type": "object"
+      },
+      "VisibilityClearOut": {
+        "properties": {
+          "cleared": {
+            "title": "Cleared",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "cleared"
+        ],
+        "title": "VisibilityClearOut",
+        "type": "object"
+      },
+      "VisibilityListInQuery": {
+        "properties": {
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "title": "VisibilityListInQuery",
+        "type": "object"
+      },
+      "VisibilityListOut": {
+        "properties": {
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/VisibilityRuleOut"
+            },
+            "title": "Rules",
+            "type": "array"
+          }
+        },
+        "required": [
+          "product",
+          "rules"
+        ],
+        "title": "VisibilityListOut",
+        "type": "object"
+      },
+      "VisibilityOut": {
+        "description": "What the reader sees: everyone, or the scopes a rule narrowed them to.",
+        "properties": {
+          "because": {
+            "items": {
+              "$ref": "#/components/schemas/VisibilityRuleRefOut"
+            },
+            "title": "Because",
+            "type": "array"
+          },
+          "restricted": {
+            "title": "Restricted",
+            "type": "boolean"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scopes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "restricted",
+          "scopes",
+          "because"
+        ],
+        "title": "VisibilityOut",
+        "type": "object"
+      },
+      "VisibilityRuleOut": {
+        "properties": {
+          "applies_code": {
+            "title": "Applies Code",
+            "type": "string"
+          },
+          "applies_to": {
+            "title": "Applies To",
+            "type": "string"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product",
+          "applies_to",
+          "applies_code",
+          "scope"
+        ],
+        "title": "VisibilityRuleOut",
+        "type": "object"
+      },
+      "VisibilityRuleRefOut": {
+        "properties": {
+          "applies_code": {
+            "title": "Applies Code",
+            "type": "string"
+          },
+          "applies_to": {
+            "title": "Applies To",
+            "type": "string"
+          }
+        },
+        "required": [
+          "applies_to",
+          "applies_code"
+        ],
+        "title": "VisibilityRuleRefOut",
+        "type": "object"
+      },
+      "VisibilitySetIn": {
+        "properties": {
+          "applies_code": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+            "title": "Applies Code",
+            "type": "string"
+          },
+          "applies_to": {
+            "enum": [
+              "role",
+              "profile"
+            ],
+            "title": "Applies To",
+            "type": "string"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          },
+          "scope": {
+            "enum": [
+              "all",
+              "subtree",
+              "region",
+              "branch",
+              "self"
+            ],
+            "title": "Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product",
+          "applies_to",
+          "applies_code",
+          "scope"
+        ],
+        "title": "VisibilitySetIn",
+        "type": "object"
+      },
       "VisibleInQuery": {
         "properties": {
           "period_key": {
@@ -16377,6 +17414,379 @@
         "x-kpigo-action": "agent.daily.restore"
       }
     },
+    "/api/v1/actions/agent.distribution": {
+      "get": {
+        "operationId": "agent_distribution",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product",
+            "required": true,
+            "schema": {
+              "enum": [
+                "agent_sales",
+                "agent_service"
+              ],
+              "title": "Product",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "in": "query",
+            "name": "window",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "month",
+                    "week"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Window"
+            }
+          },
+          {
+            "in": "query",
+            "name": "metric_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "pattern": "^[a-z][a-z0-9_]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Metric Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "region_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "branch_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Branch Code"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentDistributionOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "How the agents in view spread on one metric to date, in equal-width bins.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.distribution"
+      }
+    },
+    "/api/v1/actions/agent.heatmap": {
+      "get": {
+        "operationId": "agent_heatmap",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product",
+            "required": true,
+            "schema": {
+              "enum": [
+                "agent_sales",
+                "agent_service"
+              ],
+              "title": "Product",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "in": "query",
+            "name": "window",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "month",
+                    "week"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Window"
+            }
+          },
+          {
+            "in": "query",
+            "name": "metric_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "pattern": "^[a-z][a-z0-9_]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Metric Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "region_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "branch_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Branch Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "level",
+            "required": false,
+            "schema": {
+              "default": "branch",
+              "enum": [
+                "region",
+                "branch",
+                "rm"
+              ],
+              "title": "Level",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentHeatmapOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Regions, branches or RMs by day: each day's figure against its target, with RAG.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.heatmap"
+      }
+    },
     "/api/v1/actions/agent.leaderboard": {
       "get": {
         "operationId": "agent_leaderboard",
@@ -17040,6 +18450,115 @@
         "x-kpigo-action": "agent.pace"
       }
     },
+    "/api/v1/actions/agent.preset": {
+      "get": {
+        "operationId": "agent_preset",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product",
+            "required": true,
+            "schema": {
+              "enum": [
+                "agent_sales",
+                "agent_service"
+              ],
+              "title": "Product",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentPresetOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "The Sales or Service page: its sections in order, each with its starting metric.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.preset"
+      }
+    },
     "/api/v1/actions/agent.settings.get": {
       "get": {
         "operationId": "agent_settings_get",
@@ -17238,6 +18757,493 @@
           "agent_performance"
         ],
         "x-kpigo-action": "agent.settings.set"
+      }
+    },
+    "/api/v1/actions/agent.trend": {
+      "get": {
+        "operationId": "agent_trend",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product",
+            "required": true,
+            "schema": {
+              "enum": [
+                "agent_sales",
+                "agent_service"
+              ],
+              "title": "Product",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "in": "query",
+            "name": "window",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "month",
+                    "week"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Window"
+            }
+          },
+          {
+            "in": "query",
+            "name": "metric_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "pattern": "^[a-z][a-z0-9_]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Metric Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "region_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Region Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "branch_code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Branch Code"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentTrendOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Each day to date across the agents in view: the total or mean, against target.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.trend"
+      }
+    },
+    "/api/v1/actions/agent.visibility.clear": {
+      "post": {
+        "operationId": "agent_visibility_clear",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisibilityClearIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisibilityClearOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Remove a visibility rule: that role or profile goes back to the module's default.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.visibility.clear"
+      }
+    },
+    "/api/v1/actions/agent.visibility.list": {
+      "get": {
+        "operationId": "agent_visibility_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product",
+            "required": true,
+            "schema": {
+              "enum": [
+                "agent_sales",
+                "agent_service"
+              ],
+              "title": "Product",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisibilityListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Who sees whom in an Agent Performance module: open unless a rule narrows it.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.visibility.list"
+      }
+    },
+    "/api/v1/actions/agent.visibility.set": {
+      "post": {
+        "operationId": "agent_visibility_set",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisibilitySetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisibilityRuleOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Narrow (or keep open) which agents a role or profile sees in a module.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.visibility.set"
       }
     },
     "/api/v1/actions/approval.policy.set": {

@@ -8,6 +8,8 @@ import { Page } from "../../shell/AppShell";
 import { useMe } from "../../session/Session";
 import { MatrixSection } from "./Matrix";
 import { ProductLinesQuick } from "./ProductLines";
+import { PresetSectionView, type Preset } from "./Sections";
+import { VisibilityNote, VisibilityQuick } from "./Visibility";
 
 export type Leaderboard = Output<"agent.leaderboard">;
 export type AgentPace = Output<"agent.pace">;
@@ -61,11 +63,73 @@ function cohortLabel(type: string): string {
   return COHORT_TYPES.find((c) => c.value === type)?.label.toLowerCase() ?? type;
 }
 
-/** Agent Performance, section 1: the leaderboard and its summary cards (App Flow §4.1, PRD AP-3). */
+/** Agent Performance: the Sales or Service preset's sections, in order (App Flow §4.1, PRD AP-4). */
 export function AgentPerformancePage() {
   const me = useMe();
   const blocked = me.no_access.find((x) => x.page_key === "agent_performance");
   const [product, setProduct] = useState<Product>("agent_sales");
+  const [preset, reload] = useQuery("agent.preset", { product });
+
+  return (
+    <Page title="Agent Performance">
+      {blocked ? (
+        <EmptyState kind="no-access" title="You cannot see Agent Performance" ask={blocked.ask}>
+          {blocked.missing}
+        </EmptyState>
+      ) : (
+        <div className="kg-stack">
+          <div style={{ display: "flex", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
+            <div className="kg-seg" role="group" aria-label="Module">
+              {PRODUCTS.map((p) => (
+                <button key={p.value} type="button" aria-pressed={product === p.value} onClick={() => setProduct(p.value)}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <span className="kg-spacer" />
+            {me.permissions.includes("agent.config.manage") ? <VisibilityQuick key={product} product={product} /> : null}
+            {me.permissions.includes("product_line.manage") ? <ProductLinesQuick /> : null}
+          </div>
+          {preset.status === "loading" ? (
+            <Loading label="Loading Agent Performance">
+              <div className="kg-grid">
+                {[0, 1, 2, 3].map((i) => (
+                  <CardSkeleton key={i} />
+                ))}
+              </div>
+              <Skeleton height={220} style={{ marginTop: 16 }} />
+            </Loading>
+          ) : preset.status === "error" ? (
+            <ErrorPanel error={preset.error} retry={reload} what="Agent Performance" />
+          ) : (
+            <PresetView key={product} product={product} preset={preset.data} />
+          )}
+        </div>
+      )}
+    </Page>
+  );
+}
+
+/** The preset's sections, each reading its own action. */
+export function PresetView({ product, preset }: { product: Product; preset: Preset }) {
+  return (
+    <>
+      <VisibilityNote visibility={preset.visibility} />
+      {preset.sections.map((section) =>
+        section.kind === "leaderboard" ? (
+          <LeaderboardSection key={section.key} product={product} />
+        ) : section.kind === "matrix" ? (
+          <MatrixSection key={section.key} product={product} title={section.title} caption={section.caption} />
+        ) : (
+          <PresetSectionView key={section.key} product={product} section={section} />
+        ),
+      )}
+    </>
+  );
+}
+
+/** Section: the leaderboard and its summary cards (PRD AP-3). */
+function LeaderboardSection({ product }: { product: Product }) {
   const [cohortType, setCohortType] = useState<CohortType | undefined>(undefined);
   const [cohortCode, setCohortCode] = useState<string | undefined>(undefined);
   const [rankBy, setRankBy] = useState<string | undefined>(undefined);
@@ -79,99 +143,69 @@ export function AgentPerformancePage() {
   const board = data.status === "ready" ? data.data : null;
 
   return (
-    <Page title="Agent Performance">
-      {blocked ? (
-        <EmptyState kind="no-access" title="You cannot see Agent Performance" ask={blocked.ask}>
-          {blocked.missing}
-        </EmptyState>
-      ) : (
-        <div className="kg-stack">
-          <div style={{ display: "flex", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
-            <div className="kg-seg" role="group" aria-label="Module">
-              {PRODUCTS.map((p) => (
-                <button
-                  key={p.value}
-                  type="button"
-                  aria-pressed={product === p.value}
-                  onClick={() => {
-                    setProduct(p.value);
-                    setCohortCode(undefined);
-                    setRankBy(undefined);
-                    setSelected(null);
-                  }}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-            <span className="kg-spacer" />
-            {me.permissions.includes("product_line.manage") ? <ProductLinesQuick /> : null}
+    <>
+      <section className="kg-card" aria-labelledby="leaderboard-heading">
+        <div className="kg-sechead">
+          <div>
+            <h2 id="leaderboard-heading" className="kg-section">
+              Leaderboard
+            </h2>
+            <p className="kg-cap">{board ? windowText(board) : "Ranked within a peer group, to date."}</p>
           </div>
-          <section className="kg-card" aria-labelledby="leaderboard-heading">
-            <div className="kg-sechead">
-              <div>
-                <h2 id="leaderboard-heading" className="kg-section">
-                  Leaderboard
-                </h2>
-                <p className="kg-cap">{board ? windowText(board) : "Ranked within a peer group, to date."}</p>
+          <span className="kg-spacer" />
+          {board ? (
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ width: 150 }}>
+                <SelectField
+                  label="Compare within"
+                  value={board.cohort_type}
+                  onChange={(e) => {
+                    setCohortType(e.target.value as CohortType);
+                    setCohortCode(undefined);
+                  }}
+                  options={COHORT_TYPES}
+                />
               </div>
-              <span className="kg-spacer" />
-              {board ? (
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <div style={{ width: 150 }}>
-                    <SelectField
-                      label="Compare within"
-                      value={board.cohort_type}
-                      onChange={(e) => {
-                        setCohortType(e.target.value as CohortType);
-                        setCohortCode(undefined);
-                      }}
-                      options={COHORT_TYPES}
-                    />
-                  </div>
-                  {board.cohorts.length > 1 ? (
-                    <div style={{ width: 180 }}>
-                      <SelectField
-                        label={COHORT_TYPES.find((c) => c.value === board.cohort_type)?.label ?? "Cohort"}
-                        value={board.cohort?.code ?? ""}
-                        onChange={(e) => setCohortCode(e.target.value)}
-                        options={board.cohorts.map((c) => ({ value: c.code, label: `${c.name} (${c.agents})` }))}
-                      />
-                    </div>
-                  ) : null}
-                  {board.rank_options.length ? (
-                    <div style={{ width: 180 }}>
-                      <SelectField
-                        label="Rank by"
-                        value={board.rank_by?.key ?? ""}
-                        onChange={(e) => setRankBy(e.target.value)}
-                        options={board.rank_options.map((o) => ({ value: o.key, label: o.display_name }))}
-                      />
-                    </div>
-                  ) : null}
+              {board.cohorts.length > 1 ? (
+                <div style={{ width: 180 }}>
+                  <SelectField
+                    label={COHORT_TYPES.find((c) => c.value === board.cohort_type)?.label ?? "Cohort"}
+                    value={board.cohort?.code ?? ""}
+                    onChange={(e) => setCohortCode(e.target.value)}
+                    options={board.cohorts.map((c) => ({ value: c.code, label: `${c.name} (${c.agents})` }))}
+                  />
+                </div>
+              ) : null}
+              {board.rank_options.length ? (
+                <div style={{ width: 180 }}>
+                  <SelectField
+                    label="Rank by"
+                    value={board.rank_by?.key ?? ""}
+                    onChange={(e) => setRankBy(e.target.value)}
+                    options={board.rank_options.map((o) => ({ value: o.key, label: o.display_name }))}
+                  />
                 </div>
               ) : null}
             </div>
-            {data.status === "loading" ? (
-              <Loading label="Loading the leaderboard">
-                <div className="kg-grid">
-                  {[0, 1, 2, 3].map((i) => (
-                    <CardSkeleton key={i} />
-                  ))}
-                </div>
-                <Skeleton height={220} style={{ marginTop: 16 }} />
-              </Loading>
-            ) : data.status === "error" ? (
-              <ErrorPanel error={data.error} retry={reload} what="The leaderboard" />
-            ) : (
-              <LeaderboardView board={data.data} onSelect={(id) => setSelected(id)} />
-            )}
-          </section>
-          {selected && board ? <AgentDetail product={product} subjectId={selected} asOf={board.window.as_of} onClose={() => setSelected(null)} /> : null}
-          <MatrixSection key={product} product={product} />
+          ) : null}
         </div>
-      )}
-    </Page>
+        {data.status === "loading" ? (
+          <Loading label="Loading the leaderboard">
+            <div className="kg-grid">
+              {[0, 1, 2, 3].map((i) => (
+                <CardSkeleton key={i} />
+              ))}
+            </div>
+            <Skeleton height={220} style={{ marginTop: 16 }} />
+          </Loading>
+        ) : data.status === "error" ? (
+          <ErrorPanel error={data.error} retry={reload} what="The leaderboard" />
+        ) : (
+          <LeaderboardView board={data.data} onSelect={(id) => setSelected(id)} />
+        )}
+      </section>
+      {selected && board ? <AgentDetail product={product} subjectId={selected} asOf={board.window.as_of} onClose={() => setSelected(null)} /> : null}
+    </>
   );
 }
 

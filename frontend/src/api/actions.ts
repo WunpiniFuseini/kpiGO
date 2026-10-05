@@ -7,12 +7,19 @@ export const ROUTES = {
   "agent.daily.archive": { method: "POST", path: "/api/v1/actions/agent.daily.archive", pathParams: [], public: false },
   "agent.daily.archive.list": { method: "GET", path: "/api/v1/actions/agent.daily.archive.list", pathParams: [], public: false },
   "agent.daily.restore": { method: "POST", path: "/api/v1/actions/agent.daily.restore", pathParams: [], public: false },
+  "agent.distribution": { method: "GET", path: "/api/v1/actions/agent.distribution", pathParams: [], public: false },
+  "agent.heatmap": { method: "GET", path: "/api/v1/actions/agent.heatmap", pathParams: [], public: false },
   "agent.leaderboard": { method: "GET", path: "/api/v1/actions/agent.leaderboard", pathParams: [], public: false },
   "agent.leaderboard.refresh": { method: "POST", path: "/api/v1/actions/agent.leaderboard.refresh", pathParams: [], public: false },
   "agent.matrix": { method: "GET", path: "/api/v1/actions/agent.matrix", pathParams: [], public: false },
   "agent.pace": { method: "GET", path: "/api/v1/actions/agent.pace", pathParams: [], public: false },
+  "agent.preset": { method: "GET", path: "/api/v1/actions/agent.preset", pathParams: [], public: false },
   "agent.settings.get": { method: "GET", path: "/api/v1/actions/agent.settings.get", pathParams: [], public: false },
   "agent.settings.set": { method: "POST", path: "/api/v1/actions/agent.settings.set", pathParams: [], public: false },
+  "agent.trend": { method: "GET", path: "/api/v1/actions/agent.trend", pathParams: [], public: false },
+  "agent.visibility.clear": { method: "POST", path: "/api/v1/actions/agent.visibility.clear", pathParams: [], public: false },
+  "agent.visibility.list": { method: "GET", path: "/api/v1/actions/agent.visibility.list", pathParams: [], public: false },
+  "agent.visibility.set": { method: "POST", path: "/api/v1/actions/agent.visibility.set", pathParams: [], public: false },
   "approval.policy.list": { method: "GET", path: "/api/v1/approval-policies", pathParams: [], public: false },
   "approval.policy.set": { method: "POST", path: "/api/v1/actions/approval.policy.set", pathParams: [], public: false },
   "assignment.create": { method: "POST", path: "/api/v1/actions/assignment.create", pathParams: [], public: false },
@@ -189,12 +196,19 @@ export interface Actions {
   "agent.daily.archive": { input: NonNullable<operations["agent_daily_archive"]["requestBody"]>["content"]["application/json"]; output: operations["agent_daily_archive"]["responses"][200]["content"]["application/json"] };
   "agent.daily.archive.list": { input: NonNullable<operations["agent_daily_archive_list"]["parameters"]["query"]>; output: operations["agent_daily_archive_list"]["responses"][200]["content"]["application/json"] };
   "agent.daily.restore": { input: NonNullable<operations["agent_daily_restore"]["requestBody"]>["content"]["application/json"]; output: operations["agent_daily_restore"]["responses"][200]["content"]["application/json"] };
+  "agent.distribution": { input: NonNullable<operations["agent_distribution"]["parameters"]["query"]>; output: operations["agent_distribution"]["responses"][200]["content"]["application/json"] };
+  "agent.heatmap": { input: NonNullable<operations["agent_heatmap"]["parameters"]["query"]>; output: operations["agent_heatmap"]["responses"][200]["content"]["application/json"] };
   "agent.leaderboard": { input: NonNullable<operations["agent_leaderboard"]["parameters"]["query"]>; output: operations["agent_leaderboard"]["responses"][200]["content"]["application/json"] };
   "agent.leaderboard.refresh": { input: NonNullable<operations["agent_leaderboard_refresh"]["requestBody"]>["content"]["application/json"]; output: operations["agent_leaderboard_refresh"]["responses"][200]["content"]["application/json"] };
   "agent.matrix": { input: NonNullable<operations["agent_matrix"]["parameters"]["query"]>; output: operations["agent_matrix"]["responses"][200]["content"]["application/json"] };
   "agent.pace": { input: NonNullable<operations["agent_pace"]["parameters"]["query"]>; output: operations["agent_pace"]["responses"][200]["content"]["application/json"] };
+  "agent.preset": { input: NonNullable<operations["agent_preset"]["parameters"]["query"]>; output: operations["agent_preset"]["responses"][200]["content"]["application/json"] };
   "agent.settings.get": { input: NonNullable<operations["agent_settings_get"]["parameters"]["query"]>; output: operations["agent_settings_get"]["responses"][200]["content"]["application/json"] };
   "agent.settings.set": { input: NonNullable<operations["agent_settings_set"]["requestBody"]>["content"]["application/json"]; output: operations["agent_settings_set"]["responses"][200]["content"]["application/json"] };
+  "agent.trend": { input: NonNullable<operations["agent_trend"]["parameters"]["query"]>; output: operations["agent_trend"]["responses"][200]["content"]["application/json"] };
+  "agent.visibility.clear": { input: NonNullable<operations["agent_visibility_clear"]["requestBody"]>["content"]["application/json"]; output: operations["agent_visibility_clear"]["responses"][200]["content"]["application/json"] };
+  "agent.visibility.list": { input: NonNullable<operations["agent_visibility_list"]["parameters"]["query"]>; output: operations["agent_visibility_list"]["responses"][200]["content"]["application/json"] };
+  "agent.visibility.set": { input: NonNullable<operations["agent_visibility_set"]["requestBody"]>["content"]["application/json"]; output: operations["agent_visibility_set"]["responses"][200]["content"]["application/json"] };
   "approval.policy.list": { input: Record<string, never>; output: operations["approval_policy_list"]["responses"][200]["content"]["application/json"] };
   "approval.policy.set": { input: NonNullable<operations["approval_policy_set"]["requestBody"]>["content"]["application/json"]; output: operations["approval_policy_set"]["responses"][200]["content"]["application/json"] };
   "assignment.create": { input: NonNullable<operations["assignment_create"]["requestBody"]>["content"]["application/json"]; output: operations["assignment_create"]["responses"][200]["content"]["application/json"] };

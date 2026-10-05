@@ -305,6 +305,23 @@ those sums. Expanded or grouped is each user's own preference (`preference.set`
 `agent.matrix.view`). Figures come from `mv_product_line_matrix`, refreshed with
 the daily totals after every load.
 
+### Sales and Service presets, and who sees whom
+
+The two modules share the engine and differ in the page they open on
+(`agent.preset`). Sales: the leaderboard, the product mix (the matrix) and month to
+date against target (`agent.trend`). Service: the SLA heatmap (`agent.heatmap`,
+branches by day against target), the TAT distribution (`agent.distribution`), the
+queue trend, then a leaderboard ranked by resolution with TAT as the tie-break
+until an Admin saves the module's own settings. Each section starts on the
+starter-pack metric when the client kept its code (`so_tat`, `so_sla_breach`, …),
+otherwise on the first metric that suits it, and can switch.
+
+Agent Performance is open by default (AP-7). `agent.visibility.set` narrows a role,
+or the agents of a profile, to their team (visibility closure), their own region
+or branch, or themselves; `all` keeps them open. A viewer's rules add up and the
+widest wins; their own figures always show. Every Agent Performance read applies it,
+and says when it did.
+
 ## Layout
 
 ```
