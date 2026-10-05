@@ -208,13 +208,24 @@ approval class, off by default) conforms the value to `fact_actual_monthly` for
 every member of the slice. Values are editable until the deadline, then locked; a
 later correction is a new version, only while the month is being restated. Until
 the month closes, manual values are hidden from everyone's scorecard but an
-Admin's. Period close names who still owes an input. `input.remind` sends one
-reminder per slice (set `KPIGO_INPUT_REMINDER_USER` to schedule it daily): in-app
-always, and by email when a mail relay is configured (`KPIGO_EMAIL_HOST`,
-`KPIGO_EMAIL_FROM` and the other `KPIGO_EMAIL_*` settings in `.env.example`;
-`KPIGO_PUBLIC_URL` adds a link). Each contributor gets one email listing every
-input they owe. A relay failure is audited and never stops the in-app reminder.
-The escalation ladder and compliance view are R1.5.
+Admin's. Period close names who still owes an input.
+
+An input still owed climbs the **escalation ladder** (`input.remind`; set
+`KPIGO_INPUT_REMINDER_USER` to run it daily): the contributor is reminded N
+working days before the due day, their line manager (resolved from the reporting
+lines in force that day) is told on the due day, and the stakeholders the first
+working day after it. The stakeholders are the slice's own list
+(`input.assignment.set_stakeholders`), else the org's, else everyone who manages
+input. Offsets, rungs switched off and the org's stakeholders are set with
+`input.ladder.set`. The first two rungs stop once the input locks; the third is
+how the stakeholders learn it went unreported. Every rung is in-app (the
+contributor sees how far each input has gone; anyone told sees it under
+"Escalated to you" on My inputs) and audited, and by email when a mail relay is
+configured (`KPIGO_EMAIL_HOST`, `KPIGO_EMAIL_FROM` and the other `KPIGO_EMAIL_*`
+settings in `.env.example`; `KPIGO_PUBLIC_URL` adds a link): one digest per person
+per run, never one email per slice. A relay failure is audited and never stops
+the in-app notice. A rung that reaches nobody (a contributor with no line
+manager) is recorded, not skipped silently.
 
 ## Layout
 

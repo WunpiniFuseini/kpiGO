@@ -7,18 +7,17 @@ and submit. A submitted value conforms to ``fact_actual_monthly`` for every
 member of the slice and is scored like any actual, but stays hidden from
 scorecards (other than an Admin's) until the month closes (MI-10).
 
-R1 sends a single reminder (``input.remind``, a scheduled job). The escalation
-ladder and the compliance view are R1.5.
+Inputs still owed chase themselves up the escalation ladder (``input.remind``,
+a scheduled job, in ``escalation.py``).
 """
 
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from django.db import transaction
 from django.utils import timezone
 from pydantic import BaseModel, Field, StringConstraints, model_validator
 
@@ -30,7 +29,6 @@ from kpigo.hierarchy.scope import current_period_key
 from kpigo.metrics.actions.metric import MetricCode
 from kpigo.metrics.models import Metric
 from kpigo.platform import mail
-from kpigo.platform.config import reporting_zone
 from kpigo.platform.db import conflicts
 from kpigo.platform.vocab import PeriodKey
 from kpigo.scorecards import inputs, roster
@@ -141,6 +139,12 @@ class InputAssignmentOut(BaseModel):
     # pending | draft | submitted | restated, for the month asked about.
     state: str
     submitted_at: datetime | None
+    # How far up the escalation ladder the month's input has gone: 0 not yet,
+    # 1 contributor reminded, 2 line manager told, 3 stakeholders told.
+    escalation_step: int
+    # Who the last rung tells for this slice; empty means the org's stakeholders.
+    stakeholder_user_ids: list[uuid.UUID]
+    stakeholder_names: list[str]
 
 
 class InputAssignmentCreateIn(BaseModel):
@@ -179,9 +183,17 @@ def _assignment_out(
     labels = _labels(org_id, rows)
     names = _metric_names(org_id, sorted({r.metric_code for r in rows}), period_key)
     have = inputs.current(org_id, period_key, rows)
+    steps = _steps(rows, period_key)
+    named = {
+        str(u.user_id): u.display_name
+        for u in AppUser.objects.filter(
+            org_id=org_id, user_id__in=[i for r in rows for i in _stakeholder_ids(r)]
+        )
+    }
     out: list[InputAssignmentOut] = []
     for r in rows:
         who = inputs.contributor(r, period_key)
+        chosen = _stakeholder_ids(r)
         sub = have.get(str(r.assignment_id))
         metric = names.get(r.metric_code)
         out.append(
@@ -201,9 +213,24 @@ def _assignment_out(
                 effective_to=r.effective_to,
                 state=sub.state if sub else "pending",
                 submitted_at=sub.submitted_at if sub else None,
+                escalation_step=steps.get(str(r.assignment_id), 0),
+                stakeholder_user_ids=[uuid.UUID(i) for i in chosen],
+                stakeholder_names=[named[i] for i in chosen if i in named],
             )
         )
     return out
+
+
+def _steps(rows: list[InputAssignment], period_key: str) -> dict[str, int]:
+    """How far up the ladder each slice's input has gone for the month."""
+    return {
+        str(s.input_assignment_id): s.last_reminder_step
+        for s in InputSchedule.objects.filter(input_assignment__in=rows, period_key=period_key)
+    }
+
+
+def _stakeholder_ids(ia: InputAssignment) -> list[str]:
+    return [str(i) for i in (ia.escalation_config or {}).get("stakeholder_user_ids") or []]
 
 
 @action(
@@ -374,6 +401,9 @@ class InputTaskOut(BaseModel):
     submitted_at: datetime | None
     version: int | None
     reminded_at: datetime | None
+    # How far up the escalation ladder it has gone: 0 not yet, 1 you were
+    # reminded, 2 your line manager was told, 3 the stakeholders were told.
+    escalation_step: int
 
 
 class InputTaskListIn(BaseModel):
@@ -413,10 +443,9 @@ def tasks_out(ctx: ActionContext, account: AppUser, period_key: str) -> InputTas
     labels = _labels(org_id, rows)
     metrics = _metric_names(org_id, sorted({r.metric_code for r in rows}), period_key)
     have = inputs.current(org_id, period_key, rows)
-    reminded = {
-        str(s.input_assignment_id): s.last_reminded_at
-        for s in InputSchedule.objects.filter(input_assignment__in=rows, period_key=period_key)
-    }
+    schedules = InputSchedule.objects.filter(input_assignment__in=rows, period_key=period_key)
+    reminded = {str(s.input_assignment_id): s.last_reminded_at for s in schedules}
+    steps = {str(s.input_assignment_id): s.last_reminder_step for s in schedules}
     tasks: list[InputTaskOut] = []
     for r in rows:
         m = metrics.get(r.metric_code)
@@ -441,6 +470,7 @@ def tasks_out(ctx: ActionContext, account: AppUser, period_key: str) -> InputTas
                 submitted_at=sub.submitted_at if sub else None,
                 version=sub.version if sub else None,
                 reminded_at=reminded.get(str(r.assignment_id)),
+                escalation_step=steps.get(str(r.assignment_id), 0),
             )
         )
     status = period_status(org_id, period_key)
@@ -675,151 +705,3 @@ def submit_inputs(params: InputSubmitIn, ctx: ActionContext) -> InputTaskListOut
             subjects=landed,
         )
     return tasks_out(ctx, account, params.period_key)
-
-
-# ── the single reminder (R1; the ladder is R1.5) ────────────────────────────
-
-
-class InputRemindIn(BaseModel):
-    # For testing and catch-up; defaults to now.
-    as_of: datetime | None = None
-
-
-class InputRemindOut(BaseModel):
-    reminded: int
-    # Contributor names reminded this run.
-    recipients: list[str]
-    # Slices nobody could be reminded for: a role that resolves to no account.
-    unresolved: int
-    # Contributors emailed (one message each, listing every slice they owe).
-    emailed: int = 0
-    # Contributors the relay refused or who have no address; reminded in-app only.
-    not_emailed: list[str] = []
-
-
-@action(
-    name="input.remind",
-    summary="Send the one reminder for inputs still owed as their deadline nears, in-app and by email when a relay is set (scheduled daily).",
-    schema=InputRemindIn,
-    output=InputRemindOut,
-    permission="input.manage",
-    read_only=False,
-    module="scorecards",
-    audit="input.remind_run",
-    example={},
-)
-def remind(params: InputRemindIn, ctx: ActionContext) -> InputRemindOut:
-    now = params.as_of or timezone.now()
-    today = now.astimezone(reporting_zone(ctx.org_id)).date()
-    current = current_period_key(ctx.org_id)
-    reminded, unresolved = 0, 0
-    recipients: set[str] = set()
-    owed: dict[str, tuple[AppUser, list[tuple[str, InputAssignment, datetime]]]] = {}
-    for period_key in (shift(current, -1), current):
-        if inputs.locked(ctx.org_id, period_key, now) or today < inputs.remind_on(
-            ctx.org_id, period_key
-        ):
-            continue
-        if period_status(ctx.org_id, period_key) != "open":
-            continue
-        rows = inputs.assignments_in_force(ctx.org_id, period_key)
-        have = inputs.current(ctx.org_id, period_key, rows)
-        due = inputs.due_at(ctx.org_id, period_key)
-        for ia in rows:
-            sub = have.get(str(ia.assignment_id))
-            if sub is not None and sub.state != "draft":
-                continue
-            with transaction.atomic():
-                schedule, _ = InputSchedule.objects.select_for_update().get_or_create(
-                    input_assignment=ia,
-                    period_key=period_key,
-                    defaults={"org_id": ctx.org_id, "due_at": due, "created_by": ctx.user_id},
-                )
-                if schedule.last_reminder_step >= 1:
-                    continue
-                who = inputs.contributor(ia, period_key)
-                if who is None:
-                    unresolved += 1
-                    continue
-                schedule.last_reminder_step = 1
-                schedule.last_reminded_at = now
-                schedule.reminded_user = who
-                schedule.save(
-                    update_fields=["last_reminder_step", "last_reminded_at", "reminded_user"]
-                )
-            ctx.audit(
-                "input.reminded",
-                to_user_id=str(who.user_id),
-                metric_code=ia.metric_code,
-                scope=f"{ia.scope_type}:{ia.scope_code}",
-                period_key=period_key,
-                due_at=due.isoformat(),
-            )
-            reminded += 1
-            recipients.add(who.display_name)
-            owed.setdefault(str(who.user_id), (who, []))[1].append((period_key, ia, due))
-    emailed, not_emailed = _email_reminders(ctx, owed)
-    return InputRemindOut(
-        reminded=reminded,
-        recipients=sorted(recipients),
-        unresolved=unresolved,
-        emailed=emailed,
-        not_emailed=not_emailed,
-    )
-
-
-def _email_reminders(
-    ctx: ActionContext,
-    owed: dict[str, tuple[AppUser, list[tuple[str, InputAssignment, datetime]]]],
-) -> tuple[int, list[str]]:
-    """One email per contributor listing every slice they owe; none on a dry run."""
-    if not mail.enabled() or ctx.dry_run or not owed:
-        return 0, []
-    zone = reporting_zone(ctx.org_id)
-    sent, missed = 0, []
-    for who, items in owed.values():
-        lines = []
-        for period_key in sorted({p for p, _, _ in items}):
-            rows = [ia for p, ia, _ in items if p == period_key]
-            names = _metric_names(ctx.org_id, sorted({ia.metric_code for ia in rows}), period_key)
-            labels = _labels(ctx.org_id, rows)
-            due = next(d for p, _, d in items if p == period_key)
-            # The deadline is the start of the next day; people read the day itself.
-            last = (due.astimezone(zone) - timedelta(seconds=1)).date()
-            month = date(int(period_key[:4]), int(period_key[4:]), 1)
-            lines.append(f"{month:%B %Y}, due by the end of {last.day} {last:%B %Y}:")
-            for ia in rows:
-                m = names.get(ia.metric_code)
-                lines.append(
-                    f"  - {m.display_name if m else ia.metric_code}, for {labels[str(ia.assignment_id)]}"
-                )
-            lines.append("")
-        where = mail.link("/my-inputs")
-        body = "\n".join(
-            [
-                f"Hello {who.display_name},",
-                "",
-                "These kpiGo inputs are still waiting for you:",
-                "",
-                *lines,
-                f"Enter them on My inputs: {where}"
-                if where
-                else "Enter them on the My inputs page in kpiGo.",
-                "Values left unsubmitted at the deadline stay unreported for that month.",
-                "",
-                "This is the one reminder kpiGo sends for these inputs.",
-            ]
-        )
-        ok = bool(who.email) and mail.send(
-            who.email, f"kpiGo: {len(items)} input(s) due soon", body
-        )
-        ctx.audit(
-            "input.reminder_emailed" if ok else "input.reminder_email_failed",
-            to_user_id=str(who.user_id),
-            slices=len(items),
-        )
-        if ok:
-            sent += 1
-        else:
-            missed.append(who.display_name)
-    return sent, sorted(missed)

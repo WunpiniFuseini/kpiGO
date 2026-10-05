@@ -291,9 +291,7 @@ def test_line_manager_of_resolves_from_the_reporting_line(
 
 def test_one_reminder_per_slice(people: dict[str, Any], monkeypatch: pytest.MonkeyPatch) -> None:
     assign(people)
-    monkeypatch.setattr(
-        inputs, "remind_on", lambda org_id, period_key: date.today() - timedelta(days=1)
-    )
+    first_rung_only(monkeypatch)
     first = run("input.remind", people["admin"])
     # Last month's and this month's slice, once each.
     assert first.reminded == 2 and first.recipients == ["kofi"]
@@ -302,11 +300,19 @@ def test_one_reminder_per_slice(people: dict[str, Any], monkeypatch: pytest.Monk
     assert AuditLog.objects.filter(event="input.reminded").count() == 2
 
 
+def first_rung_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The contributor's reminder is due for last month and this one; nothing climbs higher."""
+    yesterday = date.today() - timedelta(days=1)
+    monkeypatch.setattr(
+        inputs,
+        "ladder",
+        lambda org_id, period_key: {1: yesterday if period_key >= P else None, 2: None, 3: None},
+    )
+
+
 @pytest.fixture
 def due_now(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        inputs, "remind_on", lambda org_id, period_key: date.today() - timedelta(days=1)
-    )
+    first_rung_only(monkeypatch)
 
 
 @pytest.fixture

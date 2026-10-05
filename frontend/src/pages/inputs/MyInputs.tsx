@@ -3,12 +3,13 @@ import { useId, useMemo, useState } from "react";
 import type { Output } from "../../api/actions";
 import { ApiError, invoke, isProposal } from "../../api/client";
 import { useQuery } from "../../api/useAction";
-import { Chip, EmptyState, ErrorPanel, Loading, Notice, TableSkeleton } from "../../components";
+import { Chip, DataTable, EmptyState, ErrorPanel, Loading, Notice, TableSkeleton } from "../../components";
 import { formatDate, formatDateTime, formatPeriod } from "../../lib/format";
 import { Page } from "../../shell/AppShell";
 import { useMe } from "../../session/Session";
 
 export type Tasks = Output<"input.task.list">;
+export type Escalated = Output<"input.escalation.list">;
 type Task = Tasks["tasks"][number];
 
 const STATE: Record<string, { label: string; tone: "flat" | "info" | "up" | "warn" }> = {
@@ -31,29 +32,123 @@ function daysLeft(dueAt: string, now: Date): number {
 export function MyInputsPage() {
   const me = useMe();
   const blocked = me.no_access.find((n) => n.page_key === "my_inputs");
-  const [period, setPeriod] = useState<string | null>(null);
-  const [tasks, reload] = useQuery("input.task.list", { period_key: period });
-
+  const submits = me.permissions.includes("input.submit");
+  const follows = me.permissions.includes("input.followup");
   return (
     <Page title="My inputs">
       {blocked ? (
         <EmptyState kind="no-access" title="You cannot enter inputs yet" ask={blocked.ask}>
           {blocked.missing}
         </EmptyState>
-      ) : tasks.status === "loading" ? (
-        <section className="kg-card">
-          <Loading label="Loading your inputs">
-            <TableSkeleton rows={4} columns={4} />
-          </Loading>
-        </section>
-      ) : tasks.status === "error" ? (
-        <section className="kg-card">
-          <ErrorPanel error={tasks.error} retry={reload} what="Your inputs" />
-        </section>
       ) : (
-        <InputsView key={`${tasks.data.period_key}-${tasks.data.tasks.map((t) => `${t.state}${t.version}`).join()}`} tasks={tasks.data} onChanged={reload} onPeriod={setPeriod} />
+        <div className="kg-stack">
+          {submits ? <MyTasks /> : null}
+          {follows ? <EscalatedSection alone={!submits} /> : null}
+        </div>
       )}
     </Page>
+  );
+}
+
+function MyTasks() {
+  const [period, setPeriod] = useState<string | null>(null);
+  const [tasks, reload] = useQuery("input.task.list", { period_key: period });
+  return tasks.status === "loading" ? (
+    <section className="kg-card">
+      <Loading label="Loading your inputs">
+        <TableSkeleton rows={4} columns={4} />
+      </Loading>
+    </section>
+  ) : tasks.status === "error" ? (
+    <section className="kg-card">
+      <ErrorPanel error={tasks.error} retry={reload} what="Your inputs" />
+    </section>
+  ) : (
+    <InputsView key={`${tasks.data.period_key}-${tasks.data.tasks.map((t) => `${t.state}${t.version}`).join()}`} tasks={tasks.data} onChanged={reload} onPeriod={setPeriod} />
+  );
+}
+
+function EscalatedSection({ alone }: { alone: boolean }) {
+  const [list, reload] = useQuery("input.escalation.list", {});
+  if (list.status === "loading") {
+    return alone ? (
+      <section className="kg-card">
+        <Loading label="Loading escalated inputs">
+          <TableSkeleton rows={3} columns={5} />
+        </Loading>
+      </section>
+    ) : null;
+  }
+  if (list.status === "error") {
+    return (
+      <section className="kg-card">
+        <ErrorPanel error={list.error} retry={reload} what="Inputs escalated to you" />
+      </section>
+    );
+  }
+  return <EscalatedView escalated={list.data} alone={alone} />;
+}
+
+const RUNG: Record<number, string> = {
+  2: "You are their line manager",
+  3: "You are a stakeholder",
+};
+
+/** Inputs other people owe that the escalation ladder has brought to you (PRD MI-8). */
+export function EscalatedView({ escalated, alone }: { escalated: Escalated; alone: boolean }) {
+  if (!escalated.items.length) {
+    // Beside a contributor's own grid, an empty list is noise; on its own it says why it is empty.
+    return alone ? (
+      <section className="kg-card">
+        <EmptyState kind="good" title="Nothing has been escalated to you">
+          When someone in your team, or a slice you are a stakeholder for, misses an input, it appears here until it is submitted.
+        </EmptyState>
+      </section>
+    ) : null;
+  }
+  return (
+    <section className="kg-card" aria-labelledby="escalated-heading">
+      <h2 id="escalated-heading" className="kg-section">
+        Escalated to you
+      </h2>
+      <p className="kg-cap">These inputs are still owed. kpiGo told you because the contributor has not submitted them; each leaves this list once it is submitted.</p>
+      <DataTable
+        caption="Inputs escalated to you"
+        captionHidden
+        columns={[
+          { key: "metric", header: "Metric", render: (i) => i.metric_name },
+          { key: "slice", header: "For", render: (i) => i.scope_label },
+          { key: "who", header: "Owed by", render: (i) => i.contributor_name ?? <Chip tone="warn">Nobody: no line manager</Chip> },
+          { key: "month", header: "Month", render: (i) => formatPeriod(i.period_key, true) },
+          {
+            key: "why",
+            header: "Why you",
+            render: (i) => (
+              <>
+                {RUNG[i.step] ?? "Escalated"}
+                <span className="kg-msub">Told {formatDate(i.escalated_at)}</span>
+              </>
+            ),
+          },
+          {
+            key: "state",
+            header: "Status",
+            render: (i) =>
+              i.locked ? (
+                <Chip tone="down">Missed the deadline</Chip>
+              ) : (
+                <>
+                  <Chip tone="warn">{i.state === "draft" ? "Draft only" : "Not submitted"}</Chip>
+                  <span className="kg-msub">Due by the end of {dueDay(i.due_at)}</span>
+                </>
+              ),
+          },
+        ]}
+        rows={escalated.items}
+        rowKey={(i) => `${i.assignment_id}-${i.period_key}`}
+        empty={null}
+      />
+    </section>
   );
 }
 
@@ -253,11 +348,18 @@ function InputRow({ task: t, draft, error, editable, onChange }: { task: Task; d
       <td>
         <Chip tone={state.tone}>{state.label}</Chip>
         <span className="kg-msub">
-          {t.submitted_at ? `${formatDateTime(t.submitted_at)}${t.version && t.version > 1 ? ` · v${t.version}` : ""}` : t.reminded_at ? `Reminder sent ${formatDate(t.reminded_at)}` : ""}
+          {t.submitted_at ? `${formatDateTime(t.submitted_at)}${t.version && t.version > 1 ? ` · v${t.version}` : ""}` : chased(t)}
         </span>
       </td>
     </tr>
   );
+}
+
+/** How far up the escalation ladder an unsubmitted input has gone, in the contributor's words. */
+function chased(t: Task): string {
+  if (t.escalation_step >= 3) return "Overdue: the stakeholders were told";
+  if (t.escalation_step === 2) return "Your line manager was told";
+  return t.reminded_at ? `Reminder sent ${formatDate(t.reminded_at)}` : "";
 }
 
 function OtherPeriods({ tasks, onPeriod }: { tasks: Tasks; onPeriod: (p: string) => void }) {

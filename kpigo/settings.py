@@ -280,7 +280,7 @@ DEFAULT_FROM_EMAIL = KPIGO_EMAIL_FROM or "kpigo@localhost"
 # The address people open kpiGo at, for links in email; optional.
 KPIGO_PUBLIC_URL = (env("KPIGO_PUBLIC_URL", "") or "").rstrip("/")
 
-# Send the one manual-input reminder (R1) as this user; it checks daily who is due.
+# Run the manual-input escalation ladder as this user; it checks daily who is due.
 if env("KPIGO_INPUT_REMINDER_USER"):
     KPIGO_SCHEDULED_ACTIONS.append(
         {
