@@ -8,8 +8,8 @@ This repository is at **R0 Workstream E**: the action layer (A), the core data
 model (B), ingestion (C), auth, access and the licence (D), and the design system
 with the app shell and admin screens (E). R1 (Scorecards and manual input) is in
 progress: the scorecard taxonomy, profile-to-metric assignment and the target
-workbench are in, with the scoring engine and overrides; period close, the scorecard
-UI and manual input follow.
+workbench, the scoring engine and overrides, and period close with frozen
+snapshots are in; the scorecard UI and manual input follow.
 
 ## The one rule
 
@@ -166,6 +166,19 @@ target, weight, cap, actual or target type for a person, a profile or a
 branch/region/segment/portfolio over a range of months; person beats profile
 beats dimension.
 
+## Scorecards: period close
+
+`scorecard.close.check` lists what stops a month closing: any metric unscored
+for anyone (not reported, no target, no FX rate) that has not been excluded with
+a reason (`scorecard.exclusion.add`), and weights off the total. Feeds with no
+load and pending overrides are warnings. `scorecard.period.close` scores everyone
+through the bulk path and freezes the result, with its inputs, into
+`score_history` / `score_total` under a `score_snapshot` version; a trigger
+refuses any later change. `scorecard.period.restate` (reason required) reopens it:
+only a `restating` period takes restatement loads and overrides, and closing it
+again writes version n+1 beside the old one. Closed periods are read from the
+snapshot, never recomputed.
+
 ## Layout
 
 ```
@@ -182,7 +195,8 @@ kpigo/
   access/            users, roles, page access, data scope grants, sign-in, directory import
     auth/            local + LDAP, OIDC, SAML, Entra Graph
   scorecards/        taxonomy, profile metrics, bands, target workbench, overrides,
-                     scoring engine (engine.py rules, scoring.py per subject, bulk.py Polars)
+                     scoring engine (engine.py rules, scoring.py per subject, bulk.py Polars),
+                     close.py (pre-checks, snapshots, restatement)
   licence/           signed licence, fingerprint, grace states, the pipeline's licence gate
 tools/licence_vendor.py  vendor-side key generation and licence signing
 frontend/

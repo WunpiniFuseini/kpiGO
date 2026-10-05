@@ -1112,6 +1112,136 @@
         "title": "CloneIn",
         "type": "object"
       },
+      "CloseCheckInQuery": {
+        "properties": {
+          "period_key": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "Period Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_key"
+        ],
+        "title": "CloseCheckInQuery",
+        "type": "object"
+      },
+      "CloseCheckOut": {
+        "properties": {
+          "blockers": {
+            "items": {
+              "$ref": "#/components/schemas/CloseIssueOut"
+            },
+            "title": "Blockers",
+            "type": "array"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "ready": {
+            "title": "Ready",
+            "type": "boolean"
+          },
+          "refused": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refused"
+          },
+          "snapshot_version": {
+            "title": "Snapshot Version",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "subjects": {
+            "title": "Subjects",
+            "type": "integer"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/CloseIssueOut"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "period_key",
+          "status",
+          "snapshot_version",
+          "ready",
+          "refused",
+          "subjects",
+          "blockers",
+          "warnings"
+        ],
+        "title": "CloseCheckOut",
+        "type": "object"
+      },
+      "CloseIssueOut": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "metric_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Code"
+          },
+          "profile_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Code"
+          },
+          "subjects": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Subjects",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "message",
+          "metric_code",
+          "profile_code",
+          "subjects",
+          "count"
+        ],
+        "title": "CloseIssueOut",
+        "type": "object"
+      },
       "ConnectionCreateIn": {
         "properties": {
           "database": {
@@ -2820,6 +2950,180 @@
           "message"
         ],
         "title": "ErrorOut",
+        "type": "object"
+      },
+      "ExclusionAddIn": {
+        "properties": {
+          "metric_code": {
+            "maxLength": 80,
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "period_key": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "Period Key",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Reason",
+            "type": "string"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject"
+          }
+        },
+        "required": [
+          "period_key",
+          "metric_code",
+          "reason"
+        ],
+        "title": "ExclusionAddIn",
+        "type": "object"
+      },
+      "ExclusionListInQuery": {
+        "properties": {
+          "period_key": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "Period Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_key"
+        ],
+        "title": "ExclusionListInQuery",
+        "type": "object"
+      },
+      "ExclusionListOut": {
+        "properties": {
+          "exclusions": {
+            "items": {
+              "$ref": "#/components/schemas/ExclusionOut"
+            },
+            "title": "Exclusions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "exclusions"
+        ],
+        "title": "ExclusionListOut",
+        "type": "object"
+      },
+      "ExclusionOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "exclusion_id": {
+            "format": "uuid",
+            "title": "Exclusion Id",
+            "type": "string"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "metric_name": {
+            "title": "Metric Name",
+            "type": "string"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "staff_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff No"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          }
+        },
+        "required": [
+          "exclusion_id",
+          "period_key",
+          "metric_code",
+          "metric_name",
+          "subject_id",
+          "staff_no",
+          "reason",
+          "created_at",
+          "created_by"
+        ],
+        "title": "ExclusionOut",
+        "type": "object"
+      },
+      "ExclusionRemoveIn": {
+        "properties": {
+          "exclusion_id": {
+            "format": "uuid",
+            "title": "Exclusion Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "exclusion_id"
+        ],
+        "title": "ExclusionRemoveIn",
+        "type": "object"
+      },
+      "ExclusionRemoveOut": {
+        "properties": {
+          "removed": {
+            "title": "Removed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "removed"
+        ],
+        "title": "ExclusionRemoveOut",
         "type": "object"
       },
       "ExportOut": {
@@ -5204,6 +5508,17 @@
             "title": "Display Name",
             "type": "string"
           },
+          "exclusion_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exclusion Reason"
+          },
           "fx_rate": {
             "anyOf": [
               {
@@ -5401,7 +5716,8 @@
           "cap",
           "pct_achieved",
           "score",
-          "overrides"
+          "overrides",
+          "exclusion_reason"
         ],
         "title": "MetricScoreOut",
         "type": "object"
@@ -6191,6 +6507,41 @@
           "changed"
         ],
         "title": "PasswordChangeOut",
+        "type": "object"
+      },
+      "PeriodCloseIn": {
+        "properties": {
+          "period_key": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "Period Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_key"
+        ],
+        "title": "PeriodCloseIn",
+        "type": "object"
+      },
+      "PeriodRestateIn": {
+        "properties": {
+          "period_key": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "Period Key",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_key",
+          "reason"
+        ],
+        "title": "PeriodRestateIn",
         "type": "object"
       },
       "PeriodStatusOut": {
@@ -8310,9 +8661,25 @@
             "title": "Period Key",
             "type": "string"
           },
+          "period_status": {
+            "title": "Period Status",
+            "type": "string"
+          },
           "phase": {
             "title": "Phase",
             "type": "string"
+          },
+          "restated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restated At"
           },
           "rows": {
             "items": {
@@ -8320,6 +8687,17 @@
             },
             "title": "Rows",
             "type": "array"
+          },
+          "snapshot_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Version"
           },
           "source": {
             "title": "Source",
@@ -8333,7 +8711,10 @@
         "required": [
           "period_key",
           "phase",
+          "period_status",
           "source",
+          "snapshot_version",
+          "restated_at",
           "rows",
           "total"
         ],
@@ -8390,6 +8771,10 @@
               }
             ],
             "title": "Cycle Months"
+          },
+          "excluded": {
+            "title": "Excluded",
+            "type": "integer"
           },
           "full_name": {
             "title": "Full Name",
@@ -8489,6 +8874,40 @@
             ],
             "title": "Quarters Elapsed"
           },
+          "restated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restated At"
+          },
+          "restatement_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restatement Reason"
+          },
+          "snapshot_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Version"
+          },
           "source": {
             "title": "Source",
             "type": "string"
@@ -8535,6 +8954,9 @@
           "phase",
           "period_status",
           "source",
+          "snapshot_version",
+          "restated_at",
+          "restatement_reason",
           "assigned",
           "assignment_id",
           "profile_code",
@@ -8553,6 +8975,7 @@
           "metrics_total",
           "not_reported",
           "no_target",
+          "excluded",
           "band",
           "next_band",
           "statement"
@@ -8583,6 +9006,10 @@
                 "type": "null"
               }
             ]
+          },
+          "excluded": {
+            "title": "Excluded",
+            "type": "integer"
           },
           "full_name": {
             "title": "Full Name",
@@ -8647,6 +9074,7 @@
           "metrics_total",
           "not_reported",
           "no_target",
+          "excluded",
           "band"
         ],
         "title": "ScorecardRowOut",
@@ -9119,6 +9547,103 @@
           "products"
         ],
         "title": "SimilarMetric",
+        "type": "object"
+      },
+      "SnapshotListInQuery": {
+        "properties": {
+          "period_key": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "Period Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_key"
+        ],
+        "title": "SnapshotListInQuery",
+        "type": "object"
+      },
+      "SnapshotListOut": {
+        "properties": {
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "snapshots": {
+            "items": {
+              "$ref": "#/components/schemas/SnapshotOut"
+            },
+            "title": "Snapshots",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_key",
+          "status",
+          "snapshots"
+        ],
+        "title": "SnapshotListOut",
+        "type": "object"
+      },
+      "SnapshotOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "snapshot_version": {
+            "title": "Snapshot Version",
+            "type": "integer"
+          },
+          "subjects": {
+            "title": "Subjects",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "period_key",
+          "snapshot_version",
+          "kind",
+          "reason",
+          "subjects",
+          "created_at",
+          "created_by"
+        ],
+        "title": "SnapshotOut",
         "type": "object"
       },
       "SsoCompleteOut": {
@@ -18669,6 +19194,95 @@
         "x-kpigo-action": "scope.grant.end"
       }
     },
+    "/api/v1/actions/scorecard.close.check": {
+      "get": {
+        "operationId": "scorecard_close_check",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_key",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+              "title": "Period Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloseCheckOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "What stands between a Scorecards period and its close.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.close.check"
+      }
+    },
     "/api/v1/actions/scorecard.compute": {
       "get": {
         "operationId": "scorecard_compute",
@@ -18773,6 +19387,291 @@
           "scorecards"
         ],
         "x-kpigo-action": "scorecard.compute"
+      }
+    },
+    "/api/v1/actions/scorecard.exclusion.add": {
+      "post": {
+        "operationId": "scorecard_exclusion_add",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExclusionAddIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExclusionOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Leave an unscored metric out of a period's scores, with a reason.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.exclusion.add"
+      }
+    },
+    "/api/v1/actions/scorecard.exclusion.list": {
+      "get": {
+        "operationId": "scorecard_exclusion_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_key",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+              "title": "Period Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExclusionListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "The exclusions recorded for a period.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.exclusion.list"
+      }
+    },
+    "/api/v1/actions/scorecard.exclusion.remove": {
+      "post": {
+        "operationId": "scorecard_exclusion_remove",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExclusionRemoveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExclusionRemoveOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Withdraw an exclusion from a period that has not closed.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.exclusion.remove"
       }
     },
     "/api/v1/actions/scorecard.node.delete": {
@@ -18991,6 +19890,114 @@
         "x-kpigo-action": "scorecard.node.save"
       }
     },
+    "/api/v1/actions/scorecard.period.close": {
+      "post": {
+        "operationId": "scorecard_period_close",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PeriodCloseIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnapshotOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Close a Scorecards period: pre-check, score everyone, freeze the snapshot.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.period.close"
+      }
+    },
     "/api/v1/actions/scorecard.period.list": {
       "get": {
         "operationId": "scorecard_period_list",
@@ -19116,6 +20123,114 @@
           "scorecards"
         ],
         "x-kpigo-action": "scorecard.period.list"
+      }
+    },
+    "/api/v1/actions/scorecard.period.restate": {
+      "post": {
+        "operationId": "scorecard_period_restate",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PeriodRestateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloseCheckOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Reopen a closed Scorecards period for restatement, saying why.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.period.restate"
       }
     },
     "/api/v1/actions/scorecard.placement.clear": {
@@ -19722,6 +20837,95 @@
           "scorecards"
         ],
         "x-kpigo-action": "scorecard.settings.set"
+      }
+    },
+    "/api/v1/actions/scorecard.snapshot.list": {
+      "get": {
+        "operationId": "scorecard_snapshot_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_key",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+              "title": "Period Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnapshotListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Every frozen version of a Scorecards period, newest first.",
+        "tags": [
+          "scorecards"
+        ],
+        "x-kpigo-action": "scorecard.snapshot.list"
       }
     },
     "/api/v1/actions/scorecard.template.activate": {

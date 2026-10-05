@@ -30,8 +30,15 @@ from typing import Literal
 
 from kpigo.scorecards.bands import Band, lookup
 
-State = Literal["scored", "zero_actual", "not_reported", "no_target", "no_fx_rate"]
-STATES: tuple[State, ...] = ("scored", "zero_actual", "not_reported", "no_target", "no_fx_rate")
+State = Literal["scored", "zero_actual", "not_reported", "no_target", "no_fx_rate", "excluded"]
+STATES: tuple[State, ...] = (
+    "scored",
+    "zero_actual",
+    "not_reported",
+    "no_target",
+    "no_fx_rate",
+    "excluded",
+)
 COUNTED: frozenset[str] = frozenset({"scored", "zero_actual"})
 # Excluded because the data has not arrived, rather than because configuration is missing.
 AWAITING: frozenset[str] = frozenset({"not_reported"})
@@ -105,6 +112,8 @@ class MetricIn:
     overrides: dict[str, AppliedOverride] = field(default_factory=dict)
     # Units of the target currency per unit of the actual's; None when it is needed but missing.
     fx_rate: Decimal | None = Decimal(1)
+    # Why an Admin left this metric out of the period, if they did (SC-9).
+    excluded: str | None = None
 
 
 @dataclass(frozen=True)
@@ -133,6 +142,7 @@ class MetricScore:
     pct_achieved: Decimal | None
     score: Decimal | None
     overrides: tuple[AppliedOverride, ...]
+    exclusion_reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -154,6 +164,7 @@ class SubjectScore:
     metrics_total: int
     not_reported: int
     no_target: int
+    excluded: int
     band: Band | None
 
     @property
@@ -164,9 +175,10 @@ class SubjectScore:
         text = f"{self.metrics_scored} of {self.metrics_total} metrics scored"
         if self.not_reported:
             text += f" · {self.not_reported} awaiting data"
-        gaps = self.metrics_total - self.metrics_scored - self.not_reported
-        if gaps:
-            text += f" · {gaps} without a target"
+        if self.no_target:
+            text += f" · {self.no_target} without a target"
+        if self.excluded:
+            text += f" · {self.excluded} excluded"
         return text
 
 
@@ -231,6 +243,9 @@ def score_metric(m: MetricIn, pos: CyclePosition) -> MetricScore:
         state = "zero_actual"
     else:
         state = "scored"
+    exclusion = None
+    if state not in COUNTED and m.excluded is not None:
+        state, exclusion = "excluded", m.excluded
 
     pct: Decimal | None = None
     score: Decimal | None = None
@@ -271,6 +286,7 @@ def score_metric(m: MetricIn, pos: CyclePosition) -> MetricScore:
         pct_achieved=q_ratio(pct),
         score=score,  # unrounded until totals are taken; see total()
         overrides=applied,
+        exclusion_reason=exclusion,
     )
 
 
@@ -318,7 +334,10 @@ def total(
         metrics_scored=len(counted),
         metrics_total=len(metrics),
         not_reported=sum(1 for m in metrics if m.state in AWAITING),
-        no_target=sum(1 for m in metrics if m.state not in COUNTED and m.state not in AWAITING),
+        no_target=sum(
+            1 for m in metrics if m.state not in COUNTED | AWAITING and m.state != "excluded"
+        ),
+        excluded=sum(1 for m in metrics if m.state == "excluded"),
         band=lookup(bands, graded_q),
     )
 

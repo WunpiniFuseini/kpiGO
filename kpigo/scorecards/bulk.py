@@ -30,7 +30,13 @@ from kpigo.scorecards.engine import (
     q_ratio,
     q_value,
 )
-from kpigo.scorecards.models import OVERRIDE_CHANGE_TYPES, OVERRIDE_DIMENSIONS, Override, Target
+from kpigo.scorecards.models import (
+    OVERRIDE_CHANGE_TYPES,
+    OVERRIDE_DIMENSIONS,
+    Override,
+    ScoreExclusion,
+    Target,
+)
 from kpigo.scorecards.scoring import applicable_overrides, micros, position
 
 F = pl.Float64
@@ -220,6 +226,20 @@ def score_period(
         },
     )
 
+    excl = pl.DataFrame(
+        [
+            {
+                "metric_id": str(e["metric_id"]),
+                "subject_id": str(e["subject_id"]) if e["subject_id"] else None,
+                "reason": e["reason"],
+            }
+            for e in ScoreExclusion.objects.filter(
+                org_id=org_id, product="scorecards", period_key=period_key, metric_id__in=metric_ids
+            ).values("metric_id", "subject_id", "reason")
+        ],
+        schema={"metric_id": S, "subject_id": S, "reason": S},
+    )
+
     # One row per (subject, metric) on the subject's profile.
     rows = members.join(metrics, on="profile_code", how="inner").with_columns(
         pl.when(pl.col("target_scope") == "subject")
@@ -233,6 +253,21 @@ def score_period(
         right_on=["metric_id", "t_scope", "scope_key"],
         how="left",
     ).join(facts, on=["metric_id", "subject_id"], how="left")
+    rows = (
+        rows.join(
+            excl.filter(pl.col("subject_id").is_not_null()).rename({"reason": "excl_own"}),
+            on=["metric_id", "subject_id"],
+            how="left",
+        )
+        .join(
+            excl.filter(pl.col("subject_id").is_null()).select(
+                "metric_id", pl.col("reason").alias("excl_all")
+            ),
+            on="metric_id",
+            how="left",
+        )
+        .with_columns(pl.coalesce("excl_own", "excl_all").alias("exclusion_reason"))
+    )
 
     rows = _with_overrides(rows, overrides)
     rows = _with_fx(org_id, period_key, rows)
@@ -356,7 +391,12 @@ def _score(rows: pl.DataFrame) -> pl.DataFrame:
         .then(pl.lit("zero_actual"))
         .otherwise(pl.lit("scored"))
     )
-    rows = rows.with_columns(state.alias("state"))
+    rows = rows.with_columns(state.alias("state")).with_columns(
+        pl.when(~c("state").is_in(["scored", "zero_actual"]) & c("exclusion_reason").is_not_null())
+        .then(pl.lit("excluded"))
+        .otherwise(c("state"))
+        .alias("state")
+    )
     counted = c("state").is_in(["scored", "zero_actual"])
     lower = c("direction") == "lower_is_better"
     pct = (
@@ -397,6 +437,7 @@ def _assemble(
         c("counted").sum().alias("metrics_scored"),
         pl.len().alias("metrics_total"),
         awaiting.sum().alias("not_reported"),
+        (c("state") == "excluded").sum().alias("excluded"),
     )
     totals = totals.with_columns(
         pl.when(c("weight_scored") > 0)
@@ -463,7 +504,11 @@ def _assemble(
                 metrics_scored=t["metrics_scored"],
                 metrics_total=t["metrics_total"],
                 not_reported=t["not_reported"],
-                no_target=t["metrics_total"] - t["metrics_scored"] - t["not_reported"],
+                no_target=t["metrics_total"]
+                - t["metrics_scored"]
+                - t["not_reported"]
+                - t["excluded"],
+                excluded=t["excluded"],
                 band=lookup(bands, graded),
             )
         )
@@ -481,6 +526,7 @@ _EMPTY: dict[str, Any] = {
     "metrics_scored": 0,
     "metrics_total": 0,
     "not_reported": 0,
+    "excluded": 0,
 }
 
 
@@ -528,4 +574,5 @@ def _metric(r: dict[str, Any]) -> MetricScore:
         pct_achieved=q_ratio(r["pct"]),
         score=q_ratio(r["score"]),
         overrides=tuple(applied),
+        exclusion_reason=r["exclusion_reason"] if r["state"] == "excluded" else None,
     )

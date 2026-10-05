@@ -16,6 +16,7 @@ export const configMe: Me = {
     "override.view",
     "override.request",
     "override.approve",
+    "period.close",
   ],
 };
 
@@ -339,3 +340,101 @@ export const overridesApproved: Output<"override.list"> = {
 };
 
 export const noOverrides: Output<"override.list"> = { pending: 0, truncated: false, overrides: [] };
+
+// ── period close ────────────────────────────────────────────────────────────
+
+type Check = Output<"scorecard.close.check">;
+
+export const closeBlocked: Check = {
+  period_key: "202609",
+  status: "open",
+  snapshot_version: 0,
+  ready: false,
+  refused: null,
+  subjects: 214,
+  blockers: [
+    {
+      kind: "not_reported",
+      metric_code: "fee_income",
+      profile_code: null,
+      subjects: ["E1042", "E1077"],
+      count: 2,
+      message: "fee_income: no actual reported for 2 people. Load it, or exclude it with a reason.",
+    },
+    {
+      kind: "no_target",
+      metric_code: "ntb_accounts",
+      profile_code: null,
+      subjects: Array.from({ length: 25 }, (_, i) => `E${2000 + i}`),
+      count: 31,
+      message: "ntb_accounts: no target published for 31 people. Load it, or exclude it with a reason.",
+    },
+    {
+      kind: "weights",
+      metric_code: null,
+      profile_code: "sme_rm",
+      subjects: ["E1042"],
+      count: 1,
+      message: "sme_rm: weights sum to 105 for 1 person, not 100.",
+    },
+  ],
+  warnings: [
+    {
+      kind: "pending_overrides",
+      metric_code: null,
+      profile_code: null,
+      subjects: [],
+      count: 1,
+      message: "1 override request(s) for this period are still awaiting approval; close freezes scores without them.",
+    },
+    { kind: "feed", metric_code: null, profile_code: null, subjects: [], count: 0, message: "Feed 'monthly' was due for this period and has no successful load for it." },
+  ],
+};
+
+export const closeReady: Check = { ...closeBlocked, ready: true, blockers: [], warnings: [] };
+export const closeRestating: Check = { ...closeReady, status: "restating", snapshot_version: 1 };
+export const closeClosed: Check = {
+  ...closeReady,
+  status: "closed",
+  snapshot_version: 2,
+  ready: false,
+  refused: "202609 is closed. Restate it to change its scores.",
+  subjects: 0,
+};
+export const closeFuture: Check = { ...closeReady, period_key: "202612", ready: false, refused: "202612 has not started yet.", subjects: 0 };
+
+export const exclusions: Output<"scorecard.exclusion.list"> = {
+  exclusions: [
+    {
+      exclusion_id: "x1",
+      period_key: "202609",
+      metric_code: "fee_income",
+      metric_name: "Fee and commission income",
+      subject_id: null,
+      staff_no: null,
+      reason: "Fee system outage for the last week of September.",
+      created_at: "2026-10-03T10:00:00Z",
+      created_by: 1,
+    },
+  ],
+};
+export const noExclusions: Output<"scorecard.exclusion.list"> = { exclusions: [] };
+
+export const snapshots: Output<"scorecard.snapshot.list"> = {
+  period_key: "202609",
+  status: "closed",
+  snapshots: [
+    {
+      snapshot_id: "s2",
+      period_key: "202609",
+      snapshot_version: 2,
+      kind: "restatement",
+      reason: "Corrected CASA balances for the Kumasi branches.",
+      subjects: 214,
+      created_at: "2026-10-04T15:30:00Z",
+      created_by: 1,
+    },
+    { snapshot_id: "s1", period_key: "202609", snapshot_version: 1, kind: "close", reason: "", subjects: 214, created_at: "2026-10-02T09:00:00Z", created_by: 1 },
+  ],
+};
+export const noSnapshots: Output<"scorecard.snapshot.list"> = { period_key: "202609", status: "open", snapshots: [] };

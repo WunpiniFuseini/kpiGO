@@ -28,8 +28,9 @@ from kpigo.ingestion.models import (
     FeedRun,
     TmplActualMonthly,
 )
+from kpigo.periods.models import PeriodStatus
 from kpigo.platform.models import AuditLog
-from tests.conftest import run
+from tests.conftest import ORG_ID, run
 from tests.ingestion_support import (
     ACTIVITY_DAY,
     MONTHLY,
@@ -196,8 +197,17 @@ def test_volume_gate_checks_expected_range_and_trailing_average(org: dict[str, A
 
 def test_period_status_gate_refuses_a_closed_period_unless_restating(org: dict[str, Any]) -> None:
     ready_feed()
-    for status in ("open", "closing", "closed"):
-        run("period.transition", product="scorecards", period_key=PERIOD, to_status=status)
+    status = PeriodStatus.objects.create(
+        org_id=ORG_ID, product="scorecards", period_key=PERIOD, status="closed"
+    )
+    out = dry("monthly", MONTHLY, monthly_rows())
+    assert rules(out) == {"period_closed"} and not out.passed
+    # The flag alone does not open a published month: an Admin restates it first.
+    out = dry("monthly", MONTHLY, monthly_rows(), restatement=True)
+    assert rules(out) == {"period_closed"} and not out.passed
+    assert "restate the period" in out.findings[0].message
+    status.status = "restating"
+    status.save()
     out = dry("monthly", MONTHLY, monthly_rows())
     assert rules(out) == {"period_closed"} and not out.passed
     out = dry("monthly", MONTHLY, monthly_rows(), restatement=True)

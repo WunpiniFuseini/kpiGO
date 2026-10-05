@@ -97,6 +97,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "scorecard.view",
             *OVERRIDE_REQUEST,
             "override.approve",
+            "period.close",
         ),
         _role(
             "executive", "Executive / Regional Head", *EVERYONE, "dimension.view", "scorecard.view"

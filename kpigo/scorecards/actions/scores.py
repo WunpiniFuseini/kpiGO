@@ -1,16 +1,19 @@
-"""Live scorecards (PRD SC-2–SC-8, TDD §4).
+"""Scorecards as people read them (PRD SC-2–SC-8, SC-12; TDD §4).
 
-``scorecard.compute`` is one subject's scorecard for a period through the
-per-subject path, with every input the provenance panel needs: the target and
-how it was adjusted, the overrides that applied, the actual and the run that
-loaded it. ``scorecard.period.list`` scores everyone the caller can see through
-the bulk path. Open periods are computed at query time; frozen snapshots for
-closed periods arrive with period close.
+``scorecard.compute`` is one subject's scorecard for a period, with every input
+the provenance panel needs: the target and how it was adjusted, the overrides
+that applied, the actual and the run that loaded it. ``scorecard.period.list``
+is everyone the caller can see. Open and restating periods are computed at
+query time (``source="live"``, provisional); a closed period is read from its
+current frozen snapshot (``source="snapshot"``), never recomputed, so a change
+to a source table or a band after close moves nothing.
 """
 
 from __future__ import annotations
 
 import uuid
+from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, Field
@@ -22,6 +25,7 @@ from kpigo.platform.vocab import Code, PeriodKey
 from kpigo.scorecards import roster
 from kpigo.scorecards.bands import Band, bands_for, next_band
 from kpigo.scorecards.bulk import score_period
+from kpigo.scorecards.close import current_snapshot, frozen
 from kpigo.scorecards.config import period_phase, period_status
 from kpigo.scorecards.engine import MetricScore, SubjectScore
 from kpigo.scorecards.scoring import score_subject
@@ -86,6 +90,8 @@ class MetricScoreOut(BaseModel):
     # Out of 1.0 (×100 for points); null unless scored.
     score: Decimal | None
     overrides: list[AppliedOverrideOut]
+    # Why an Admin left it out of the period, when the state is ``excluded``.
+    exclusion_reason: str | None
 
 
 def _metric(m: MetricScore, path: list[str]) -> MetricScoreOut:
@@ -126,6 +132,7 @@ def _metric(m: MetricScore, path: list[str]) -> MetricScoreOut:
             )
             for o in m.overrides
         ],
+        exclusion_reason=m.exclusion_reason,
     )
 
 
@@ -143,8 +150,12 @@ class ScorecardOut(BaseModel):
     # future | open | locked, and the recorded period status.
     phase: str
     period_status: str
-    # live: computed now from current inputs. Closed periods read snapshots (period close).
+    # live: computed now from current inputs (provisional); snapshot: frozen at close.
     source: str
+    snapshot_version: int | None
+    # Set when the snapshot read is a restatement (version > 1).
+    restated_at: datetime | None
+    restatement_reason: str | None
     # False when no assignment is in force in the period: there is nothing to score.
     assigned: bool
     assignment_id: uuid.UUID | None
@@ -165,22 +176,55 @@ class ScorecardOut(BaseModel):
     metrics_total: int
     not_reported: int
     no_target: int
+    excluded: int
     band: ScoreBandOut | None
     next_band: ScoreBandOut | None
     # e.g. "5 of 7 metrics scored · 2 awaiting data" (SC-7).
     statement: str
 
 
+@dataclass(frozen=True)
+class _Source:
+    source: str = "live"
+    snapshot_version: int | None = None
+    restated_at: datetime | None = None
+    restatement_reason: str | None = None
+
+
+def _source(org_id: str, period_key: str, status: str) -> _Source:
+    if status != "closed":
+        return _Source()
+    snap = current_snapshot(org_id, period_key)
+    restated = snap is not None and snap.snapshot_version > 1
+    return _Source(
+        source="snapshot",
+        snapshot_version=snap.snapshot_version if snap else None,
+        restated_at=snap.created_at if snap and restated else None,
+        restatement_reason=snap.reason if snap and restated else None,
+    )
+
+
 def scorecard_out(org_id: str, subject: Subject, period_key: str) -> ScorecardOut:
-    s = score_subject(org_id, str(subject.subject_id), period_key)
+    status = period_status(org_id, period_key)
+    meta = _source(org_id, period_key, status)
+    if meta.source == "snapshot":
+        found = frozen(org_id, period_key, [str(subject.subject_id)])
+        s = found[0] if found else None
+        missing = f"Not on a scorecard when {period_key} closed."
+    else:
+        s = score_subject(org_id, str(subject.subject_id), period_key)
+        missing = "No role in force for this period, so there is no scorecard."
     base = {
         "subject_id": subject.subject_id,
         "staff_no": subject.staff_no,
         "full_name": subject.full_name,
         "period_key": period_key,
         "phase": period_phase(org_id, period_key),
-        "period_status": period_status(org_id, period_key),
-        "source": "live",
+        "period_status": status,
+        "source": meta.source,
+        "snapshot_version": meta.snapshot_version,
+        "restated_at": meta.restated_at,
+        "restatement_reason": meta.restatement_reason,
     }
     if s is None:
         return ScorecardOut(
@@ -203,9 +247,10 @@ def scorecard_out(org_id: str, subject: Subject, period_key: str) -> ScorecardOu
             metrics_total=0,
             not_reported=0,
             no_target=0,
+            excluded=0,
             band=None,
             next_band=None,
-            statement="No role in force for this period, so there is no scorecard.",
+            statement=missing,
         )
     placer = Placer.active(org_id)
     return ScorecardOut(
@@ -228,8 +273,10 @@ def scorecard_out(org_id: str, subject: Subject, period_key: str) -> ScorecardOu
         metrics_total=s.metrics_total,
         not_reported=s.not_reported,
         no_target=s.no_target,
+        excluded=s.excluded,
         band=_band(s.band),
-        next_band=_band(next_band(bands_for(org_id), s.band)),
+        # A frozen grade has no "next band" to chase.
+        next_band=_band(next_band(bands_for(org_id), s.band)) if meta.source == "live" else None,
         statement=s.statement,
     )
 
@@ -273,13 +320,17 @@ class ScorecardRowOut(BaseModel):
     metrics_total: int
     not_reported: int
     no_target: int
+    excluded: int
     band: ScoreBandOut | None
 
 
 class ScorecardListOut(BaseModel):
     period_key: str
     phase: str
+    period_status: str
     source: str
+    snapshot_version: int | None
+    restated_at: datetime | None
     rows: list[ScorecardRowOut]
     # How many visible subjects matched before ``limit``.
     total: int
@@ -305,7 +356,19 @@ def list_scorecards(params: ScorecardListIn, ctx: ActionContext) -> ScorecardLis
         for s in in_force.values_list("subject_id", flat=True)
         if ctx.visible_subjects.contains(str(s))
     ]
-    scores: list[SubjectScore] = score_period(ctx.org_id, period_key, visible) if visible else []
+    status = period_status(ctx.org_id, period_key)
+    meta = _source(ctx.org_id, period_key, status)
+    scores: list[SubjectScore] = []
+    if meta.source == "snapshot":
+        # Who was scored at close, not who holds a role now.
+        scores = [
+            s
+            for s in frozen(ctx.org_id, period_key)
+            if ctx.visible_subjects.contains(s.subject_id)
+            and (not params.profile_code or s.profile_code == params.profile_code)
+        ]
+    elif visible:
+        scores = score_period(ctx.org_id, period_key, visible)
     people = {
         str(s.subject_id): s
         for s in Subject.objects.filter(subject_id__in=[x.subject_id for x in scores])
@@ -323,6 +386,7 @@ def list_scorecards(params: ScorecardListIn, ctx: ActionContext) -> ScorecardLis
             metrics_total=s.metrics_total,
             not_reported=s.not_reported,
             no_target=s.no_target,
+            excluded=s.excluded,
             band=_band(s.band),
         )
         for s in scores
@@ -330,7 +394,10 @@ def list_scorecards(params: ScorecardListIn, ctx: ActionContext) -> ScorecardLis
     return ScorecardListOut(
         period_key=period_key,
         phase=period_phase(ctx.org_id, period_key),
-        source="live",
+        period_status=status,
+        source=meta.source,
+        snapshot_version=meta.snapshot_version,
+        restated_at=meta.restated_at,
         rows=rows[: params.limit],
         total=len(rows),
     )

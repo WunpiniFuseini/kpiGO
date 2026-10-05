@@ -165,13 +165,19 @@ def test_request_validation(ids: dict[str, Any], kw: dict[str, Any], match: str)
     assert match in f"{e.value.message} {e.value.detail}"
 
 
-def test_locked_periods_take_no_overrides(ids: dict[str, Any]) -> None:
+def test_closed_periods_take_no_overrides(ids: dict[str, Any]) -> None:
     o = request(ids["manager"])
-    PeriodStatus.objects.create(org_id=ORG_ID, product="scorecards", period_key=P, status="closed")
-    with pytest.raises(Conflict, match="restatement"):
+    status = PeriodStatus.objects.create(
+        org_id=ORG_ID, product="scorecards", period_key=P, status="closed"
+    )
+    with pytest.raises(Conflict, match="restate it first"):
         request(ids["manager"])
-    with pytest.raises(Conflict, match="restatement"):
+    with pytest.raises(Conflict, match="restate it first"):
         run("override.approve", ids["owner"], override_id=o.override_id)
+    # While restating, an approved override lands in the next version.
+    status.status = "restating"
+    status.save()
+    assert run("override.approve", ids["owner"], override_id=o.override_id).status == "approved"
 
 
 def test_reject_withdraw_and_states(ids: dict[str, Any]) -> None:
