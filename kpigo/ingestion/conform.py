@@ -17,6 +17,8 @@ from typing import Any
 from django.db import connection
 from django.db.models import Q
 
+from kpigo.campaigns import attribution
+from kpigo.campaigns.models import Campaign, CampaignContact, CampaignOutcome, CampaignPopulation
 from kpigo.hierarchy.models import DimMember, ProductLine
 from kpigo.ingestion import validator as v
 from kpigo.ingestion.models import FactActualDimensional, FactActualMonthly, Feed, FeedRun
@@ -266,8 +268,139 @@ def write_daily(
     refresh_daily_totals()
 
 
+# ── Campaign Manager feeds ───────────────────────────────────────────────────
+
+
+def _customer(row: v.Row) -> dict[str, Any]:
+    return {column: row.values.get(column) for column in v.CUSTOMER_DIMENSIONS.values()}
+
+
+def write_campaign_outcome(
+    feed: Feed, run: FeedRun, rows: list[v.Row], previous: list[str], now: datetime
+) -> None:
+    """Outcomes, then attribution over them in the same savepoint (TDD §7.2)."""
+    slices: dict[str, set[date]] = defaultdict(set)
+    for row in rows:
+        slices[row.resolved["metric_id"]].add(row.values["activity_date"])
+    if previous:
+        match = Q()
+        for metric_id, days in slices.items():
+            match |= Q(metric_id=metric_id, activity_date__in=sorted(days))
+        # Their attribution goes with them (cascade); the new rows are attributed below.
+        CampaignOutcome.objects.filter(org_id=feed.org_id, run_id__in=previous).filter(
+            match
+        ).delete()
+    campaigns = dict(Campaign.objects.filter(org_id=feed.org_id).values_list("code", "campaign_id"))
+    facts = [
+        CampaignOutcome(
+            org_id=feed.org_id,
+            customer_ref=str(row.values["customer_ref"]),
+            metric_id=row.resolved["metric_id"],
+            campaign_code=row.values.get("campaign_code"),
+            campaign_id=campaigns.get(row.values.get("campaign_code") or ""),
+            activity_date=row.values["activity_date"],
+            activity_value=row.values["activity_value"],
+            currency_code=row.values.get("currency_code"),
+            source_ref=row.values.get("source_ref"),
+            run_id=run.run_id,
+            loaded_at=now,
+            created_by=run.created_by,
+            **_customer(row),
+        )
+        for row in rows
+    ]
+    for chunk in _chunks(facts):
+        CampaignOutcome.objects.bulk_create(
+            chunk,
+            update_conflicts=True,
+            unique_fields=["org_id", "customer_ref", "metric", "activity_date", "source_ref"],
+            update_fields=[
+                "campaign_code",
+                "campaign",
+                "activity_value",
+                "currency_code",
+                *v.CUSTOMER_DIMENSIONS.values(),
+                "run_id",
+                "loaded_at",
+            ],
+        )
+    attribution.attribute(str(feed.org_id), Q(run_id=run.run_id), now=now)
+
+
+def write_campaign_population(
+    feed: Feed, run: FeedRun, rows: list[v.Row], previous: list[str], now: datetime
+) -> None:
+    days = sorted({row.values["snapshot_date"] for row in rows})
+    if previous:
+        CampaignPopulation.objects.filter(
+            org_id=feed.org_id, run_id__in=previous, snapshot_date__in=days
+        ).delete()
+    facts = [
+        CampaignPopulation(
+            org_id=feed.org_id,
+            snapshot_date=row.values["snapshot_date"],
+            customer_count=int(row.values["customer_count"]),
+            run_id=run.run_id,
+            loaded_at=now,
+            created_by=run.created_by,
+            **_customer(row),
+        )
+        for row in rows
+    ]
+    for chunk in _chunks(facts):
+        CampaignPopulation.objects.bulk_create(
+            chunk,
+            update_conflicts=True,
+            unique_fields=["org_id", "snapshot_date", *v.CUSTOMER_DIMENSIONS.values()],
+            update_fields=["customer_count", "run_id", "loaded_at"],
+        )
+
+
+def write_campaign_contact(
+    feed: Feed, run: FeedRun, rows: list[v.Row], previous: list[str], now: datetime
+) -> None:
+    """Contacts on a published event's contact days; the gate warned about the rest."""
+    counted = [row for row in rows if row.resolved.get("event_id")]
+    if previous:
+        slices: dict[str, set[date]] = defaultdict(set)
+        for row in counted:
+            slices[row.resolved["event_id"]].add(row.values["contact_date"])
+        match = Q(pk__in=[])
+        for event_id, days in slices.items():
+            match |= Q(event_id=event_id, contact_date__in=sorted(days))
+        CampaignContact.objects.filter(org_id=feed.org_id, run_id__in=previous).filter(
+            match
+        ).delete()
+    facts = [
+        CampaignContact(
+            org_id=feed.org_id,
+            event_id=row.resolved["event_id"],
+            customer_ref=str(row.values["customer_ref"]),
+            channel=str(row.values["channel"]),
+            contact_date=row.values["contact_date"],
+            delivered=row.values.get("delivered"),
+            responded=row.values.get("responded"),
+            run_id=run.run_id,
+            loaded_at=now,
+            created_by=run.created_by,
+        )
+        for row in counted
+    ]
+    for chunk in _chunks(facts):
+        CampaignContact.objects.bulk_create(
+            chunk,
+            update_conflicts=True,
+            unique_fields=["event", "customer_ref", "channel", "contact_date"],
+            update_fields=["delivered", "responded", "run_id", "loaded_at"],
+        )
+
+
 WRITERS = {
     "actual_monthly": write_monthly,
     "actual_daily": write_daily,
     "actual_dimensional": write_dimensional,
+    "campaign_outcome": write_campaign_outcome,
+    "campaign_population": write_campaign_population,
+    "campaign_contact": write_campaign_contact,
 }
+assert set(WRITERS) == set(v.LOADABLE_TEMPLATES), "every loadable template needs a writer"

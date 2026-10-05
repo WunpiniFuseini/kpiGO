@@ -230,7 +230,8 @@ def test_changing_dates_or_audience_reopens_attribution_and_versions() -> None:
     out = run("campaign.event.update", admin(), event_id=eid, period_end="2026-11-15")
     e = out.events[0]
     assert e.window_end == date(2026, 12, 15)
-    assert e.reattribute_from == date(2026, 10, 1)
+    # The change re-attributed its window in the same transaction: nothing is left to redo.
+    assert e.reattribute_from is None
     out = run(
         "campaign.event.update",
         admin(),

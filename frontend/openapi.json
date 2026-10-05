@@ -2345,6 +2345,119 @@
         "title": "BusinessDateOut",
         "type": "object"
       },
+      "CampaignAttributionRuleIn": {
+        "properties": {
+          "reason": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Reason",
+            "type": "string"
+          },
+          "rule": {
+            "enum": [
+              "last_touch",
+              "first_touch",
+              "priority",
+              "split_even"
+            ],
+            "title": "Rule",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule"
+        ],
+        "title": "CampaignAttributionRuleIn",
+        "type": "object"
+      },
+      "CampaignAttributionRunIn": {
+        "properties": {
+          "since": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Since"
+          }
+        },
+        "title": "CampaignAttributionRunIn",
+        "type": "object"
+      },
+      "CampaignAttributionSummaryOut": {
+        "properties": {
+          "attributed": {
+            "title": "Attributed",
+            "type": "integer"
+          },
+          "collisions": {
+            "title": "Collisions",
+            "type": "integer"
+          },
+          "outcomes": {
+            "title": "Outcomes",
+            "type": "integer"
+          },
+          "rule": {
+            "enum": [
+              "last_touch",
+              "first_touch",
+              "priority",
+              "split_even"
+            ],
+            "title": "Rule",
+            "type": "string"
+          },
+          "unattributed": {
+            "title": "Unattributed",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rule",
+          "outcomes",
+          "attributed",
+          "unattributed",
+          "collisions"
+        ],
+        "title": "CampaignAttributionSummaryOut",
+        "type": "object"
+      },
+      "CampaignAudienceEstimateInQuery": {
+        "properties": {
+          "audience": {
+            "items": {
+              "maxLength": 130,
+              "pattern": "^[a-z][a-z0-9_]*:[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Audience",
+            "type": "array"
+          },
+          "on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "On"
+          }
+        },
+        "required": [
+          "audience"
+        ],
+        "title": "CampaignAudienceEstimateInQuery",
+        "type": "object"
+      },
       "CampaignBudgetOut": {
         "properties": {
           "amount": {
@@ -2965,6 +3078,103 @@
         "title": "CampaignEventOut",
         "type": "object"
       },
+      "CampaignEventReachOut": {
+        "properties": {
+          "attributed": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignValueOut"
+            },
+            "title": "Attributed",
+            "type": "array"
+          },
+          "contacted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contacted"
+          },
+          "converted_customers": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Converted Customers"
+          },
+          "credited_outcomes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credited Outcomes"
+          },
+          "delivered": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivered"
+          },
+          "estimate": {
+            "$ref": "#/components/schemas/CampaignReachEstimateOut"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "matched_customers": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matched Customers"
+          },
+          "responded": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Responded"
+          }
+        },
+        "required": [
+          "event_id",
+          "estimate",
+          "contacted",
+          "delivered",
+          "responded",
+          "matched_customers",
+          "converted_customers",
+          "credited_outcomes",
+          "attributed"
+        ],
+        "title": "CampaignEventReachOut",
+        "type": "object"
+      },
       "CampaignEventRef": {
         "properties": {
           "event_id": {
@@ -3542,6 +3752,140 @@
         "title": "CampaignPendingBudgetOut",
         "type": "object"
       },
+      "CampaignReachEstimateOut": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "dimensions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Dimensions",
+            "type": "array"
+          },
+          "population": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Population"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "no_criteria",
+                  "no_population",
+                  "dimension_not_in_population"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "targeted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Targeted"
+          }
+        },
+        "required": [
+          "targeted",
+          "population",
+          "as_of",
+          "reason",
+          "dimensions"
+        ],
+        "title": "CampaignReachEstimateOut",
+        "type": "object"
+      },
+      "CampaignReachInQuery": {
+        "properties": {
+          "campaign_id": {
+            "format": "uuid",
+            "title": "Campaign Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "campaign_id"
+        ],
+        "title": "CampaignReachInQuery",
+        "type": "object"
+      },
+      "CampaignReachOut": {
+        "properties": {
+          "attribution_rule": {
+            "enum": [
+              "last_touch",
+              "first_touch",
+              "priority",
+              "split_even"
+            ],
+            "title": "Attribution Rule",
+            "type": "string"
+          },
+          "campaign_id": {
+            "title": "Campaign Id",
+            "type": "string"
+          },
+          "contacts_fed": {
+            "title": "Contacts Fed",
+            "type": "boolean"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignEventReachOut"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "outcome_metric_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Outcome Metric Codes",
+            "type": "array"
+          },
+          "outcomes_fed": {
+            "title": "Outcomes Fed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "campaign_id",
+          "attribution_rule",
+          "outcome_metric_codes",
+          "outcomes_fed",
+          "contacts_fed",
+          "events"
+        ],
+        "title": "CampaignReachOut",
+        "type": "object"
+      },
       "CampaignSummaryOut": {
         "properties": {
           "budgets": {
@@ -3761,6 +4105,31 @@
           "campaign_id"
         ],
         "title": "CampaignUpdateIn",
+        "type": "object"
+      },
+      "CampaignValueOut": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          }
+        },
+        "required": [
+          "currency",
+          "amount"
+        ],
+        "title": "CampaignValueOut",
         "type": "object"
       },
       "CampaignVersionOut": {
@@ -4708,7 +5077,10 @@
                 "enum": [
                   "actual_monthly",
                   "actual_daily",
-                  "actual_dimensional"
+                  "actual_dimensional",
+                  "campaign_outcome",
+                  "campaign_population",
+                  "campaign_contact"
                 ],
                 "type": "string"
               },
@@ -6810,7 +7182,10 @@
                 "enum": [
                   "actual_monthly",
                   "actual_daily",
-                  "actual_dimensional"
+                  "actual_dimensional",
+                  "campaign_outcome",
+                  "campaign_population",
+                  "campaign_contact"
                 ],
                 "type": "string"
               },
@@ -7194,7 +7569,10 @@
             "enum": [
               "actual_monthly",
               "actual_daily",
-              "actual_dimensional"
+              "actual_dimensional",
+              "campaign_outcome",
+              "campaign_population",
+              "campaign_contact"
             ],
             "title": "Template",
             "type": "string"
@@ -22492,6 +22870,323 @@
         "x-kpigo-action": "calendar.set_days"
       }
     },
+    "/api/v1/actions/campaign.attribution.rule.set": {
+      "post": {
+        "operationId": "campaign_attribution_rule_set",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignAttributionRuleIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignAttributionSummaryOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Set the org's collision rule and attribute every outcome again under it.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.attribution.rule.set"
+      }
+    },
+    "/api/v1/actions/campaign.attribution.run": {
+      "post": {
+        "operationId": "campaign_attribution_run",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignAttributionRunIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignAttributionSummaryOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Attribute outcomes again: every one, or those since a day.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.attribution.run"
+      }
+    },
+    "/api/v1/actions/campaign.audience.estimate": {
+      "get": {
+        "operationId": "campaign_audience_estimate",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "audience",
+            "required": true,
+            "schema": {
+              "items": {
+                "maxLength": 130,
+                "pattern": "^[a-z][a-z0-9_]*:[A-Za-z0-9][A-Za-z0-9_.\\-/]*$",
+                "type": "string"
+              },
+              "maxItems": 200,
+              "title": "Audience",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "on",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "On"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignReachEstimateOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Estimate how many customers an audience covers, from the population feed.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.audience.estimate"
+      }
+    },
     "/api/v1/actions/campaign.builder.reference": {
       "get": {
         "operationId": "campaign_builder_reference",
@@ -23948,6 +24643,95 @@
         "x-kpigo-action": "campaign.objective.set"
       }
     },
+    "/api/v1/actions/campaign.reach": {
+      "get": {
+        "operationId": "campaign_reach",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignReachOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Each event's reach: estimated audience, contacts, outcome reach and conversions.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.reach"
+      }
+    },
     "/api/v1/actions/campaign.update": {
       "post": {
         "operationId": "campaign_update",
@@ -24265,7 +25049,10 @@
                   "enum": [
                     "actual_monthly",
                     "actual_daily",
-                    "actual_dimensional"
+                    "actual_dimensional",
+                    "campaign_outcome",
+                    "campaign_population",
+                    "campaign_contact"
                   ],
                   "type": "string"
                 },
@@ -26176,7 +26963,10 @@
                   "enum": [
                     "actual_monthly",
                     "actual_daily",
-                    "actual_dimensional"
+                    "actual_dimensional",
+                    "campaign_outcome",
+                    "campaign_population",
+                    "campaign_contact"
                   ],
                   "type": "string"
                 },

@@ -1,5 +1,5 @@
 import type { Me } from "../session/Session";
-import type { Campaign, CampaignEvent, CampaignList, CampaignSummary, Reference } from "../pages/campaigns/model";
+import type { Campaign, CampaignEvent, CampaignList, CampaignSummary, Estimate, EventReach, Reach, Reference } from "../pages/campaigns/model";
 import { adminMe } from "./fixtures";
 
 export const campaignManagerMe: Me = {
@@ -187,3 +187,54 @@ export const campaignList: CampaignList = {
 
 export const campaignListEmpty: CampaignList = { scoped: true, campaigns: [] };
 export const campaignListNoScope: CampaignList = { scoped: false, campaigns: [] };
+
+// ── reach ───────────────────────────────────────────────────────────────────
+
+export const estimate: Estimate = { targeted: 48200, population: 312000, as_of: "2026-09-30", reason: null, dimensions: [] };
+export const estimateNoPopulation: Estimate = { targeted: null, population: null, as_of: null, reason: "no_population", dimensions: [] };
+export const estimateNotBrokenDown: Estimate = { targeted: null, population: 312000, as_of: "2026-09-30", reason: "dimension_not_in_population", dimensions: ["region"] };
+
+function eventReach(over: Partial<EventReach>): EventReach {
+  return {
+    event_id: "e1000000-0000-4000-8000-000000000001",
+    estimate,
+    contacted: null,
+    delivered: null,
+    responded: null,
+    matched_customers: null,
+    converted_customers: null,
+    credited_outcomes: null,
+    attributed: [],
+    ...over,
+  };
+}
+
+/** Event 1 running with every feed in; event 2 a draft, sized but not yet counting. */
+export const campaignReach: Reach = {
+  campaign_id: campaignDetail.campaign_id,
+  attribution_rule: "last_touch",
+  outcome_metric_codes: ["cmp_deposit_value"],
+  outcomes_fed: true,
+  contacts_fed: true,
+  events: [
+    eventReach({
+      contacted: 41250,
+      delivered: 39800,
+      responded: 5120,
+      matched_customers: 2310,
+      converted_customers: 1985,
+      credited_outcomes: 2140,
+      attributed: [{ currency: "GHS", amount: "4182500.0000" }],
+    }),
+    eventReach({ event_id: "e1000000-0000-4000-8000-000000000002", estimate: { ...estimate, targeted: 61000 } }),
+  ],
+};
+
+/** Nothing fed yet and no outcome metrics named: every figure says why it is missing. */
+export const campaignReachNothingFed: Reach = {
+  ...campaignReach,
+  outcome_metric_codes: [],
+  outcomes_fed: false,
+  contacts_fed: false,
+  events: campaignReach.events.map((e) => eventReach({ event_id: e.event_id, estimate: estimateNoPopulation })),
+};

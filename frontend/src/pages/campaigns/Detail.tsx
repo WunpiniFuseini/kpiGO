@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 
 import { ApiError, invoke, isProposal } from "../../api/client";
-import { useQuery } from "../../api/useAction";
+import { useQuery, type QueryState } from "../../api/useAction";
 import { Chip, EmptyState, ErrorPanel, Loading, Notice, SelectField, Skeleton, TextField } from "../../components";
 import { formatDate, formatDateTime } from "../../lib/format";
 import { EventFields } from "./EventFields";
@@ -9,18 +9,24 @@ import {
   blankEvent,
   budgetError,
   channelLabel,
+  count,
+  describeEstimate,
   describeAudience,
   draftOf,
   eventPayload,
   hasErrors,
   money,
   objectiveLabel,
+  RULES,
+  shareOf,
   span,
   statusOf,
   validateEvent,
   type Campaign,
   type CampaignEvent,
   type EventDraft,
+  type EventReach,
+  type Reach,
   type Reference,
 } from "./model";
 
@@ -28,7 +34,20 @@ type Message = { tone: "info" | "neg"; text: string } | null;
 type Act = (run: () => Promise<unknown>, done: string, proposed?: string) => Promise<boolean>;
 
 /** One campaign: its details and every event, with the changes each state allows (App Flow §5.2). */
-export function CampaignDetailView({ campaign, reference, canManage, onChanged }: { campaign: Campaign; reference?: Reference; canManage: boolean; onChanged?: () => void }) {
+export function CampaignDetailView({
+  campaign,
+  reference,
+  canManage,
+  onChanged,
+  reach,
+}: {
+  campaign: Campaign;
+  reference?: Reference;
+  canManage: boolean;
+  onChanged?: () => void;
+  /** Each event's reach and funnel; absent, the panels are left out. */
+  reach?: QueryState<Reach>;
+}) {
   const [message, setMessage] = useState<Message>(null);
   const [busy, setBusy] = useState(false);
   const closed = campaign.status === "closed" && campaign.events.every((e) => e.state === "closed" || e.status === "closed");
@@ -78,7 +97,7 @@ export function CampaignDetailView({ campaign, reference, canManage, onChanged }
       </section>
 
       {campaign.events.length ? (
-        campaign.events.map((e) => <EventPanel key={e.event_id} event={e} campaign={campaign} reference={reference} canManage={editable && !closed} busy={busy} act={act} />)
+        campaign.events.map((e) => <EventPanel key={e.event_id} event={e} campaign={campaign} reference={reference} canManage={editable && !closed} busy={busy} act={act} reach={reach} />)
       ) : (
         <EmptyState kind="none" title="This campaign has no events yet">
           An event is one run: its dates, its budget and who it is for. {editable ? "Add the first one below." : null}
@@ -157,7 +176,7 @@ function CampaignEdits({ campaign, busy, act }: { campaign: Campaign; busy: bool
 
 type Panel = "edit" | "budget" | "repeat" | null;
 
-function EventPanel({ event: e, campaign, reference, canManage, busy, act }: { event: CampaignEvent; campaign: Campaign; reference?: Reference; canManage: boolean; busy: boolean; act: Act }) {
+function EventPanel({ event: e, campaign, reference, canManage, busy, act, reach }: { event: CampaignEvent; campaign: Campaign; reference?: Reference; canManage: boolean; busy: boolean; act: Act; reach?: QueryState<Reach> }) {
   const [panel, setPanel] = useState<Panel>(null);
   const [confirm, setConfirm] = useState<"close" | "delete" | null>(null);
   const status = statusOf(e.status);
@@ -192,7 +211,7 @@ function EventPanel({ event: e, campaign, reference, canManage, busy, act }: { e
           {money(e.pending_budget.budget_amount, e.pending_budget.budget_currency)} was requested on {formatDateTime(e.pending_budget.requested_at)}. The budget stays at {money(e.budget_amount, e.budget_currency)} until a second person approves it.
         </Notice>
       ) : null}
-      {e.reattribute_from && !draft ? <p className="kg-cap">The dates or audience changed, so attribution is redone from {formatDate(e.reattribute_from)} on the next outcome load.</p> : null}
+      {reach ? <ReachPanel event={e} campaign={campaign} reach={reach} reference={reference} /> : null}
 
       {open ? (
         <div className="kg-row" style={{ justifyContent: "flex-start", flexWrap: "wrap" }}>
@@ -250,6 +269,99 @@ function EventPanel({ event: e, campaign, reference, canManage, busy, act }: { e
       {open && panel === "repeat" ? <RepeatForm event={e} busy={busy} act={act} onDone={() => setPanel(null)} /> : null}
       {!draft ? <History eventId={e.event_id} /> : null}
     </section>
+  );
+}
+
+/** Targeted, then who the event got to and who acted: the estimate beside outcome reach (PRD CM-15). */
+function ReachPanel({ event: e, campaign, reach, reference }: { event: CampaignEvent; campaign: Campaign; reach: QueryState<Reach>; reference?: Reference }) {
+  const title = `reach-${e.event_id}`;
+  if (reach.status === "loading") {
+    return (
+      <Loading label={`Loading the reach of ${e.event_name}`}>
+        <Skeleton height={64} />
+      </Loading>
+    );
+  }
+  if (reach.status === "error") return <p className="kg-cap">The reach of this event could not be loaded just now.</p>;
+  const all = reach.data;
+  const r = all.events.find((x) => x.event_id === e.event_id);
+  if (!r) return null;
+  const draft = e.state === "draft";
+  return (
+    <section className="kg-stack" aria-labelledby={title}>
+      <h3 id={title} className="kg-eyebrow">
+        Reach
+      </h3>
+      {draft ? (
+        <p className="kg-cap">Estimated audience: {describeEstimate(r.estimate, reference?.dimensions)} Contacts and outcomes count once the event is published.</p>
+      ) : (
+        <>
+          <Funnel r={r} />
+          <ReachNotes all={all} r={r} objective={campaign.objective} />
+        </>
+      )}
+    </section>
+  );
+}
+
+type Stage = { label: string; value: number | null; note: string };
+
+function Funnel({ r }: { r: EventReach }) {
+  const targeted = r.estimate.targeted;
+  const stages: Stage[] = [
+    { label: "Targeted (estimate)", value: targeted, note: targeted === null ? "Not sized" : r.estimate.population ? `of ${count(r.estimate.population)} customers` : "" },
+    { label: "Contacted", value: r.contacted, note: "" },
+    { label: "Delivered", value: r.delivered, note: "" },
+    { label: "Responded", value: r.responded, note: "" },
+    { label: "Outcome reach", value: r.matched_customers, note: "in the audience, acted in the window" },
+    { label: "Converted", value: r.converted_customers, note: "credited to this event" },
+  ];
+  const top = Math.max(targeted ?? 0, ...stages.map((s) => s.value ?? 0));
+  return (
+    <ol className="kg-funnel" aria-label="Reach funnel">
+      {stages.map((s) => (
+        <li key={s.label}>
+          <span className="kg-funnel__label">{s.label}</span>
+          <span className="kg-funnel__bar" aria-hidden="true">
+            {s.value !== null && top > 0 ? <span style={{ width: `${Math.max(1, (s.value / top) * 100)}%` }} /> : null}
+          </span>
+          <span className="kg-funnel__value">
+            <b>{s.value === null ? "Not fed" : count(s.value)}</b>
+            {s.value !== null && targeted !== null && s.label !== "Targeted (estimate)" ? <span className="kg-cap"> {shareOf(s.value, targeted)} of targeted</span> : null}
+            {s.note ? <span className="kg-cap"> {s.note}</span> : null}
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function ReachNotes({ all, r, objective }: { all: Reach; r: EventReach; objective: string }) {
+  const notes: string[] = [];
+  if (r.estimate.targeted === null) notes.push(describeEstimate(r.estimate));
+  else if (r.estimate.as_of) notes.push(`Targeted is sized from the customer population on ${formatDate(r.estimate.as_of)}.`);
+  if (!all.contacts_fed) notes.push("No contact feed has loaded yet, so contacted, delivered and responded are not known.");
+  else if (r.contacted !== null && (r.delivered === null || r.responded === null)) notes.push("The contact feed does not say whether contacts were delivered or answered.");
+  if (!all.outcome_metric_codes.length) notes.push(`The ${objectiveLabel(objective).toLowerCase()} objective counts no outcome metrics yet, so nothing is attributed. An Admin names them in the objective settings.`);
+  else if (!all.outcomes_fed) notes.push("No outcomes have loaded yet.");
+  if (r.matched_customers !== null && r.converted_customers !== null && r.matched_customers > r.converted_customers) {
+    const lost = r.matched_customers - r.converted_customers;
+    notes.push(`${count(lost)} ${lost === 1 ? "customer's outcome went" : "customers' outcomes went"} to another event under the ${RULES[all.attribution_rule]} rule.`);
+  }
+  return (
+    <>
+      {r.attributed.length ? (
+        <p>
+          Attributed value: <b>{r.attributed.map((a) => money(a.amount, a.currency ?? "")).join(" · ")}</b>
+          {r.credited_outcomes !== null ? <span className="kg-cap"> from {count(r.credited_outcomes)} outcomes</span> : null}
+        </p>
+      ) : null}
+      {notes.map((n) => (
+        <p key={n} className="kg-cap">
+          {n}
+        </p>
+      ))}
+    </>
   );
 }
 

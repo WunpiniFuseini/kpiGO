@@ -321,7 +321,12 @@ export function CampaignPage() {
   const { campaignId = "" } = useParams();
   const me = useMe();
   const canManage = me.permissions.includes("campaign.manage");
-  const [data, reload] = useQuery("campaign.get", { campaign_id: campaignId });
+  const [data, reloadCampaign] = useQuery("campaign.get", { campaign_id: campaignId });
+  const [reach, reloadReach] = useQuery("campaign.reach", { campaign_id: campaignId });
+  const reload = () => {
+    reloadCampaign();
+    reloadReach();
+  };
   const title = data.status === "ready" ? data.data.name : "Campaign";
   return (
     <Page
@@ -345,15 +350,17 @@ export function CampaignPage() {
           <ErrorPanel error={data.error} retry={reload} what="The campaign" />
         )
       ) : canManage ? (
-        <ManagedCampaign campaign={data.data} onChanged={reload} />
+        <ManagedCampaign campaign={data.data} onChanged={reload} reach={reach} />
       ) : (
-        <CampaignDetailView campaign={data.data} canManage={false} />
+        <CampaignDetailView campaign={data.data} canManage={false} reach={reach} />
       )}
     </Page>
   );
 }
 
-function ManagedCampaign({ campaign, onChanged }: { campaign: Parameters<typeof CampaignDetailView>[0]["campaign"]; onChanged: () => void }) {
+type DetailProps = Parameters<typeof CampaignDetailView>[0];
+
+function ManagedCampaign({ campaign, onChanged, reach }: { campaign: DetailProps["campaign"]; onChanged: () => void; reach: DetailProps["reach"] }) {
   const [ref, reload] = useQuery("campaign.builder.reference", {});
   if (ref.status === "loading") {
     return (
@@ -363,6 +370,6 @@ function ManagedCampaign({ campaign, onChanged }: { campaign: Parameters<typeof 
     );
   }
   if (ref.status === "error") return <ErrorPanel error={ref.error} retry={reload} what="The campaign builder" />;
-  return <CampaignDetailView campaign={campaign} reference={ref.data} canManage onChanged={onChanged} />;
+  return <CampaignDetailView campaign={campaign} reference={ref.data} canManage onChanged={onChanged} reach={reach} />;
 }
 

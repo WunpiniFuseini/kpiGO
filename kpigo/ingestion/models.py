@@ -338,9 +338,39 @@ class TmplCampaignOutcome(Landing):
     activity_value = _text()
     currency_code = _text()
     source_ref = _text()
+    segment_code = _text()
+    product_code = _text()
+    region_code = _text()
+    branch_code = _text()
 
     class Meta:
         db_table = "tmpl_campaign_outcome"
+
+
+class TmplCampaignPopulation(Landing):
+    pk = models.CompositePrimaryKey("run_id", "row_no")
+    snapshot_date = _text()
+    segment_code = _text()
+    product_code = _text()
+    region_code = _text()
+    branch_code = _text()
+    customer_count = _text()
+
+    class Meta:
+        db_table = "tmpl_campaign_population"
+
+
+class TmplCampaignContact(Landing):
+    pk = models.CompositePrimaryKey("run_id", "row_no")
+    customer_ref = _text()
+    campaign_code = _text()
+    channel = _text()
+    contact_date = _text()
+    delivered = _text()
+    responded = _text()
+
+    class Meta:
+        db_table = "tmpl_campaign_contact"
 
 
 LANDING: dict[str, type[Landing]] = {
@@ -353,6 +383,8 @@ LANDING: dict[str, type[Landing]] = {
     "actual_dimensional": TmplActualDimensional,
     "widget_data": TmplWidgetData,
     "campaign_outcome": TmplCampaignOutcome,
+    "campaign_population": TmplCampaignPopulation,
+    "campaign_contact": TmplCampaignContact,
 }
 assert set(LANDING) == set(TEMPLATES), "every template needs a landing table"
 

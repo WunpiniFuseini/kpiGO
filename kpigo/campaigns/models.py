@@ -6,8 +6,14 @@ dimension hierarchy (``dim_member``), never a customer list: kpiGo holds no
 customer master, and the outcome feed supplies who actually transacted.
 
 An event's ``period_start``/``period_end`` are inclusive contact days (the
-attribution rule reads ``activity_date <= period_end + window``), unlike the
-half-open effective periods elsewhere: an event is a run, not a row in force.
+attribution rule reads ``period_start < activity_date <= period_end + window``),
+unlike the half-open effective periods elsewhere: an event is a run, not a row
+in force.
+
+Three feeds come in from the DE team: outcomes (what customers did), the
+customer population (counts by dimension, for reach estimates) and contacts
+(who was contacted, delivered and responded). ``campaign_attribution`` is
+computed from outcomes and events (``kpigo.campaigns.attribution``).
 """
 
 import uuid
@@ -28,6 +34,10 @@ OBJECTIVES = (
 )
 CHANNELS = ("sms", "email", "call", "ussd", "branch", "app_push", "whatsapp")
 CAMPAIGN_STATUSES = ("active", "closed")
+# Multi-touch collision rules (PRD CM-12), one per org (CM-11). Last touch is the default.
+ATTRIBUTION_RULES = ("last_touch", "first_touch", "priority", "split_even")
+# How an outcome reached an event: the client's campaign tag, or the audience criteria.
+MATCH_VIA = ("tag", "criteria")
 # What is stored. ``scheduled``/``running`` are read from the dates of a live event.
 EVENT_STATES = ("draft", "live", "paused", "closed")
 EVENT_CHANGES = (
@@ -93,8 +103,9 @@ class CampaignEvent(Tracked):
     state = models.TextField(db_default="draft")
     # Bumped on every change to a published event; each bump writes a version row.
     version = models.IntegerField(db_default=1)
-    # Set when a change to a live event's period or audience re-opens attribution:
-    # the next outcome load re-attributes from this day. Null: nothing to redo.
+    # Set when a change to a live event's period or audience re-opens attribution,
+    # from this day; the change re-attributes in the same transaction and clears
+    # it. Null: nothing to redo.
     reattribute_from = models.DateField(null=True)
     published_at = models.DateTimeField(null=True)
     closed_at = models.DateTimeField(null=True)
@@ -210,3 +221,178 @@ class CampaignObjective(Tracked):
 
     def __str__(self) -> str:
         return str(self.objective)
+
+
+# ── fed by the DE team (Schema §10) ──────────────────────────────────────────
+
+
+class CustomerDims(models.Model):
+    """The customer's dimensions as the feed supplied them; blank where unknown."""
+
+    segment_code = models.TextField(null=True)
+    product_code = models.TextField(null=True)
+    region_code = models.TextField(null=True)
+    branch_code = models.TextField(null=True)
+
+    class Meta:
+        abstract = True
+
+
+class CampaignOutcome(Stamped, CustomerDims):
+    """What a customer did on a day: one row of the outcome feed, conformed.
+
+    ``customer_ref`` is the client's opaque key; kpiGo holds no customer master.
+    ``campaign_code`` is the client's own tag where their system has one, and
+    ``campaign`` the campaign it names, if any.
+    """
+
+    outcome_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    customer_ref = models.TextField()
+    metric = models.ForeignKey("metrics.Metric", on_delete=models.PROTECT, related_name="+")
+    campaign_code = models.TextField(null=True)
+    campaign = models.ForeignKey(Campaign, on_delete=models.PROTECT, null=True, related_name="+")
+    activity_date = models.DateField()
+    activity_value = models.DecimalField(max_digits=18, decimal_places=4)
+    currency_code = models.CharField(max_length=3, null=True)
+    source_ref = models.TextField(null=True)
+    run_id = models.UUIDField()
+    loaded_at = models.DateTimeField()
+
+    class Meta:
+        db_table = "campaign_outcome"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["org_id", "customer_ref", "metric", "activity_date", "source_ref"],
+                name="campaign_outcome_grain",
+                nulls_distinct=False,
+            ),
+            models.CheckConstraint(
+                condition=models.Q(activity_value__gte=0), name="campaign_outcome_value_valid"
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["org_id", "activity_date"], name="campaign_outcome_day"),
+            models.Index(
+                fields=["customer_ref", "activity_date"], name="campaign_outcome_customer"
+            ),
+            models.Index(
+                fields=["campaign"],
+                name="campaign_outcome_tagged",
+                condition=models.Q(campaign__isnull=False),
+            ),
+            models.Index(fields=["run_id"], name="campaign_outcome_run"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.customer_ref} {self.metric_id} {self.activity_date}"
+
+
+class CampaignPopulation(Stamped, CustomerDims):
+    """How many customers share a combination of dimensions on a day. Counts, never names."""
+
+    population_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    snapshot_date = models.DateField()
+    customer_count = models.BigIntegerField()
+    run_id = models.UUIDField()
+    loaded_at = models.DateTimeField()
+
+    class Meta:
+        db_table = "campaign_population"
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "org_id",
+                    "snapshot_date",
+                    "segment_code",
+                    "product_code",
+                    "region_code",
+                    "branch_code",
+                ],
+                name="campaign_population_grain",
+                nulls_distinct=False,
+            ),
+            models.CheckConstraint(
+                condition=models.Q(customer_count__gte=0), name="campaign_population_count_valid"
+            ),
+        ]
+        indexes = [models.Index(fields=["org_id", "snapshot_date"], name="campaign_population_day")]
+
+    def __str__(self) -> str:
+        return f"{self.snapshot_date} {self.customer_count}"
+
+
+class CampaignContact(Stamped):
+    """One contact of a customer by an event, on a channel and day."""
+
+    contact_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    event = models.ForeignKey(CampaignEvent, on_delete=models.CASCADE, related_name="contacts")
+    customer_ref = models.TextField()
+    channel = models.TextField()
+    contact_date = models.DateField()
+    # Null: the source did not say.
+    delivered = models.BooleanField(null=True)
+    responded = models.BooleanField(null=True)
+    run_id = models.UUIDField()
+    loaded_at = models.DateTimeField()
+
+    class Meta:
+        db_table = "campaign_contact"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["event", "customer_ref", "channel", "contact_date"],
+                name="campaign_contact_grain",
+            ),
+            one_of("channel", CHANNELS, "campaign_contact_channel_valid"),
+        ]
+        indexes = [models.Index(fields=["run_id"], name="campaign_contact_run")]
+
+    def __str__(self) -> str:
+        return f"{self.event_id} {self.customer_ref} {self.contact_date}"
+
+
+# ── computed ─────────────────────────────────────────────────────────────────
+
+
+class CampaignAttribution(Stamped):
+    """An event an outcome matched, and what it was credited (TDD §7.2).
+
+    Every candidate event is kept, so an event's outcome reach counts customers
+    who transacted in its audience and window even when another event won the
+    collision: ``credited`` is false and ``attributed_value`` zero for those.
+    Invariant: per outcome, the credited values sum to at most its value.
+    """
+
+    pk = models.CompositePrimaryKey("outcome_id", "event_id")
+    org_id = models.UUIDField()
+    outcome = models.ForeignKey(CampaignOutcome, on_delete=models.CASCADE, related_name="+")
+    event = models.ForeignKey(CampaignEvent, on_delete=models.CASCADE, related_name="+")
+    credited = models.BooleanField()
+    attributed_value = models.DecimalField(max_digits=18, decimal_places=4)
+    share = models.DecimalField(max_digits=9, decimal_places=8)
+    rule_applied = models.TextField()
+    # How many events competed for the outcome.
+    candidates = models.IntegerField()
+    via = models.TextField()
+    computed_at = models.DateTimeField()
+
+    class Meta:
+        db_table = "campaign_attribution"
+        constraints = [
+            one_of("rule_applied", ("single", *ATTRIBUTION_RULES), "campaign_attribution_rule"),
+            one_of("via", MATCH_VIA, "campaign_attribution_via_valid"),
+            models.CheckConstraint(
+                condition=models.Q(attributed_value__gte=0, share__gte=0, share__lte=1),
+                name="campaign_attribution_value_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(credited=True) | models.Q(attributed_value=0, share=0),
+                name="campaign_attribution_uncredited_zero",
+            ),
+        ]
+        indexes = [models.Index(fields=["event", "credited"], name="campaign_attribution_event")]
+
+    def __str__(self) -> str:
+        return f"{self.outcome_id} -> {self.event_id} {self.attributed_value}"

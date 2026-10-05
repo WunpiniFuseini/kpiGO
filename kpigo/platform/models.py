@@ -119,6 +119,8 @@ class OrgSettings(Tracked):
     # Activity at or after this local time counts toward the next business day.
     # Null means the business day ends at midnight.
     business_day_cutoff = models.TimeField(null=True)
+    # Campaign Manager's multi-touch collision rule, one per org (PRD CM-11, CM-12).
+    attribution_rule = models.TextField(db_default="last_touch")
     config_version = models.BigIntegerField(db_default=0)
 
     class Meta:
@@ -126,7 +128,13 @@ class OrgSettings(Tracked):
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(config_version__gte=0), name="org_settings_version_positive"
-            )
+            ),
+            models.CheckConstraint(
+                condition=models.Q(
+                    attribution_rule__in=("last_touch", "first_touch", "priority", "split_even")
+                ),
+                name="org_settings_attribution_rule_valid",
+            ),
         ]
 
     def __str__(self) -> str:

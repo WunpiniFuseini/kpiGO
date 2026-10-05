@@ -2,11 +2,24 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
 
+import { ROUTES, type ActionName } from "../api/actions";
 import { setTransport } from "../api/client";
+import { formatDate } from "../lib/format";
 import { CampaignBuilder, CampaignListView } from "../pages/campaigns/Campaigns";
 import { CampaignDetailView } from "../pages/campaigns/Detail";
-import { blankEvent, describeAudience, validateEvent } from "../pages/campaigns/model";
-import { campaignAllDrafts, campaignDetail, campaignList, campaignListNoScope, reference } from "../stories/campaignFixtures";
+import { blankEvent, describeAudience, describeEstimate, validateEvent } from "../pages/campaigns/model";
+import {
+  campaignAllDrafts,
+  campaignDetail,
+  campaignList,
+  campaignListNoScope,
+  campaignReach,
+  campaignReachNothingFed,
+  estimate,
+  estimateNoPopulation,
+  estimateNotBrokenDown,
+  reference,
+} from "../stories/campaignFixtures";
 
 function routed(children: ReactNode) {
   return render(<MemoryRouter>{children}</MemoryRouter>);
@@ -18,6 +31,17 @@ function capture(reply: unknown, status = 200) {
   setTransport(async (url, init) => {
     calls.push({ url, body: init.body ? JSON.parse(String(init.body)) : null });
     return new Response(JSON.stringify(reply), { status });
+  });
+  return calls;
+}
+
+/** Answer each action with its own reply, recording every call by action name. */
+function serve(replies: Partial<Record<ActionName, unknown>>) {
+  const calls: { action: ActionName | undefined; url: string; body: unknown }[] = [];
+  setTransport(async (url, init) => {
+    const action = (Object.keys(ROUTES) as ActionName[]).find((n) => ROUTES[n].path === url.split("?")[0]);
+    calls.push({ action, url, body: init.body ? JSON.parse(String(init.body)) : null });
+    return new Response(JSON.stringify(action ? (replies[action] ?? {}) : {}), { status: 200 });
   });
   return calls;
 }
@@ -89,7 +113,7 @@ describe("campaign builder", () => {
   });
 
   it("creates the campaign with its events and audience criteria", async () => {
-    const calls = capture({ campaign_id: "c1" });
+    const calls = serve({ "campaign.create": { campaign_id: "c1" }, "campaign.audience.estimate": estimate });
     const onCreated = vi.fn();
     routed(<CampaignBuilder reference={reference} onCreated={onCreated} />);
     const details = screen.getByRole("region", { name: "Campaign" });
@@ -108,9 +132,12 @@ describe("campaign builder", () => {
     fireEvent.change(within(ev).getByLabelText("Member"), { target: { value: "affluent" } });
     fireEvent.click(within(ev).getByRole("button", { name: "Add criterion" }));
     expect(within(ev).getByText("Who it is for: Segment: Affluent.", { exact: false })).toBeInTheDocument();
+    // The audience is sized as of the first contact day.
+    expect(await within(ev).findByText(/Estimated reach: About 48,200 customers of 312,000 \(15%\)/)).toBeInTheDocument();
+    expect(calls.find((c) => c.action === "campaign.audience.estimate")?.url).toBe("/api/v1/actions/campaign.audience.estimate?audience=segment%3Aaffluent&on=2026-10-01");
     fireEvent.click(screen.getByRole("button", { name: "Save as draft" }));
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith("c1"));
-    expect(calls[0].body).toEqual({
+    expect(calls.find((c) => c.action === "campaign.create")?.body).toEqual({
       code: "SAVE-Q4",
       name: "Save more",
       campaign_type: "seasonal",
@@ -129,6 +156,40 @@ describe("campaign builder", () => {
         },
       ],
     });
+  });
+});
+
+describe("reach", () => {
+  it("says the estimate, or why there is none", () => {
+    expect(describeEstimate(estimate)).toBe(`About 48,200 customers of 312,000 (15%), from the customer population on ${formatDate("2026-09-30")}.`);
+    expect(describeEstimate(estimateNoPopulation)).toMatch(/No customer population has been fed yet/);
+    expect(describeEstimate(estimateNotBrokenDown, reference.dimensions)).toMatch(/not broken down by Region, so this audience cannot be sized/);
+  });
+
+  it("lays the funnel beside the estimate and says what other events won", () => {
+    routed(<CampaignDetailView campaign={campaignDetail} canManage={false} reach={{ status: "ready", data: campaignReach, refreshing: false }} />);
+    const running = screen.getByRole("region", { name: "Event 1 · October SMS wave" });
+    const funnel = within(running).getByRole("list", { name: "Reach funnel" });
+    const stages = within(funnel).getAllByRole("listitem").map((li) => li.textContent);
+    expect(stages[0]).toBe("Targeted (estimate)48,200 of 312,000 customers");
+    expect(stages[1]).toBe("Contacted41,250 86% of targeted");
+    expect(stages[4]).toBe("Outcome reach2,310 5% of targeted in the audience, acted in the window");
+    expect(stages[5]).toBe("Converted1,985 4% of targeted credited to this event");
+    expect(within(running).getByText(/325 customers' outcomes went to another event under the last touch rule/)).toBeInTheDocument();
+    expect(within(running).getByText("GHS 4,182,500")).toBeInTheDocument();
+    // A draft is sized but counts nothing yet.
+    const draft = screen.getByRole("region", { name: "Event 2 · November SMS wave" });
+    expect(within(draft).getByText(/Estimated audience: About 61,000 customers/)).toBeInTheDocument();
+    expect(within(draft).queryByRole("list", { name: "Reach funnel" })).not.toBeInTheDocument();
+  });
+
+  it("says why each figure is missing when nothing is fed", () => {
+    routed(<CampaignDetailView campaign={campaignDetail} canManage={false} reach={{ status: "ready", data: campaignReachNothingFed, refreshing: false }} />);
+    const running = screen.getByRole("region", { name: "Event 1 · October SMS wave" });
+    expect(within(running).getAllByText("Not fed")).toHaveLength(6);
+    expect(within(running).getByText(/No contact feed has loaded yet/)).toBeInTheDocument();
+    expect(within(running).getByText(/deposit growth objective counts no outcome metrics yet/)).toBeInTheDocument();
+    expect(within(running).getByText(/No customer population has been fed yet/)).toBeInTheDocument();
   });
 });
 
