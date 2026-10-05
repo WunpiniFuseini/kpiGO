@@ -2,8 +2,8 @@
 
 ``agent.pace`` is one agent's month (or week) to date on every metric of their
 profile, paced against elapsed working days. Agent Performance is open by
-default (AP-7): any holder of ``agent.view`` may read any agent; the per-role
-restriction lands with the presets.
+default (AP-7): any holder of ``agent.view`` may read any agent, unless an
+``agent.visibility.set`` rule narrows their role or profile (``kpigo.agents.visibility``).
 """
 
 from __future__ import annotations
@@ -17,10 +17,11 @@ from django.utils import timezone
 from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 from kpigo.access.identity import app_user_for
-from kpigo.action import ActionContext, Conflict, InvalidInput, NotFound, action
+from kpigo.action import ActionContext, Conflict, InvalidInput, NotFound, PermissionDenied, action
 from kpigo.agents.config import AgentProduct, CohortType, Grain, rag, settings_for
 from kpigo.agents.daily import AgentPace, Board, board, default_as_of, window_for
 from kpigo.agents.models import AgentSettings
+from kpigo.agents.visibility import Visibility, visibility_for
 from kpigo.metrics.models import METRIC_CODE_PATTERN, MetricBinding
 from kpigo.scorecards.bands import bands_for, lookup
 
@@ -84,6 +85,28 @@ class AgentOut(BaseModel):
     profile_code: str
     branch_code: str | None
     region_code: str | None
+
+
+class VisibilityRuleRefOut(BaseModel):
+    applies_to: str
+    applies_code: str
+
+
+class VisibilityOut(BaseModel):
+    """What the reader sees: everyone, or the scopes a rule narrowed them to."""
+
+    restricted: bool
+    # Narrowest first: self, branch, region, subtree.
+    scopes: list[str]
+    because: list[VisibilityRuleRefOut]
+
+
+def visibility_out(v: Visibility) -> VisibilityOut:
+    return VisibilityOut(
+        restricted=not v.open,
+        scopes=v.ordered(),
+        because=[VisibilityRuleRefOut(applies_to=a, applies_code=c) for a, c in v.because],
+    )
 
 
 def window_out(b: Board) -> WindowOut:
@@ -203,6 +226,11 @@ def agent_pace(params: AgentPaceIn, ctx: ActionContext) -> AgentPaceOut:
             "carries none of its metrics."
         )
     a = b.agents[0]
+    if not visibility_for(ctx, params.product, as_of).sees(a.agent):
+        raise PermissionDenied(
+            f"Your view of {params.product} does not include {a.agent.full_name}. "
+            "An Admin sets who sees whom under Agent Performance settings."
+        )
     return AgentPaceOut(
         product=params.product,
         window=window_out(b),

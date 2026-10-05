@@ -32,7 +32,7 @@ function figure(value: string | null, key: MetricKey, currency: string | null): 
 }
 
 /** Agent Performance, section 2: the product-line matrix (App Flow §4.1, PRD AP-5, AP-9, AP-11). */
-export function MatrixSection({ product, asOf }: { product: Product; asOf?: string }) {
+export function MatrixSection({ product, asOf, title = "Product lines", caption = "Actual against the target expected by now, per line." }: { product: Product; asOf?: string; title?: string; caption?: string }) {
   const [drill, setDrill] = useState<Drill>({ level: "region" });
   const [metric, setMetric] = useState<string | undefined>(undefined);
   const [view, setView] = useState<View | undefined>(undefined);
@@ -53,9 +53,9 @@ export function MatrixSection({ product, asOf }: { product: Product; asOf?: stri
       <div className="kg-sechead">
         <div>
           <h2 id="matrix-heading" className="kg-section">
-            Product lines
+            {title}
           </h2>
-          <p className="kg-cap">Actual against the target expected by now, per line.</p>
+          <p className="kg-cap">{caption}</p>
         </div>
       </div>
       {data.status === "loading" ? (

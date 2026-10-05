@@ -24,15 +24,19 @@ from kpigo.agents.actions.pace import (
     AgentOut,
     MetricCode,
     PaceBandOut,
+    VisibilityOut,
     WindowOut,
     agent_out,
     resolve_window,
+    visibility_out,
     window_out,
 )
 from kpigo.agents.config import AgentProduct, CohortType, settings_for
 from kpigo.agents.daily import agents_on, board, window_for
-from kpigo.agents.models import AgentCohort, AgentCohortMember
+from kpigo.agents.models import AgentCohort, AgentCohortMember, AgentSettings
 from kpigo.agents.pace import ADDITIVE, q, ratio
+from kpigo.agents.presets import preset_for
+from kpigo.agents.visibility import visibility_for
 from kpigo.hierarchy.models import Subject
 from kpigo.ingestion.conform import refresh_daily_totals
 from kpigo.metrics.models import Metric
@@ -112,6 +116,8 @@ class LeaderboardOut(BaseModel):
     rows: list[LeaderboardRowOut]
     # Rows in the cohort, of which ``rows`` shows the first ``limit``.
     total: int
+    # Everyone, unless a rule narrows what the reader sees (AP-7).
+    visibility: VisibilityOut
 
 
 OVERALL = RankKeyOut(
@@ -155,13 +161,23 @@ def leaderboard(params: LeaderboardIn, ctx: ActionContext) -> LeaderboardOut:
     cohort_type = params.cohort_type or s.cohort_type
 
     agents, by_profile = agents_on(ctx.org_id, params.product, as_of)
+    seen = visibility_for(ctx, params.product, as_of)
+    agents = seen.filter(agents)
     metrics = {m.metric_code: m for ms in by_profile.values() for m in ms}
     ordered = sorted(metrics.values(), key=lambda m: (m.display_name.lower(), m.metric_code))
     options = [k for k in (_key_out(m.metric_code, metrics) for m in ordered) if k is not None]
     if metrics:
         options.append(OVERALL)
 
-    rank_by = params.rank_by or s.rank_metric_code or COMPOSITE
+    rank_code, tiebreak_code = s.rank_metric_code, s.tiebreak_metric_code
+    if not AgentSettings.objects.filter(org_id=ctx.org_id, product=params.product).exists():
+        # Until an Admin saves the module's settings, the preset ranks (AP-4).
+        p = preset_for(params.product)
+        if p.rank_metric_code in metrics:
+            rank_code = p.rank_metric_code
+            if p.tiebreak_metric_code in metrics and p.tiebreak_metric_code != rank_code:
+                tiebreak_code = p.tiebreak_metric_code
+    rank_by = params.rank_by or rank_code or COMPOSITE
     if rank_by != COMPOSITE and rank_by not in metrics:
         if params.rank_by is not None:
             raise InvalidInput(
@@ -169,7 +185,7 @@ def leaderboard(params: LeaderboardIn, ctx: ActionContext) -> LeaderboardOut:
                 detail={"rank_by": [*sorted(metrics), COMPOSITE]},
             )
         rank_by = COMPOSITE  # the configured metric left every profile: fall back
-    tiebreak = s.tiebreak_metric_code if s.tiebreak_metric_code in metrics else None
+    tiebreak = tiebreak_code if tiebreak_code in metrics and tiebreak_code != rank_by else None
 
     found = lb.cohorts(ctx.org_id, params.product, cohort_type, agents, as_of)
     account = app_user_for(ctx.user, ctx.org_id)
@@ -236,6 +252,7 @@ def leaderboard(params: LeaderboardIn, ctx: ActionContext) -> LeaderboardOut:
         summary=_summary(rows, rank_by, metrics, s.pace_cap),
         rows=out_rows,
         total=len(rows),
+        visibility=visibility_out(seen),
     )
 
 
