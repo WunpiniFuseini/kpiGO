@@ -323,9 +323,11 @@ export function CampaignPage() {
   const canManage = me.permissions.includes("campaign.manage");
   const [data, reloadCampaign] = useQuery("campaign.get", { campaign_id: campaignId });
   const [reach, reloadReach] = useQuery("campaign.reach", { campaign_id: campaignId });
+  const [value, reloadValue] = useQuery("campaign.value", { campaign_id: campaignId });
   const reload = () => {
     reloadCampaign();
     reloadReach();
+    reloadValue();
   };
   const title = data.status === "ready" ? data.data.name : "Campaign";
   return (
@@ -350,9 +352,9 @@ export function CampaignPage() {
           <ErrorPanel error={data.error} retry={reload} what="The campaign" />
         )
       ) : canManage ? (
-        <ManagedCampaign campaign={data.data} onChanged={reload} reach={reach} />
+        <ManagedCampaign campaign={data.data} onChanged={reload} reach={reach} value={value} />
       ) : (
-        <CampaignDetailView campaign={data.data} canManage={false} reach={reach} />
+        <CampaignDetailView campaign={data.data} canManage={false} reach={reach} value={value} />
       )}
     </Page>
   );
@@ -360,7 +362,7 @@ export function CampaignPage() {
 
 type DetailProps = Parameters<typeof CampaignDetailView>[0];
 
-function ManagedCampaign({ campaign, onChanged, reach }: { campaign: DetailProps["campaign"]; onChanged: () => void; reach: DetailProps["reach"] }) {
+function ManagedCampaign({ campaign, onChanged, reach, value }: { campaign: DetailProps["campaign"]; onChanged: () => void; reach: DetailProps["reach"]; value: DetailProps["value"] }) {
   const [ref, reload] = useQuery("campaign.builder.reference", {});
   if (ref.status === "loading") {
     return (
@@ -370,6 +372,6 @@ function ManagedCampaign({ campaign, onChanged, reach }: { campaign: DetailProps
     );
   }
   if (ref.status === "error") return <ErrorPanel error={ref.error} retry={reload} what="The campaign builder" />;
-  return <CampaignDetailView campaign={campaign} reference={ref.data} canManage onChanged={onChanged} reach={reach} />;
+  return <CampaignDetailView campaign={campaign} reference={ref.data} canManage onChanged={onChanged} reach={reach} value={value} />;
 }
 

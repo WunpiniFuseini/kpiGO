@@ -7,7 +7,7 @@ import { setTransport } from "../api/client";
 import { formatDate } from "../lib/format";
 import { CampaignBuilder, CampaignListView } from "../pages/campaigns/Campaigns";
 import { CampaignDetailView } from "../pages/campaigns/Detail";
-import { blankEvent, describeAudience, describeEstimate, validateEvent } from "../pages/campaigns/model";
+import { blankEvent, describeAudience, describeEstimate, percent, validateEvent } from "../pages/campaigns/model";
 import {
   campaignAllDrafts,
   campaignDetail,
@@ -15,7 +15,11 @@ import {
   campaignListNoScope,
   campaignReach,
   campaignReachNothingFed,
+  campaignValue,
+  campaignValueGross,
   estimate,
+  eventValue,
+  eventValueContaminated,
   estimateNoPopulation,
   estimateNotBrokenDown,
   reference,
@@ -82,6 +86,8 @@ describe("event validation", () => {
     expect(errors.period_end).toMatch(/ends on or after/);
     expect(errors.attribution_window_days).toMatch(/whole days/);
     expect(errors.budget_amount).toMatch(/two decimals/);
+    expect(validateEvent({ ...blankEvent("GHS"), holdout_pct: "60" }).holdout_pct).toMatch(/1 to 50%/);
+    expect(validateEvent({ ...blankEvent("GHS"), holdout_pct: "10" }).holdout_pct).toBeUndefined();
     expect(validateEvent({ ...blankEvent("GHS"), event_name: "Wave", period_start: "2026-10-01", period_end: "2026-10-31", budget_amount: "25,000" })).toEqual({});
     // A live event's budget is not part of its edit form.
     expect(validateEvent({ ...blankEvent(""), event_name: "Wave", period_start: "2026-10-01", period_end: "2026-10-31" }, { withBudget: false })).toEqual({});
@@ -226,5 +232,60 @@ describe("campaign detail", () => {
     expect(screen.queryByRole("button", { name: /Publish|Change|Pause|Close|Repeat/ })).not.toBeInTheDocument();
     // Without the builder's dimension names, the audience shows member codes.
     expect(screen.getAllByText(/Segment|segment/).length).toBeGreaterThan(0);
+  });
+});
+
+describe("value and return", () => {
+  const ready = <T,>(data: T) => ({ status: "ready" as const, data, refreshing: false });
+
+  it("leads with incremental, puts gross beside it and names the method", () => {
+    routed(<CampaignDetailView campaign={campaignDetail} canManage={false} value={ready(campaignValue)} />);
+    const running = screen.getByRole("region", { name: "Event 1 · October SMS wave" });
+    const card = within(running).getByRole("region", { name: "Value and return" });
+    expect(within(card).getByLabelText("Incremental value of October SMS wave: GHS 572,500")).toBeInTheDocument();
+    expect(within(card).getByText("GHS 4,182,500")).toBeInTheDocument();
+    expect(within(card).getByText("2190.0%")).toBeInTheDocument();
+    expect(within(card).getByText(/same length of time before the event/)).toBeInTheDocument();
+    const control = within(card).getByRole("group", { name: "Control group" });
+    expect(control).toHaveTextContent("+1.39 points");
+    expect(control).toHaveTextContent("4,500 (9.8%, planned 10%)");
+    // A draft has no value card.
+    const draft = screen.getByRole("region", { name: "Event 2 · November SMS wave" });
+    expect(within(draft).queryByRole("region", { name: "Value and return" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/The basis was changed/)).not.toBeInTheDocument();
+  });
+
+  it("shows a withheld figure as a dash with the reason, never zero", () => {
+    const report = { ...campaignValue, events: [eventValueContaminated] };
+    routed(<CampaignDetailView campaign={campaignDetail} canManage={false} value={ready(report)} />);
+    const card = screen.getByRole("region", { name: "Value and return" });
+    expect(within(card).getByLabelText("Incremental value of October SMS wave: withheld")).toHaveTextContent("—");
+    expect(within(card).getByText(/another event reached 143 of these customers in the baseline window/)).toBeInTheDocument();
+    expect(within(card).getByText(/the contact feed marks no one as held out/)).toBeInTheDocument();
+  });
+
+  it("says when the org changed its basis", () => {
+    routed(<CampaignDetailView campaign={campaignDetail} canManage={false} value={ready(campaignValueGross)} />);
+    expect(screen.getByText("Campaign value leads with gross value.")).toBeInTheDocument();
+    expect(screen.getByText(/Reports from before then led with incremental value/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Gross value of October SMS wave: GHS 4,182,500")).toBeInTheDocument();
+  });
+
+  it("formats a return as a signed percentage", () => {
+    expect(percent("-0.9972")).toBe("−99.7%");
+    expect(percent("0.25")).toBe("25.0%");
+    expect(percent(null)).toBe("—");
+    expect(percent(eventValue().roi)).toBe("2190.0%");
+  });
+
+  it("sends the control group share, and clears it with 0", async () => {
+    const calls = capture(campaignAllDrafts);
+    routed(<CampaignDetailView campaign={campaignAllDrafts} reference={reference} canManage />);
+    fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    const field = screen.getByLabelText("Control group (%)");
+    fireEvent.change(field, { target: { value: "" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await screen.findByText("Draft saved.");
+    expect(calls[0].body).toMatchObject({ holdout_pct: 0 });
   });
 });

@@ -306,16 +306,18 @@ TEMPLATES: dict[str, Template] = {
             value_column="customer_count",
         ),
         # Who a campaign contacted, on which channel and day, and whether the
-        # contact was delivered and drew a response.
+        # contact was delivered and drew a response. A holdout row names a customer
+        # deliberately not contacted, as the event's control group: no channel.
         Template(
             "campaign_contact",
             (
                 _c("customer_ref", "code"),
                 _c("campaign_code", "code"),
-                _c("channel", "code"),
+                _c("channel", "code", nullable=True),
                 _c("contact_date", "date"),
                 _c("delivered", "flag", required=False, nullable=True),
                 _c("responded", "flag", required=False, nullable=True),
+                _c("holdout", "flag", required=False, nullable=True),
             ),
             grain=("customer_ref", "campaign_code", "channel", "contact_date"),
             loadable=True,
@@ -1246,6 +1248,29 @@ def _domain(rows: list[Row], today: date) -> list[Issue]:
                 )
             )
         channel = v.get("channel")
+        if "channel" in v and channel is None and not v.get("holdout"):
+            issues.append(
+                Issue(
+                    "domain",
+                    "channel_required",
+                    "error",
+                    "channel is empty. Only a holdout row (holdout = Y) has no channel.",
+                    row_no=row.row_no,
+                    column="channel",
+                )
+            )
+        elif channel is not None and v.get("holdout"):
+            issues.append(
+                Issue(
+                    "domain",
+                    "holdout_contacted",
+                    "error",
+                    f"A holdout row names channel {channel!r}. A held-out customer is never "
+                    "contacted: leave channel blank, or set holdout = N.",
+                    row_no=row.row_no,
+                    column="channel",
+                )
+            )
         if channel is not None and str(channel) not in CAMPAIGN_CHANNELS:
             issues.append(
                 Issue(

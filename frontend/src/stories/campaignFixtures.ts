@@ -1,5 +1,5 @@
 import type { Me } from "../session/Session";
-import type { Campaign, CampaignEvent, CampaignList, CampaignSummary, Estimate, EventReach, Reach, Reference } from "../pages/campaigns/model";
+import type { Campaign, CampaignEvent, CampaignList, CampaignSummary, Estimate, EventReach, EventValue, Reach, Reference, ValueReport } from "../pages/campaigns/model";
 import { adminMe } from "./fixtures";
 
 export const campaignManagerMe: Me = {
@@ -79,6 +79,7 @@ export function campaignEvent(over: Partial<CampaignEvent> = {}): CampaignEvent 
       { dimension_type: "segment", member_code: "retail" },
       { dimension_type: "region", member_code: "GA" },
     ],
+    holdout_pct: 10,
     state: "live",
     status: "running",
     version: 2,
@@ -199,6 +200,7 @@ function eventReach(over: Partial<EventReach>): EventReach {
     event_id: "e1000000-0000-4000-8000-000000000001",
     estimate,
     contacted: null,
+    held_out: null,
     delivered: null,
     responded: null,
     matched_customers: null,
@@ -219,6 +221,7 @@ export const campaignReach: Reach = {
   events: [
     eventReach({
       contacted: 41250,
+      held_out: 4500,
       delivered: 39800,
       responded: 5120,
       matched_customers: 2310,
@@ -237,4 +240,120 @@ export const campaignReachNothingFed: Reach = {
   outcomes_fed: false,
   contacts_fed: false,
   events: campaignReach.events.map((e) => eventReach({ event_id: e.event_id, estimate: estimateNoPopulation })),
+};
+
+// ── value and return ────────────────────────────────────────────────────────
+
+const noControl: EventValue["control"] = {
+  planned_pct: null,
+  treated: null,
+  control: null,
+  actual_pct: null,
+  treated_rate: null,
+  control_rate: null,
+  lift_points: null,
+  incremental: null,
+  small: false,
+  reason: "no_contacts_fed",
+};
+
+export function eventValue(over: Partial<EventValue> = {}): EventValue {
+  return {
+    event_id: "e1000000-0000-4000-8000-000000000001",
+    currency: "GHS",
+    budget: "25000.00",
+    spend_to_date: null,
+    baseline_start: "2026-08-02",
+    baseline_end: "2026-10-01",
+    gross: "4182500.0000",
+    other_currencies: [],
+    baseline: "3610000.0000",
+    incremental: "572500.0000",
+    withheld: null,
+    converted_customers: 1985,
+    new_customers: 212,
+    contaminated_customers: 0,
+    roi: "21.9000",
+    gross_roi: "166.3000",
+    roi_reason: null,
+    cost_per_outcome: "12.59",
+    utilisation: null,
+    control: {
+      planned_pct: 10,
+      treated: 41250,
+      control: 4500,
+      actual_pct: "9.8",
+      treated_rate: "0.0481",
+      control_rate: "0.0342",
+      lift_points: "1.39",
+      incremental: "498000.00",
+      small: false,
+      reason: null,
+    },
+    ...over,
+  };
+}
+
+/** Event 1 measured both ways; event 2 a draft. */
+export const campaignValue: ValueReport = {
+  campaign_id: campaignDetail.campaign_id,
+  basis: "incremental",
+  basis_changed_at: null,
+  events: [
+    eventValue(),
+    eventValue({
+      event_id: "e1000000-0000-4000-8000-000000000002",
+      gross: null,
+      baseline: null,
+      incremental: null,
+      withheld: "not_published",
+      converted_customers: null,
+      new_customers: null,
+      contaminated_customers: null,
+      roi: null,
+      gross_roi: null,
+      roi_reason: "not_published",
+      cost_per_outcome: null,
+      control: { ...noControl, reason: "not_published" },
+    }),
+  ],
+};
+
+/** Another event reached some customers in the baseline window: incremental is withheld, gross stands. */
+export const eventValueContaminated = eventValue({
+  baseline: null,
+  incremental: null,
+  withheld: "contaminated_baseline",
+  contaminated_customers: 143,
+  roi: null,
+  roi_reason: "contaminated_baseline",
+  control: { ...noControl, planned_pct: 10, treated: 41250, control: 0, reason: "no_control_group" },
+});
+
+/** A control group too small to lean on. */
+export const eventValueSmallControl = eventValue({
+  control: { ...eventValue().control, control: 18, actual_pct: "0.1", small: true },
+});
+
+export const eventValueNothingFed = eventValue({
+  gross: null,
+  baseline: null,
+  incremental: null,
+  withheld: "no_outcomes_fed",
+  converted_customers: null,
+  new_customers: null,
+  contaminated_customers: null,
+  roi: null,
+  gross_roi: null,
+  roi_reason: "no_outcomes_fed",
+  cost_per_outcome: null,
+  control: noControl,
+});
+
+/** Gross leads since the basis was changed: every value screen carries the banner. */
+export const campaignValueGross: ValueReport = {
+  ...campaignValue,
+  basis: "gross",
+  basis_changed_at: "2026-10-03T09:12:00Z",
+  events: [eventValue({ roi: "166.3000" }), campaignValue.events[1]],
 };

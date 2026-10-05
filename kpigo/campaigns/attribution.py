@@ -35,15 +35,17 @@ from datetime import date, datetime
 from decimal import ROUND_DOWN, Decimal
 
 from django.db import connection
-from django.db.models import Q
+from django.db.models import Max, Min, Q
 from django.utils import timezone
 
+from kpigo.campaigns import baseline
 from kpigo.campaigns.authoring import window_end
 from kpigo.campaigns.models import (
     ATTRIBUTION_RULES,
     Campaign,
     CampaignAttribution,
     CampaignAudience,
+    CampaignContact,
     CampaignEvent,
     CampaignObjective,
     CampaignOutcome,
@@ -82,6 +84,8 @@ class EventSpec:
     priority: int
     sequence_no: int
     period_start: date
+    # The last contact day; outcomes count until window_end.
+    period_end: date
     window_end: date
     metric_ids: frozenset[str]
     # The campaign's product and every member below it; None when it has none.
@@ -170,6 +174,7 @@ def events_for(org_id: str, trees: Trees | None = None) -> list[EventSpec]:
                 priority=c.priority if c.priority is not None else UNRANKED,
                 sequence_no=e.sequence_no,
                 period_start=e.period_start,
+                period_end=e.period_end,
                 window_end=window_end(e),
                 metric_ids=metrics.get(c.objective, frozenset()),
                 products=trees.below("product", [c.product_code]) if c.product_code else None,
@@ -260,8 +265,18 @@ class Summary:
     events: set[uuid.UUID] = field(default_factory=set)
 
 
-def attribute(org_id: str, outcomes: Q, *, now: datetime | None = None) -> Summary:
-    """Re-attribute the org's outcomes matching ``outcomes``, replacing what they had."""
+def attribute(
+    org_id: str,
+    outcomes: Q,
+    *,
+    now: datetime | None = None,
+    days: tuple[date, date] | None = None,
+) -> Summary:
+    """Re-attribute the org's outcomes matching ``outcomes``, replacing what they had.
+
+    Then the baselines of every event whose span or baseline window touches the
+    days involved (``days``, else the selected outcomes' first and last day).
+    """
     now = now or timezone.now()
     rule = rule_for(org_id)
     if rule not in ATTRIBUTION_RULES:
@@ -269,6 +284,10 @@ def attribute(org_id: str, outcomes: Q, *, now: datetime | None = None) -> Summa
     events = events_for(org_id)
     summary = Summary(rule=rule)
     selected = CampaignOutcome.objects.filter(org_id=org_id).filter(outcomes)
+    if days is None:
+        bounds = selected.aggregate(lo=Min("activity_date"), hi=Max("activity_date"))
+        days = None if bounds["lo"] is None else (bounds["lo"], bounds["hi"])
+    held = holdouts(org_id)
     CampaignAttribution.objects.filter(
         org_id=org_id, outcome_id__in=selected.values("outcome_id")
     ).delete()
@@ -283,15 +302,25 @@ def attribute(org_id: str, outcomes: Q, *, now: datetime | None = None) -> Summa
         if not found:
             summary.unattributed += 1
             continue
-        credits, applied = allocate(outcome.activity_value, found, rule)
+        # A customer held out of an event as its control group cannot be credited
+        # to it; the outcome still counts toward that event's control conversions.
+        control = [e for e in found if outcome.customer_ref in held.get(e.event_id, ())]
+        open_ = [e for e in found if e not in control]
+        credits: list[Credit] = [Credit(e.event_id, False, Decimal(0), Decimal(0)) for e in control]
+        applied = {e.event_id: "holdout" for e in control}
+        if open_:
+            won, rule_used = allocate(outcome.activity_value, open_, rule)
+            credits += won
+            applied |= {c.event_id: rule_used for c in won}
         total = sum((c.value for c in credits if c.credited), Decimal(0))
         if total > outcome.activity_value:
             raise AttributionInvariantError(
                 f"Outcome {outcome.outcome_id} would be credited {total}, more than its "
                 f"value {outcome.activity_value}."
             )
-        summary.attributed += 1
-        summary.collisions += len(found) > 1
+        summary.attributed += bool(open_)
+        summary.unattributed += not open_
+        summary.collisions += len(open_) > 1
         for c in credits:
             summary.events.add(c.event_id)
             rows.append(
@@ -302,7 +331,7 @@ def attribute(org_id: str, outcomes: Q, *, now: datetime | None = None) -> Summa
                     credited=c.credited,
                     attributed_value=c.value,
                     share=c.share,
-                    rule_applied=applied,
+                    rule_applied=applied[c.event_id],
                     candidates=len(found),
                     via=via,
                     computed_at=now,
@@ -314,7 +343,19 @@ def attribute(org_id: str, outcomes: Q, *, now: datetime | None = None) -> Summa
     if rows:
         CampaignAttribution.objects.bulk_create(rows)
     check_invariant(org_id)
+    if days is not None:
+        baseline.refresh(org_id, events, *days, now=now)
     return summary
+
+
+def holdouts(org_id: str) -> dict[uuid.UUID, set[str]]:
+    """Each event's control group, as the contact feed named it."""
+    held: dict[uuid.UUID, set[str]] = defaultdict(set)
+    for event_id, customer in CampaignContact.objects.filter(
+        org_id=org_id, holdout=True
+    ).values_list("event_id", "customer_ref"):
+        held[event_id].add(customer)
+    return held
 
 
 def check_invariant(org_id: str) -> None:
@@ -342,7 +383,9 @@ def reattribute(
     Callers pass the union of where the changed events were and are now, so an
     outcome a change moved out of an event's reach loses its credit too.
     """
-    summary = attribute(org_id, Q(activity_date__gt=since, activity_date__lte=until))
+    summary = attribute(
+        org_id, Q(activity_date__gt=since, activity_date__lte=until), days=(since, until)
+    )
     for e in events:
         if e.reattribute_from is not None:
             e.reattribute_from = None
@@ -350,11 +393,20 @@ def reattribute(
     return summary
 
 
-def span(events: Iterable[CampaignEvent]) -> tuple[date, date] | None:
-    """The days the published events among ``events`` can attribute: (first start, last end]."""
+def span(
+    events: Iterable[CampaignEvent], *, with_baseline: bool = False
+) -> tuple[date, date] | None:
+    """The days the published events among ``events`` can attribute: (first start, last end].
+
+    ``with_baseline`` reaches back over each event's baseline window too, for a
+    change (a control group, a contact) that alters baselines as well as credit.
+    """
     published = [e for e in events if e.state != "draft"]
     if not published:
         return None
-    starts = [e.period_start for e in published]
+    starts = [
+        baseline.window(e.period_start, window_end(e))[0] if with_baseline else e.period_start
+        for e in published
+    ]
     starts += [e.reattribute_from for e in published if e.reattribute_from is not None]
     return min(starts), max(window_end(e) for e in published)

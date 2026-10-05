@@ -368,6 +368,7 @@ class TmplCampaignContact(Landing):
     contact_date = _text()
     delivered = _text()
     responded = _text()
+    holdout = _text()
 
     class Meta:
         db_table = "tmpl_campaign_contact"

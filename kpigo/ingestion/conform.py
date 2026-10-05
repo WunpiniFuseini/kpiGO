@@ -18,7 +18,13 @@ from django.db import connection
 from django.db.models import Q
 
 from kpigo.campaigns import attribution
-from kpigo.campaigns.models import Campaign, CampaignContact, CampaignOutcome, CampaignPopulation
+from kpigo.campaigns.models import (
+    Campaign,
+    CampaignContact,
+    CampaignEvent,
+    CampaignOutcome,
+    CampaignPopulation,
+)
 from kpigo.hierarchy.models import DimMember, ProductLine
 from kpigo.ingestion import validator as v
 from kpigo.ingestion.models import FactActualDimensional, FactActualMonthly, Feed, FeedRun
@@ -376,10 +382,12 @@ def write_campaign_contact(
             org_id=feed.org_id,
             event_id=row.resolved["event_id"],
             customer_ref=str(row.values["customer_ref"]),
-            channel=str(row.values["channel"]),
+            # A held-out customer was not contacted: no channel.
+            channel=row.values.get("channel") or "",
             contact_date=row.values["contact_date"],
             delivered=row.values.get("delivered"),
             responded=row.values.get("responded"),
+            holdout=bool(row.values.get("holdout")),
             run_id=run.run_id,
             loaded_at=now,
             created_by=run.created_by,
@@ -391,8 +399,14 @@ def write_campaign_contact(
             chunk,
             update_conflicts=True,
             unique_fields=["event", "customer_ref", "channel", "contact_date"],
-            update_fields=["delivered", "responded", "run_id", "loaded_at"],
+            update_fields=["delivered", "responded", "holdout", "run_id", "loaded_at"],
         )
+    # Control groups decide who an event may be credited for, and an earlier event's
+    # contacts decide whose baseline is contaminated: measure the touched events again.
+    touched = CampaignEvent.objects.filter(event_id__in={r.resolved["event_id"] for r in counted})
+    reach = attribution.span(touched, with_baseline=True)
+    if reach is not None:
+        attribution.reattribute(str(feed.org_id), *reach)
 
 
 WRITERS = {

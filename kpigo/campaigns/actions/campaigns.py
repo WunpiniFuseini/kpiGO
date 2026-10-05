@@ -21,7 +21,7 @@ from kpigo.action import ActionContext, Conflict, InvalidInput, action
 from kpigo.action.pipeline import approval_enabled
 from kpigo.campaigns import attribution
 from kpigo.campaigns import authoring as au
-from kpigo.campaigns.models import CHANNELS, OBJECTIVES, Campaign, CampaignEvent
+from kpigo.campaigns.models import CHANNELS, MAX_HOLDOUT_PCT, OBJECTIVES, Campaign, CampaignEvent
 from kpigo.campaigns.scope import get_visible, is_visible, visible
 from kpigo.platform.db import conflicts
 from kpigo.platform.vocab import Code, CurrencyCode
@@ -67,6 +67,8 @@ class CampaignEventIn(BaseModel):
     budget_currency: CurrencyCode
     channels: list[Channel] = Field(default_factory=list)
     audience: list[CampaignCriterionIn] = Field(default_factory=list)
+    # The share of the audience planned as a control group, never contacted.
+    holdout_pct: int | None = Field(default=None, ge=1, le=MAX_HOLDOUT_PCT)
 
     @model_validator(mode="after")
     def _dates(self) -> CampaignEventIn:
@@ -98,6 +100,7 @@ class CampaignEventOut(BaseModel):
     spend_to_date: str | None
     channels: list[str]
     audience: list[CampaignCriterionOut]
+    holdout_pct: int | None
     state: str
     status: str
     version: int
@@ -141,6 +144,7 @@ def event_out(event: CampaignEvent) -> CampaignEventOut:
         audience=[
             CampaignCriterionOut(dimension_type=d, member_code=m) for d, m in au.criteria_of(event)
         ],
+        holdout_pct=event.holdout_pct,
         state=event.state,
         status=au.event_status(event),
         version=event.version,
@@ -226,6 +230,7 @@ def create_event(
         budget_amount=au.money(params.budget_amount),
         budget_currency=params.budget_currency,
         channels=sorted(set(params.channels)),
+        holdout_pct=params.holdout_pct,
         created_by=ctx.user_id,
         updated_by=ctx.user_id,
     )

@@ -8,6 +8,8 @@ import {
   campaignDetail,
   campaignReach,
   campaignReachNothingFed,
+  campaignValue,
+  campaignValueGross,
   campaignList,
   campaignListEmpty,
   campaignListNoScope,
@@ -69,11 +71,15 @@ export const BuilderNoDimensions: Story = at("/campaign/new", { "campaign.builde
 export const BuilderLoading: Story = at("/campaign/new", { "campaign.builder.reference": "pending" });
 export const BuilderFailed: Story = at("/campaign/new", { "campaign.builder.reference": { error: serverError } });
 
-const reachOk = { "campaign.reach": { data: campaignReach }, "campaign.audience.estimate": { data: estimate } } as const;
+const reachOk = { "campaign.reach": { data: campaignReach }, "campaign.value": { data: campaignValue }, "campaign.audience.estimate": { data: estimate } } as const;
 
 /** A running event with its reach funnel and a budget change awaiting approval, and a draft ready to publish. */
 export const Detail: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, ...reachOk });
-export const DetailReadOnly: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.reach": { data: campaignReach } }, campaignViewerMe);
+export const DetailReadOnly: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.reach": { data: campaignReach }, "campaign.value": { data: campaignValue } }, campaignViewerMe);
+/** The org changed its value basis to gross: the banner says since when. */
+export const DetailGrossBasis: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, ...reachOk, "campaign.value": { data: campaignValueGross } });
+export const DetailValueLoading: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, ...reachOk, "campaign.value": "pending" });
+export const DetailValueFailed: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, ...reachOk, "campaign.value": { error: serverError } });
 /** No feed has loaded and the objective counts no metrics: each missing figure says why. */
 export const DetailNothingFed: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, "campaign.reach": { data: campaignReachNothingFed } });
 export const DetailReachLoading: Story = at(DETAIL, { "campaign.get": { data: campaignDetail }, "campaign.builder.reference": { data: reference }, "campaign.reach": "pending" });
