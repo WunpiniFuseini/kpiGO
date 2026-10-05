@@ -40,6 +40,7 @@ export const ROUTES = {
   "calendar.business_date": { method: "GET", path: "/api/v1/actions/calendar.business_date", pathParams: [], public: false },
   "calendar.list": { method: "GET", path: "/api/v1/actions/calendar.list", pathParams: [], public: false },
   "calendar.set_days": { method: "POST", path: "/api/v1/actions/calendar.set_days", pathParams: [], public: false },
+  "campaign.builder.reference": { method: "GET", path: "/api/v1/actions/campaign.builder.reference", pathParams: [], public: false },
   "campaign.close": { method: "POST", path: "/api/v1/actions/campaign.close", pathParams: [], public: false },
   "campaign.create": { method: "POST", path: "/api/v1/actions/campaign.create", pathParams: [], public: false },
   "campaign.event.add": { method: "POST", path: "/api/v1/actions/campaign.event.add", pathParams: [], public: false },
@@ -248,6 +249,7 @@ export interface Actions {
   "calendar.business_date": { input: NonNullable<operations["calendar_business_date"]["parameters"]["query"]>; output: operations["calendar_business_date"]["responses"][200]["content"]["application/json"] };
   "calendar.list": { input: NonNullable<operations["calendar_list"]["parameters"]["query"]>; output: operations["calendar_list"]["responses"][200]["content"]["application/json"] };
   "calendar.set_days": { input: NonNullable<operations["calendar_set_days"]["requestBody"]>["content"]["application/json"]; output: operations["calendar_set_days"]["responses"][200]["content"]["application/json"] };
+  "campaign.builder.reference": { input: Record<string, never>; output: operations["campaign_builder_reference"]["responses"][200]["content"]["application/json"] };
   "campaign.close": { input: NonNullable<operations["campaign_close"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_close"]["responses"][200]["content"]["application/json"] };
   "campaign.create": { input: NonNullable<operations["campaign_create"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_create"]["responses"][200]["content"]["application/json"] };
   "campaign.event.add": { input: NonNullable<operations["campaign_event_add"]["requestBody"]>["content"]["application/json"]; output: operations["campaign_event_add"]["responses"][200]["content"]["application/json"] };

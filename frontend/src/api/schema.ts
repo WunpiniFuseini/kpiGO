@@ -497,6 +497,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/campaign.builder.reference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Currencies, audience dimensions, objective windows and channels for the builder. */
+        get: operations["campaign_builder_reference"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/campaign.close": {
         parameters: {
             query?: never;
@@ -4282,6 +4299,21 @@ export interface components {
              */
             reason?: string;
         };
+        /** CampaignBuilderOut */
+        CampaignBuilderOut: {
+            /** Budget Needs Approval */
+            budget_needs_approval: boolean;
+            /** Channels */
+            channels: string[];
+            /** Currencies */
+            currencies: string[];
+            /** Default Currency */
+            default_currency: string | null;
+            /** Dimensions */
+            dimensions: components["schemas"]["CampaignDimensionOptionOut"][];
+            /** Objectives */
+            objectives: components["schemas"]["CampaignWindowOut"][];
+        };
         /** CampaignCloseIn */
         CampaignCloseIn: {
             /**
@@ -4330,6 +4362,15 @@ export interface components {
             dimension_type: string;
             /** Member Code */
             member_code: string;
+        };
+        /** CampaignDimensionOptionOut */
+        CampaignDimensionOptionOut: {
+            /** Dimension Type */
+            dimension_type: string;
+            /** Display Name */
+            display_name: string;
+            /** Members */
+            members: components["schemas"]["CampaignMemberOptionOut"][];
         };
         /** CampaignEventAddIn */
         CampaignEventAddIn: {
@@ -4535,6 +4576,15 @@ export interface components {
             /** Scoped */
             scoped: boolean;
         };
+        /** CampaignMemberOptionOut */
+        CampaignMemberOptionOut: {
+            /** Member Code */
+            member_code: string;
+            /** Member Name */
+            member_name: string;
+            /** Parent Code */
+            parent_code: string | null;
+        };
         /** CampaignObjectiveListOut */
         CampaignObjectiveListOut: {
             /** Candidates */
@@ -4583,6 +4633,8 @@ export interface components {
             name: string;
             /** Objective */
             objective: string;
+            /** Owner Name */
+            owner_name: string | null;
             /** Owner User Id */
             owner_user_id: number | null;
             /** Priority */
@@ -4633,6 +4685,8 @@ export interface components {
             name: string;
             /** Objective */
             objective: string;
+            /** Owner Name */
+            owner_name: string | null;
             /** Owner User Id */
             owner_user_id: number | null;
             /** Product Code */
@@ -4683,6 +4737,13 @@ export interface components {
             };
             /** Version No */
             version_no: number;
+        };
+        /** CampaignWindowOut */
+        CampaignWindowOut: {
+            /** Default Window Days */
+            default_window_days: number;
+            /** Objective */
+            objective: string;
         };
         /** CheckNameInQuery */
         CheckNameInQuery: {
@@ -11846,6 +11907,71 @@ export interface operations {
             };
             /** @description Service Unavailable */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    campaign_builder_reference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignBuilderOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

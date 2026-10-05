@@ -112,6 +112,7 @@ class CampaignOut(BaseModel):
     objective: str
     product_code: str | None
     owner_user_id: int | None
+    owner_name: str | None
     description: str
     priority: int | None
     status: str
@@ -155,6 +156,17 @@ def event_out(event: CampaignEvent) -> CampaignEventOut:
     )
 
 
+def owner_names(org_id: str, user_ids: list[int | None]) -> dict[int | None, str]:
+    from kpigo.access.models import AppUser
+
+    wanted = [u for u in user_ids if u is not None]
+    return dict(
+        AppUser.objects.filter(org_id=org_id, auth_user_id__in=wanted).values_list(
+            "auth_user_id", "display_name"
+        )
+    )
+
+
 def events_of(campaign: Campaign) -> list[CampaignEvent]:
     return list(
         CampaignEvent.objects.filter(campaign=campaign)
@@ -173,6 +185,9 @@ def campaign_out(campaign: Campaign) -> CampaignOut:
         objective=campaign.objective,
         product_code=campaign.product_code,
         owner_user_id=campaign.owner_user_id,
+        owner_name=owner_names(str(campaign.org_id), [campaign.owner_user_id]).get(
+            campaign.owner_user_id
+        ),
         description=campaign.description,
         priority=campaign.priority,
         status=au.campaign_status(campaign, events),
@@ -307,6 +322,7 @@ class CampaignSummaryOut(BaseModel):
     objective: str
     product_code: str | None
     owner_user_id: int | None
+    owner_name: str | None
     status: str
     event_count: int
     # "event n of m": the event running now, else the next one, else the last.
@@ -355,6 +371,7 @@ def list_campaigns(params: CampaignListIn, ctx: ActionContext) -> CampaignListOu
         .order_by("sequence_no")
     ):
         events[e.campaign_id].append(e)
+    names = owner_names(ctx.org_id, [c.owner_user_id for c in campaigns])
     rows: list[CampaignSummaryOut] = []
     for c in campaigns:
         mine = events[c.campaign_id]
@@ -374,6 +391,7 @@ def list_campaigns(params: CampaignListIn, ctx: ActionContext) -> CampaignListOu
                 objective=c.objective,
                 product_code=c.product_code,
                 owner_user_id=c.owner_user_id,
+                owner_name=names.get(c.owner_user_id),
                 status=status,
                 event_count=len(mine),
                 current_event=None if current is None else event_out(current),

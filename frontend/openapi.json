@@ -2409,6 +2409,63 @@
         "title": "CampaignBudgetSetIn",
         "type": "object"
       },
+      "CampaignBuilderOut": {
+        "properties": {
+          "budget_needs_approval": {
+            "title": "Budget Needs Approval",
+            "type": "boolean"
+          },
+          "channels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Channels",
+            "type": "array"
+          },
+          "currencies": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Currencies",
+            "type": "array"
+          },
+          "default_currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Currency"
+          },
+          "dimensions": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignDimensionOptionOut"
+            },
+            "title": "Dimensions",
+            "type": "array"
+          },
+          "objectives": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignWindowOut"
+            },
+            "title": "Objectives",
+            "type": "array"
+          }
+        },
+        "required": [
+          "currencies",
+          "default_currency",
+          "dimensions",
+          "objectives",
+          "channels",
+          "budget_needs_approval"
+        ],
+        "title": "CampaignBuilderOut",
+        "type": "object"
+      },
       "CampaignCloseIn": {
         "properties": {
           "campaign_id": {
@@ -2559,6 +2616,32 @@
           "member_code"
         ],
         "title": "CampaignCriterionOut",
+        "type": "object"
+      },
+      "CampaignDimensionOptionOut": {
+        "properties": {
+          "dimension_type": {
+            "title": "Dimension Type",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignMemberOptionOut"
+            },
+            "title": "Members",
+            "type": "array"
+          }
+        },
+        "required": [
+          "dimension_type",
+          "display_name",
+          "members"
+        ],
+        "title": "CampaignDimensionOptionOut",
         "type": "object"
       },
       "CampaignEventAddIn": {
@@ -3168,6 +3251,36 @@
         "title": "CampaignListOut",
         "type": "object"
       },
+      "CampaignMemberOptionOut": {
+        "properties": {
+          "member_code": {
+            "title": "Member Code",
+            "type": "string"
+          },
+          "member_name": {
+            "title": "Member Name",
+            "type": "string"
+          },
+          "parent_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Code"
+          }
+        },
+        "required": [
+          "member_code",
+          "member_name",
+          "parent_code"
+        ],
+        "title": "CampaignMemberOptionOut",
+        "type": "object"
+      },
       "CampaignObjectiveListOut": {
         "properties": {
           "candidates": {
@@ -3299,6 +3412,17 @@
             "title": "Objective",
             "type": "string"
           },
+          "owner_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Name"
+          },
           "owner_user_id": {
             "anyOf": [
               {
@@ -3345,6 +3469,7 @@
           "objective",
           "product_code",
           "owner_user_id",
+          "owner_name",
           "description",
           "priority",
           "status",
@@ -3467,6 +3592,17 @@
             "title": "Objective",
             "type": "string"
           },
+          "owner_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Name"
+          },
           "owner_user_id": {
             "anyOf": [
               {
@@ -3502,6 +3638,7 @@
           "objective",
           "product_code",
           "owner_user_id",
+          "owner_name",
           "status",
           "event_count",
           "current_event",
@@ -3677,6 +3814,24 @@
           "created_at"
         ],
         "title": "CampaignVersionOut",
+        "type": "object"
+      },
+      "CampaignWindowOut": {
+        "properties": {
+          "default_window_days": {
+            "title": "Default Window Days",
+            "type": "integer"
+          },
+          "objective": {
+            "title": "Objective",
+            "type": "string"
+          }
+        },
+        "required": [
+          "objective",
+          "default_window_days"
+        ],
+        "title": "CampaignWindowOut",
         "type": "object"
       },
       "CheckNameInQuery": {
@@ -22335,6 +22490,84 @@
           "platform"
         ],
         "x-kpigo-action": "calendar.set_days"
+      }
+    },
+    "/api/v1/actions/campaign.builder.reference": {
+      "get": {
+        "operationId": "campaign_builder_reference",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignBuilderOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Currencies, audience dimensions, objective windows and channels for the builder.",
+        "tags": [
+          "campaign"
+        ],
+        "x-kpigo-action": "campaign.builder.reference"
       }
     },
     "/api/v1/actions/campaign.close": {
