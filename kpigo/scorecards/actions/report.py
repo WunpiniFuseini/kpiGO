@@ -110,7 +110,9 @@ def history(params: HistoryIn, ctx: ActionContext) -> HistoryOut:
                 )
             )
             continue
-        s = score_subject(ctx.org_id, str(subject.subject_id), key)
+        s = score_subject(
+            ctx.org_id, str(subject.subject_id), key, hide_manual=not ctx.has("input.manage")
+        )
         if s is None:
             missing.append(key)
             continue
@@ -156,7 +158,12 @@ class FileOut(BaseModel):
 )
 def export_pdf(params: ExportPdfIn, ctx: ActionContext) -> FileOut:
     subject = _subject(ctx, params.subject_id)
-    card = scorecard_out(ctx.org_id, subject, params.period_key or current_period_key(ctx.org_id))
+    card = scorecard_out(
+        ctx.org_id,
+        subject,
+        params.period_key or current_period_key(ctx.org_id),
+        see_manual=ctx.has("input.manage"),
+    )
     now = timezone.now()
     return FileOut(
         filename=f"scorecard-{card.staff_no}-{card.period_key}.pdf",

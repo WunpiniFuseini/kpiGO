@@ -21,6 +21,8 @@ class Settings:
     cap_min_ratio: Decimal = Decimal(1)
     cap_max_ratio: Decimal = Decimal(3)
     denominator_policy: str = "reduced"
+    input_due_working_day: int = 5
+    input_reminder_working_days: int = 2
 
 
 def settings_for(org_id: str) -> Settings:
@@ -33,6 +35,8 @@ def settings_for(org_id: str) -> Settings:
         cap_min_ratio=Decimal(row.cap_min_ratio),
         cap_max_ratio=Decimal(row.cap_max_ratio),
         denominator_policy=row.denominator_policy,
+        input_due_working_day=row.input_due_working_day,
+        input_reminder_working_days=row.input_reminder_working_days,
     )
 
 

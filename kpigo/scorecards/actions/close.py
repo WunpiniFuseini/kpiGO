@@ -35,6 +35,8 @@ class CloseIssueOut(BaseModel):
     profile_code: str | None
     subjects: list[str]
     count: int
+    # Manual input: who still owes it.
+    owed_by: list[str]
 
 
 def _issue(i: Issue) -> CloseIssueOut:
@@ -45,6 +47,7 @@ def _issue(i: Issue) -> CloseIssueOut:
         profile_code=i.profile_code,
         subjects=i.subjects,
         count=i.count,
+        owed_by=i.owed_by,
     )
 
 

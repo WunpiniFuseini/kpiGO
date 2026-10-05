@@ -2,17 +2,19 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { AckBar, HistoryView } from "../pages/scorecards/Conversation";
-import { ScorecardView } from "../pages/scorecards/Scorecard";
+import { ProvenancePanel, ScorecardView } from "../pages/scorecards/Scorecard";
 import { bandIndex, toneFor } from "../pages/scorecards/model";
 import { SessionProvider } from "../session/Session";
 import {
   cardClosed,
   cardFuture,
   cardLive,
+  cardLiveHidden,
   cardNotGraded,
   cardRestated,
   cardUnassigned,
   history,
+  manualEntered,
   rmMe,
   threadAcknowledged,
   threadOpenPeriod,
@@ -86,6 +88,23 @@ describe("scorecard", () => {
   it("shows the restatement reason", () => {
     view(<ScorecardView card={cardRestated} thread={threadRestated} history={history} />);
     expect(screen.getByText(/Corrected CASA balances after the core-banking reversal/)).toBeInTheDocument();
+  });
+});
+
+describe("manual input on a scorecard", () => {
+  it("says a hidden value is hidden, and who entered a visible one", () => {
+    const { rerender } = view(<ScorecardView card={cardLiveHidden} thread={threadOpenPeriod} history={history} />);
+    expect(screen.getByText("Hidden until close")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^Actual for Digital activation rate/ }));
+    expect(screen.getByRole("region", { name: /Digital activation rate/ })).toHaveTextContent("hidden until the month closes");
+    rerender(
+      <MemoryRouter>
+        <SessionProvider initial={{ status: "signed-in", me: rmMe }}>
+          <ProvenancePanel card={cardClosed} metric={manualEntered} facet="actual" onClose={() => {}} />
+        </SessionProvider>
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("region", { name: /Digital activation rate/ })).toHaveTextContent("Entered by Kofi Asante on 3 Oct 2026. Note: From the digital team");
   });
 });
 

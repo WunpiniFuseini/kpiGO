@@ -297,6 +297,7 @@ function groups(metrics: MetricRow[]): { title: string; rows: MetricRow[] }[] {
 }
 
 export function MetricStatus({ card, metric }: { card: Card; metric: MetricRow }) {
+  if (metric.hidden_until_close) return <Chip tone="flat">Hidden until close</Chip>;
   if (metric.score === null) {
     return <Chip tone={metric.state === "excluded" ? "flat" : "warn"}>{STATE_WORDS[metric.state] ?? metric.state}</Chip>;
   }
@@ -341,6 +342,7 @@ function Matrix({ card, onOpen }: { card: Card; onOpen: (code: string, facet: Fa
                       {m.unit}
                       {m.target_currency ? ` · ${m.target_currency}` : ""} · {m.direction === "lower_is_better" ? "lower is better" : "higher is better"}
                       {m.target_type && m.target_type !== "monthly" ? ` · ${TARGET_TYPE_WORDS[m.target_type] ?? m.target_type} target` : ""}
+                      {m.collection_method === "manual_input" ? " · entered by hand" : ""}
                       {m.overrides.length ? <b className="kg-msub__flag"> · override applied</b> : null}
                     </span>
                   </th>
@@ -440,8 +442,10 @@ export function ProvenancePanel({ card, metric: m, facet, onClose }: { card: Car
         <div data-on={facet === "actual" || undefined}>
           <dt>Actual</dt>
           <dd>
-            {m.actual_value === null ? (
-              STATE_WHY[m.state] ?? "Not reported."
+            {m.hidden_until_close ? (
+              "Entered by hand, and hidden until the month closes so a mid-month input does not show anyone's standing early. Until then it counts as awaiting data."
+            ) : m.actual_value === null ? (
+              m.collection_method === "manual_input" ? "Collected by manual input, and nobody has submitted it for this month yet." : (STATE_WHY[m.state] ?? "Not reported.")
             ) : (
               <>
                 <span className="num">{figure(m.actual_value, dp)}</span>
@@ -453,7 +457,13 @@ export function ProvenancePanel({ card, metric: m, facet, onClose }: { card: Car
                     <span className="num">{figure(m.fx_rate, 6)}</span>.
                   </>
                 ) : null}{" "}
-                <span className="kg-cap">{m.run_id ? `Loaded by feed run ${m.run_id.slice(0, 8)}.` : "Set by an override, not a feed."}</span>
+                <span className="kg-cap">
+                  {m.run_id
+                    ? `Loaded by feed run ${m.run_id.slice(0, 8)}.`
+                    : m.input_at
+                      ? `Entered by ${m.input_by ?? "a contributor"} on ${formatDate(m.input_at)}.${m.input_note ? ` Note: ${m.input_note}` : ""}`
+                      : "Set by an override, not a feed."}
+                </span>
               </>
             )}
           </dd>

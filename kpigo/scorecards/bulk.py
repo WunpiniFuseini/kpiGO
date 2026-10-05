@@ -48,9 +48,16 @@ def _f(x: Any) -> float | None:
 
 
 def score_period(
-    org_id: str, period_key: str, subject_ids: Iterable[str] | None = None
+    org_id: str,
+    period_key: str,
+    subject_ids: Iterable[str] | None = None,
+    *,
+    hide_manual: bool = False,
 ) -> list[SubjectScore]:
-    """Every subject with an assignment in force, or only ``subject_ids``; by staff number."""
+    """Every subject with an assignment in force, or only ``subject_ids``; by staff number.
+
+    ``hide_manual`` leaves manual-input values out until close (MI-10).
+    """
     assignments = roster.assignments_in_force(org_id, period_key).select_related("subject")
     if subject_ids is not None:
         assignments = assignments.filter(subject_id__in=list(subject_ids))
@@ -182,7 +189,9 @@ def score_period(
             }
             for f in FactActualMonthly.objects.filter(
                 org_id=org_id, period_key=period_key, metric_id__in=metric_ids
-            ).values("metric_id", "subject_id", "actual_value", "currency_code", "run_id")
+            )
+            .exclude(**({"metric__collection_method": "manual_input"} if hide_manual else {}))
+            .values("metric_id", "subject_id", "actual_value", "currency_code", "run_id")
         ],
         schema={
             "metric_id": S,

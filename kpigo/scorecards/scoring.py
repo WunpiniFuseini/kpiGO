@@ -85,8 +85,14 @@ def applied(o: Override) -> AppliedOverride:
     )
 
 
-def score_subject(org_id: str, subject_id: str, period_key: str) -> SubjectScore | None:
-    """A subject's live scorecard for a period; None when no assignment is in force."""
+def score_subject(
+    org_id: str, subject_id: str, period_key: str, *, hide_manual: bool = False
+) -> SubjectScore | None:
+    """A subject's live scorecard for a period; None when no assignment is in force.
+
+    ``hide_manual`` leaves manual-input values out, as if not yet reported: they
+    stay hidden from the team until the month closes (MI-10).
+    """
     a = roster.assignments_in_force(org_id, period_key).filter(subject_id=subject_id).first()
     if a is None:
         return None
@@ -112,7 +118,7 @@ def score_subject(org_id: str, subject_id: str, period_key: str) -> SubjectScore
         str(f.metric_id): f
         for f in FactActualMonthly.objects.filter(
             org_id=org_id, subject_id=subject_id, period_key=period_key, metric_id__in=ids
-        )
+        ).exclude(**({"metric__collection_method": "manual_input"} if hide_manual else {}))
     }
 
     excluded = exclusions(org_id, period_key, ids, str(subject_id))

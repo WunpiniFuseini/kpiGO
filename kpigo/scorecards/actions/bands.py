@@ -143,6 +143,10 @@ class ScorecardSettingsOut(BaseModel):
     cap_min_ratio: Decimal
     cap_max_ratio: Decimal
     denominator_policy: str
+    # Manual input is due at the end of this working day of the following month.
+    input_due_working_day: int
+    # The single reminder goes this many working days before it.
+    input_reminder_working_days: int
 
 
 def _settings_out(org_id: str) -> ScorecardSettingsOut:
@@ -153,6 +157,8 @@ def _settings_out(org_id: str) -> ScorecardSettingsOut:
         cap_min_ratio=s.cap_min_ratio,
         cap_max_ratio=s.cap_max_ratio,
         denominator_policy=s.denominator_policy,
+        input_due_working_day=s.input_due_working_day,
+        input_reminder_working_days=s.input_reminder_working_days,
     )
 
 
@@ -182,6 +188,8 @@ class ScorecardSettingsSetIn(BaseModel):
     # ``redistribute`` spreads an unscored metric's weight over the scored ones,
     # silently changing everyone's weighting; ``reduced`` (the default) does not.
     denominator_policy: Literal["reduced", "redistribute"] | None = None
+    input_due_working_day: int | None = Field(default=None, ge=1, le=20)
+    input_reminder_working_days: int | None = Field(default=None, ge=0, le=10)
 
 
 @action(

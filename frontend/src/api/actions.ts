@@ -52,6 +52,13 @@ export const ROUTES = {
   "feed.update": { method: "POST", path: "/api/v1/actions/feed.update", pathParams: [], public: false },
   "fx.list": { method: "GET", path: "/api/v1/actions/fx.list", pathParams: [], public: false },
   "fx.set": { method: "POST", path: "/api/v1/actions/fx.set", pathParams: [], public: false },
+  "input.assignment.create": { method: "POST", path: "/api/v1/actions/input.assignment.create", pathParams: [], public: false },
+  "input.assignment.end": { method: "POST", path: "/api/v1/actions/input.assignment.end", pathParams: [], public: false },
+  "input.assignment.list": { method: "GET", path: "/api/v1/actions/input.assignment.list", pathParams: [], public: false },
+  "input.remind": { method: "POST", path: "/api/v1/actions/input.remind", pathParams: [], public: false },
+  "input.save": { method: "POST", path: "/api/v1/actions/input.save", pathParams: [], public: false },
+  "input.submit": { method: "POST", path: "/api/v1/actions/input.submit", pathParams: [], public: false },
+  "input.task.list": { method: "GET", path: "/api/v1/actions/input.task.list", pathParams: [], public: false },
   "licence.activate": { method: "POST", path: "/api/v1/licence/activate", pathParams: [], public: false },
   "licence.entitlement.check": { method: "GET", path: "/api/v1/actions/licence.entitlement.check", pathParams: [], public: false },
   "licence.heartbeat": { method: "POST", path: "/api/v1/actions/licence.heartbeat", pathParams: [], public: false },
@@ -202,6 +209,13 @@ export interface Actions {
   "feed.update": { input: NonNullable<operations["feed_update"]["requestBody"]>["content"]["application/json"]; output: operations["feed_update"]["responses"][200]["content"]["application/json"] };
   "fx.list": { input: NonNullable<operations["fx_list"]["parameters"]["query"]>; output: operations["fx_list"]["responses"][200]["content"]["application/json"] };
   "fx.set": { input: NonNullable<operations["fx_set"]["requestBody"]>["content"]["application/json"]; output: operations["fx_set"]["responses"][200]["content"]["application/json"] };
+  "input.assignment.create": { input: NonNullable<operations["input_assignment_create"]["requestBody"]>["content"]["application/json"]; output: operations["input_assignment_create"]["responses"][200]["content"]["application/json"] };
+  "input.assignment.end": { input: NonNullable<operations["input_assignment_end"]["requestBody"]>["content"]["application/json"]; output: operations["input_assignment_end"]["responses"][200]["content"]["application/json"] };
+  "input.assignment.list": { input: NonNullable<operations["input_assignment_list"]["parameters"]["query"]>; output: operations["input_assignment_list"]["responses"][200]["content"]["application/json"] };
+  "input.remind": { input: NonNullable<operations["input_remind"]["requestBody"]>["content"]["application/json"]; output: operations["input_remind"]["responses"][200]["content"]["application/json"] };
+  "input.save": { input: NonNullable<operations["input_save"]["requestBody"]>["content"]["application/json"]; output: operations["input_save"]["responses"][200]["content"]["application/json"] };
+  "input.submit": { input: NonNullable<operations["input_submit"]["requestBody"]>["content"]["application/json"]; output: operations["input_submit"]["responses"][200]["content"]["application/json"] };
+  "input.task.list": { input: NonNullable<operations["input_task_list"]["parameters"]["query"]>; output: operations["input_task_list"]["responses"][200]["content"]["application/json"] };
   "licence.activate": { input: NonNullable<operations["licence_activate"]["requestBody"]>["content"]["application/json"]; output: operations["licence_activate"]["responses"][200]["content"]["application/json"] };
   "licence.entitlement.check": { input: NonNullable<operations["licence_entitlement_check"]["parameters"]["query"]>; output: operations["licence_entitlement_check"]["responses"][200]["content"]["application/json"] };
   "licence.heartbeat": { input: NonNullable<operations["licence_heartbeat"]["requestBody"]>["content"]["application/json"]; output: operations["licence_heartbeat"]["responses"][200]["content"]["application/json"] };

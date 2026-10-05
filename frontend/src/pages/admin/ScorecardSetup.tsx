@@ -20,6 +20,7 @@ import {
 import { formatDecimal } from "../../lib/format";
 import { Page } from "../../shell/AppShell";
 import { useMe } from "../../session/Session";
+import { ManualInputSection } from "./ManualInput";
 
 type Template = NonNullable<Output<"scorecard.template.get">["template"]>;
 type TemplateNode = Template["nodes"][number];
@@ -79,6 +80,7 @@ export function ScorecardSetupPage() {
       <ProfilesSection metrics={metricList} canManage={canManage} />
       <BandsSection canManage={canManage} />
       <SettingsSection canManage={canManage} />
+      {me.permissions.includes("input.manage") ? <ManualInputSection /> : null}
     </Page>
   );
 }

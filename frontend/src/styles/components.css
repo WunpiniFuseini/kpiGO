@@ -226,3 +226,10 @@
 .kg-thread li p { margin: 0 0 4px; font-size: 13px; }
 @media (max-width: 640px) { .kg-prov__list > div { grid-template-columns: 1fr; gap: 4px; } }
 .kg-prov__list > div[data-on] .kg-cap { color: var(--accent-ink); }
+
+/* ── input grid (contributors) ─────────────────────────── */
+.kg-igrid td, .kg-igrid tbody th { vertical-align: top; }
+.kg-igrid .kg-input { min-width: 160px; }
+.kg-igrid .kg-ival { width: 120px; min-width: 0; text-align: right; }
+.kg-igrid .kg-field-error { display: block; text-align: left; margin-top: 4px; }
+.kg-notice .kg-btn--link { color: inherit; font-weight: 600; text-decoration: underline; padding: 0; height: auto; }

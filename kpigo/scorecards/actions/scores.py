@@ -21,8 +21,9 @@ from pydantic import BaseModel, Field
 from kpigo.action import ActionContext, NotFound, action
 from kpigo.hierarchy.models import Subject
 from kpigo.hierarchy.scope import current_period_key
+from kpigo.metrics.models import Metric
 from kpigo.platform.vocab import Code, PeriodKey
-from kpigo.scorecards import roster
+from kpigo.scorecards import inputs, roster
 from kpigo.scorecards.bands import Band, bands_for, next_band
 from kpigo.scorecards.bulk import score_period
 from kpigo.scorecards.close import current_snapshot, frozen
@@ -92,9 +93,23 @@ class MetricScoreOut(BaseModel):
     overrides: list[AppliedOverrideOut]
     # Why an Admin left it out of the period, when the state is ``excluded``.
     exclusion_reason: str | None
+    # feed | manual_input
+    collection_method: str
+    # A manual-input value is hidden from scorecards until the month closes (MI-10).
+    hidden_until_close: bool
+    # Manual input provenance in place of a feed run (MI-11).
+    input_by: str | None
+    input_at: datetime | None
+    input_note: str | None
 
 
-def _metric(m: MetricScore, path: list[str]) -> MetricScoreOut:
+def _metric(
+    m: MetricScore,
+    path: list[str],
+    manual: bool = False,
+    hidden: bool = False,
+    entered: inputs.Provenance | None = None,
+) -> MetricScoreOut:
     return MetricScoreOut(
         metric_id=uuid.UUID(m.metric_id),
         metric_code=m.metric_code,
@@ -133,6 +148,11 @@ def _metric(m: MetricScore, path: list[str]) -> MetricScoreOut:
             for o in m.overrides
         ],
         exclusion_reason=m.exclusion_reason,
+        collection_method="manual_input" if manual else "feed",
+        hidden_until_close=hidden,
+        input_by=entered.contributor if entered and not hidden else None,
+        input_at=entered.submitted_at if entered and not hidden else None,
+        input_note=entered.note if entered and not hidden else None,
     )
 
 
@@ -206,15 +226,20 @@ def _source(org_id: str, period_key: str, status: str) -> _Source:
     )
 
 
-def scorecard_out(org_id: str, subject: Subject, period_key: str) -> ScorecardOut:
+def scorecard_out(
+    org_id: str, subject: Subject, period_key: str, *, see_manual: bool = True
+) -> ScorecardOut:
+    """``see_manual`` False hides manual-input values while the month is live (MI-10)."""
     status = period_status(org_id, period_key)
     meta = _source(org_id, period_key, status)
+    snap = None
     if meta.source == "snapshot":
         found = frozen(org_id, period_key, [str(subject.subject_id)])
         s = found[0] if found else None
+        snap = current_snapshot(org_id, period_key)
         missing = f"Not on a scorecard when {period_key} closed."
     else:
-        s = score_subject(org_id, str(subject.subject_id), period_key)
+        s = score_subject(org_id, str(subject.subject_id), period_key, hide_manual=not see_manual)
         missing = "No role in force for this period, so there is no scorecard."
     base = {
         "subject_id": subject.subject_id,
@@ -256,6 +281,20 @@ def scorecard_out(org_id: str, subject: Subject, period_key: str) -> ScorecardOu
             statement=missing,
         )
     placer = Placer.active(org_id)
+    manual = {
+        m.metric_code
+        for m in Metric.objects.filter(
+            metric_id__in=[x.metric_id for x in s.metrics], collection_method="manual_input"
+        )
+    }
+    hidden = meta.source == "live" and not see_manual
+    entered = (
+        inputs.provenance(
+            org_id, period_key, str(subject.subject_id), manual, snap.created_at if snap else None
+        )
+        if manual and not hidden
+        else {}
+    )
     return ScorecardOut(
         **base,
         assigned=True,
@@ -265,7 +304,16 @@ def scorecard_out(org_id: str, subject: Subject, period_key: str) -> ScorecardOu
         months_elapsed=s.cycle.months_elapsed,
         quarters_elapsed=s.cycle.quarters_elapsed,
         cycle_months=s.cycle.months,
-        metrics=[_metric(m, placer.path(m.metric_code, s.profile_code)) for m in s.metrics],
+        metrics=[
+            _metric(
+                m,
+                placer.path(m.metric_code, s.profile_code),
+                manual=m.metric_code in manual,
+                hidden=hidden and m.metric_code in manual,
+                entered=entered.get(m.metric_code),
+            )
+            for m in s.metrics
+        ],
         total_score=s.total_score,
         total_cap=s.total_cap,
         weight_scored=s.weight_scored,
@@ -299,7 +347,12 @@ def compute_scorecard(params: ScorecardComputeIn, ctx: ActionContext) -> Scoreca
     subject = Subject.objects.filter(org_id=ctx.org_id, subject_id=params.subject_id).first()
     if subject is None:
         raise NotFound("No such subject.")
-    return scorecard_out(ctx.org_id, subject, params.period_key or current_period_key(ctx.org_id))
+    return scorecard_out(
+        ctx.org_id,
+        subject,
+        params.period_key or current_period_key(ctx.org_id),
+        see_manual=ctx.has("input.manage"),
+    )
 
 
 # ── everyone visible, through the bulk path ─────────────────────────────────
@@ -371,7 +424,9 @@ def list_scorecards(params: ScorecardListIn, ctx: ActionContext) -> ScorecardLis
             and (not params.profile_code or s.profile_code == params.profile_code)
         ]
     elif visible:
-        scores = score_period(ctx.org_id, period_key, visible)
+        scores = score_period(
+            ctx.org_id, period_key, visible, hide_manual=not ctx.has("input.manage")
+        )
     people = {
         str(s.subject_id): s
         for s in Subject.objects.filter(subject_id__in=[x.subject_id for x in scores])

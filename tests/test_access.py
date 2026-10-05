@@ -339,6 +339,7 @@ def test_clone_a_system_role_then_edit_the_clone(make_user: Callable[..., User])
     assert pages == {
         "scorecards": "view",
         "agent_performance": "view",
+        "my_inputs": "edit",
         "admin.data_integration": "view",
     }
     listed = {r.code for r in as_user(admin, "role.list").roles}

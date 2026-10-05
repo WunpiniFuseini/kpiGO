@@ -9,6 +9,8 @@ import {
   cardClosed,
   cardFuture,
   cardLive,
+  cardLiveHidden,
+  manualEntered,
   cardNoMetrics,
   cardNotGraded,
   cardRestated,
@@ -132,3 +134,18 @@ const panel = (metric: number, facet: "target" | "actual" | "score"): Story => (
 export const ProvenanceOverrideAndFx: Story = panel(3, "target");
 export const ProvenanceLowerIsBetter: Story = panel(2, "score");
 export const ProvenanceAwaitingData: Story = panel(4, "actual");
+
+/** A manual value names who entered it, when, and their note, in place of a feed run. */
+export const ProvenanceManualInput: Story = {
+  render: () => (
+    <div style={{ padding: 24, maxWidth: 880 }}>
+      <ProvenancePanel card={cardClosed} metric={manualEntered} facet="actual" onClose={() => {}} />
+    </div>
+  ),
+};
+/** Open month, seen by the person: the manual value is hidden until close, and says so. */
+export const ManualInputHiddenUntilClose: Story = page({
+  "scorecard.compute": { data: cardLiveHidden },
+  "scorecard.interaction.list": { data: threadOpenPeriod },
+  "scorecard.history": { data: historyLive },
+});

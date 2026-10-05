@@ -701,6 +701,125 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/input.assignment.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign a slice of a manual-input metric to a contributor. */
+        post: operations["input_assignment_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/input.assignment.end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop a contributor's assignment from a date. */
+        post: operations["input_assignment_end"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/input.assignment.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who enters each manual-input metric, and where each slice stands this month. */
+        get: operations["input_assignment_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/input.remind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send the one reminder for inputs still owed as their deadline nears (scheduled daily). */
+        post: operations["input_remind"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/input.save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save manual inputs as drafts; nothing reaches a scorecard until submitted. */
+        post: operations["input_save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/input.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit manual inputs: each lands as the actual for everyone in its slice. */
+        post: operations["input_submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/input.task.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The manual inputs you owe for a month, and where each stands. */
+        get: operations["input_task_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/licence.entitlement.check": {
         parameters: {
             query?: never;
@@ -2967,6 +3086,8 @@ export interface components {
             message: string;
             /** Metric Code */
             metric_code: string | null;
+            /** Owed By */
+            owed_by: string[];
             /** Profile Code */
             profile_code: string | null;
             /** Subjects */
@@ -4168,6 +4289,209 @@ export interface components {
                 [key: string]: number;
             };
         };
+        /** InputAssignmentCreateIn */
+        InputAssignmentCreateIn: {
+            /** Assignee Role */
+            assignee_role?: "line_manager_of" | null;
+            /**
+             * Assignee Type
+             * @default user
+             * @enum {string}
+             */
+            assignee_type?: "user" | "role_relative";
+            /** Assignee User Id */
+            assignee_user_id?: string | null;
+            /** Effective From */
+            effective_from?: string | null;
+            /** Metric Code */
+            metric_code: string;
+            /** Scope Code */
+            scope_code: string;
+            /**
+             * Scope Type
+             * @enum {string}
+             */
+            scope_type: "subject" | "profile" | "dimension";
+        };
+        /** InputAssignmentEndIn */
+        InputAssignmentEndIn: {
+            /**
+             * Assignment Id
+             * Format: uuid
+             */
+            assignment_id: string;
+            /**
+             * Effective To
+             * Format: date
+             */
+            effective_to: string;
+        };
+        /** InputAssignmentListInQuery */
+        InputAssignmentListInQuery: {
+            /** Period Key */
+            period_key?: string | null;
+        };
+        /** InputAssignmentListOut */
+        InputAssignmentListOut: {
+            /** Assignments */
+            assignments: components["schemas"]["InputAssignmentOut"][];
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /** Locked */
+            locked: boolean;
+            /** Period Key */
+            period_key: string;
+            /** Unassigned */
+            unassigned: components["schemas"]["UnassignedMetricOut"][];
+        };
+        /** InputAssignmentOut */
+        InputAssignmentOut: {
+            /** Assignee Role */
+            assignee_role: string | null;
+            /** Assignee Type */
+            assignee_type: string;
+            /** Assignee User Id */
+            assignee_user_id: string | null;
+            /**
+             * Assignment Id
+             * Format: uuid
+             */
+            assignment_id: string;
+            /** Contributor Name */
+            contributor_name: string | null;
+            /**
+             * Effective From
+             * Format: date
+             */
+            effective_from: string;
+            /** Effective To */
+            effective_to: string | null;
+            /** Members */
+            members: number;
+            /** Metric Code */
+            metric_code: string;
+            /** Metric Name */
+            metric_name: string;
+            /** Scope Code */
+            scope_code: string;
+            /** Scope Label */
+            scope_label: string;
+            /** Scope Type */
+            scope_type: string;
+            /** State */
+            state: string;
+            /** Submitted At */
+            submitted_at: string | null;
+        };
+        /** InputEntryIn */
+        InputEntryIn: {
+            /**
+             * Assignment Id
+             * Format: uuid
+             */
+            assignment_id: string;
+            /**
+             * Note
+             * @default
+             */
+            note?: string;
+            /** Value */
+            value?: number | string | null;
+        };
+        /** InputRemindIn */
+        InputRemindIn: {
+            /** As Of */
+            as_of?: string | null;
+        };
+        /** InputRemindOut */
+        InputRemindOut: {
+            /** Recipients */
+            recipients: string[];
+            /** Reminded */
+            reminded: number;
+            /** Unresolved */
+            unresolved: number;
+        };
+        /** InputSaveIn */
+        InputSaveIn: {
+            /** Entries */
+            entries: components["schemas"]["InputEntryIn"][];
+            /** Period Key */
+            period_key: string;
+        };
+        /** InputSubmitIn */
+        InputSubmitIn: {
+            /** Entries */
+            entries: components["schemas"]["InputEntryIn"][];
+            /** Period Key */
+            period_key: string;
+        };
+        /** InputTaskListInQuery */
+        InputTaskListInQuery: {
+            /** Period Key */
+            period_key?: string | null;
+        };
+        /** InputTaskListOut */
+        InputTaskListOut: {
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /** Locked */
+            locked: boolean;
+            /** Other Periods */
+            other_periods: string[];
+            /** Period Key */
+            period_key: string;
+            /** Period Status */
+            period_status: string;
+            /** Restating */
+            restating: boolean;
+            /** Tasks */
+            tasks: components["schemas"]["InputTaskOut"][];
+        };
+        /** InputTaskOut */
+        InputTaskOut: {
+            /**
+             * Assignment Id
+             * Format: uuid
+             */
+            assignment_id: string;
+            /** Decimal Places */
+            decimal_places: number;
+            /** Description */
+            description: string;
+            /** Direction */
+            direction: string;
+            /** Members */
+            members: number;
+            /** Metric Code */
+            metric_code: string;
+            /** Metric Name */
+            metric_name: string;
+            /** Note */
+            note: string;
+            /** Reminded At */
+            reminded_at: string | null;
+            /** Scope Label */
+            scope_label: string;
+            /** Scope Type */
+            scope_type: string;
+            /** State */
+            state: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Unit */
+            unit: string;
+            /** Value */
+            value: string | null;
+            /** Version */
+            version: number | null;
+        };
         /** InteractionListInQuery */
         InteractionListInQuery: {
             /** Period Key */
@@ -4587,6 +4911,8 @@ export interface components {
             base_target: string | null;
             /** Cap */
             cap: string | null;
+            /** Collection Method */
+            collection_method: string;
             /** Decimal Places */
             decimal_places: number;
             /** Direction */
@@ -4597,6 +4923,14 @@ export interface components {
             exclusion_reason: string | null;
             /** Fx Rate */
             fx_rate: string | null;
+            /** Hidden Until Close */
+            hidden_until_close: boolean;
+            /** Input At */
+            input_at: string | null;
+            /** Input By */
+            input_by: string | null;
+            /** Input Note */
+            input_note: string | null;
             /** Metric Code */
             metric_code: string;
             /**
@@ -5832,6 +6166,10 @@ export interface components {
             cap_min_ratio: string;
             /** Denominator Policy */
             denominator_policy: string;
+            /** Input Due Working Day */
+            input_due_working_day: number;
+            /** Input Reminder Working Days */
+            input_reminder_working_days: number;
             /** Weight Tolerance */
             weight_tolerance: string;
             /** Weight Total */
@@ -5845,6 +6183,10 @@ export interface components {
             cap_min_ratio?: number | string | null;
             /** Denominator Policy */
             denominator_policy?: ("reduced" | "redistribute") | null;
+            /** Input Due Working Day */
+            input_due_working_day?: number | null;
+            /** Input Reminder Working Days */
+            input_reminder_working_days?: number | null;
             /** Weight Tolerance */
             weight_tolerance?: number | string | null;
             /** Weight Total */
@@ -6443,6 +6785,13 @@ export interface components {
              * @enum {string}
              */
             to_status: "open" | "closing" | "closed" | "restating";
+        };
+        /** UnassignedMetricOut */
+        UnassignedMetricOut: {
+            /** Metric Code */
+            metric_code: string;
+            /** Metric Name */
+            metric_name: string;
         };
         /** UpdateOut */
         UpdateOut: {
@@ -9729,6 +10078,539 @@ export interface operations {
             };
             /** @description Service Unavailable */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    input_assignment_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InputAssignmentCreateIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InputAssignmentOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    input_assignment_end: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InputAssignmentEndIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InputAssignmentOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    input_assignment_list: {
+        parameters: {
+            query?: {
+                period_key?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InputAssignmentListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    input_remind: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InputRemindIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InputRemindOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    input_save: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InputSaveIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InputTaskListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    input_submit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InputSubmitIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InputTaskListOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    input_task_list: {
+        parameters: {
+            query?: {
+                period_key?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InputTaskListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

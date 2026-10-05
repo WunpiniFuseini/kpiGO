@@ -194,6 +194,23 @@ against a named override (`scorecard.query.resolve`). Managers add commentary fo
 the person or for managers only (`scorecard.comment.add`).
 `scorecard.export.pdf` renders the same `scorecard.compute` output to PDF.
 
+## Scorecards: manual input
+
+A metric registered with `collection_method="manual_input"` is entered by people,
+not loaded by a feed. An Admin assigns each slice (one subject, a profile, or a
+team such as `branch:ACC`) to a named contributor or to "the line manager of" a
+subject, resolved each month (`input.assignment.create`). The contributor's
+**My inputs** page lists what they owe and the deadline: the Nth working day of
+the following month on the business calendar (`input_due_working_day`, default 5).
+`input.save` keeps drafts; `input.submit` (maker-checker via the `manual_input`
+approval class, off by default) conforms the value to `fact_actual_monthly` for
+every member of the slice. Values are editable until the deadline, then locked; a
+later correction is a new version, only while the month is being restated. Until
+the month closes, manual values are hidden from everyone's scorecard but an
+Admin's. Period close names who still owes an input. `input.remind` sends one
+reminder per slice (set `KPIGO_INPUT_REMINDER_USER` to schedule it daily); the
+escalation ladder and compliance view are R1.5.
+
 ## Layout
 
 ```
