@@ -97,6 +97,7 @@ export const drafts: Output<"target.list"> = {
     scope_label: label as string,
     period_key: period as string,
     series_type: "target",
+    product_line_code: "",
     target_value: value as string,
     target_type: "monthly",
     weight: weight as string,

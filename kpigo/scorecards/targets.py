@@ -21,8 +21,9 @@ from django.db.models import Max, Q
 from django.utils import timezone
 
 from kpigo.action import Conflict, NotFound
-from kpigo.hierarchy.models import Subject
+from kpigo.hierarchy.models import ProductLine, Subject
 from kpigo.metrics.models import Metric
+from kpigo.platform.vocab import month_bounds
 from kpigo.scorecards import roster
 from kpigo.scorecards.config import Settings, period_phase, settings_for
 from kpigo.scorecards.models import (
@@ -32,7 +33,8 @@ from kpigo.scorecards.models import (
     TargetPublishBatch,
 )
 
-Key = tuple[str, str, str, str, str]  # metric_id, scope_type, scope_code, period_key, series
+# metric_id, scope_type, scope_code, period_key, series, product_line_code ("" for none)
+Key = tuple[str, str, str, str, str, str]
 
 COLUMNS = (
     "metric_code",
@@ -45,6 +47,7 @@ COLUMNS = (
     "weight",
     "cap",
     "currency_code",
+    "product_line_code",
 )
 # Products whose metrics take targets here: Scorecards, and Agent Performance's pacing.
 TARGETED_PRODUCTS = ("scorecards", *roster.AGENT_PRODUCTS)
@@ -77,6 +80,7 @@ class Draft:
     weight: Decimal | None
     cap: Decimal | None
     currency_code: str | None
+    product_line_code: str = ""
 
     @property
     def key(self) -> Key:
@@ -86,6 +90,7 @@ class Draft:
             self.scope_code,
             self.period_key,
             self.series_type,
+            self.product_line_code,
         )
 
 
@@ -155,7 +160,10 @@ def check_rows(org_id: str, rows: Sequence[dict[str, Any]], *, first_row_no: int
     the scope matches the metric's declared ``target_scope`` (§3.3), values,
     weights and caps are plausible (weights only for Scorecards metrics), the
     period accepts a new version, and no key repeats. Weight sums are checked
-    at publish, over the whole profile.
+    at publish, over the whole profile. A row naming a ``product_line_code`` is
+    an Agent Performance line target: the metric must be bound to Agent
+    Performance, the line registered and not retired before the period, and it
+    takes no weight (Scope §8.5).
     """
     settings = settings_for(org_id)
     out = Checked()
@@ -171,6 +179,13 @@ def check_rows(org_id: str, rows: Sequence[dict[str, Any]], *, first_row_no: int
     profile_cache: dict[str, dict[str, list[Metric]]] = {}
     phase_cache: dict[str, str] = {}
     seen: dict[Key, int] = {}
+    lines = {
+        line.code: line
+        for line in ProductLine.objects.filter(
+            org_id=org_id,
+            code__in={str(r.get("product_line_code") or "").strip() for r in rows} - {""},
+        )
+    }
 
     for offset, raw in enumerate(rows):
         row_no = first_row_no + offset
@@ -219,6 +234,29 @@ def check_rows(org_id: str, rows: Sequence[dict[str, Any]], *, first_row_no: int
                 "metric_code",
             )
         weighted = "scorecards" in bound
+        line_code = values.get("product_line_code") or ""
+        if line_code:
+            weighted = False
+            line = lines.get(line_code)
+            if not bound - {"scorecards"}:
+                bad(
+                    "line_target_not_agent",
+                    f"'{code}' is not an Agent Performance metric; only those take "
+                    "product-line targets.",
+                    "product_line_code",
+                )
+            if line is None:
+                bad(
+                    "unknown_product_line",
+                    f"No product line '{line_code}'. Lines come from the actuals feed.",
+                    "product_line_code",
+                )
+            elif line.effective_to is not None and line.effective_to <= month_bounds(period_key)[0]:
+                bad(
+                    "product_line_retired",
+                    f"'{line_code}' was retired before {period_key}.",
+                    "product_line_code",
+                )
 
         scope_type = values["scope_type"] or ""
         if scope_type not in ("profile", "subject"):
@@ -318,6 +356,7 @@ def check_rows(org_id: str, rows: Sequence[dict[str, Any]], *, first_row_no: int
             weight=weight,
             cap=cap,
             currency_code=currency,
+            product_line_code=line_code,
         )
         if draft.key in seen:
             bad("duplicate", f"Repeats row {seen[draft.key]}.", "metric_code")
@@ -370,13 +409,25 @@ def _check_weight_cap(
 
 
 def _key_filter(key: Key) -> Q:
-    metric_id, scope_type, scope_code, period_key, series = key
+    metric_id, scope_type, scope_code, period_key, series, line = key
     return Q(
         metric_id=metric_id,
         scope_type=scope_type,
         scope_code=scope_code,
         period_key=period_key,
         series_type=series,
+        product_line_code=line,
+    )
+
+
+def key_of(t: Target) -> Key:
+    return (
+        str(t.metric_id),
+        t.scope_type,
+        t.scope_code,
+        t.period_key,
+        t.series_type,
+        t.product_line_code,
     )
 
 
@@ -413,6 +464,7 @@ def save_drafts(org_id: str, drafts: Iterable[Draft], *, source: str, user_id: i
                 scope_code=d.scope_code,
                 period_key=d.period_key,
                 series_type=d.series_type,
+                product_line_code=d.product_line_code,
                 version=top + 1,
                 state="draft",
                 created_by=user_id,
@@ -455,11 +507,11 @@ def effective_targets(
 ) -> dict[Key, Target]:
     """The target each key would score against: live, or the draft over it when previewing."""
     rows = Target.objects.filter(
-        org_id=org_id, period_key__in=list(period_keys), series_type="target"
+        org_id=org_id, period_key__in=list(period_keys), series_type="target", product_line_code=""
     ).filter(Q(state="published") | Q(state="draft") if include_drafts else Q(state="published"))
     out: dict[Key, Target] = {}
     for t in rows.order_by("state"):  # "draft" sorts before "published"
-        key = (str(t.metric_id), t.scope_type, t.scope_code, t.period_key, t.series_type)
+        key = key_of(t)
         if key not in out:
             out[key] = t
     return out
@@ -487,7 +539,7 @@ def weight_checks(
                 if m.target_scope == "subject":
                     subject_metrics.append(m)
                     continue
-                t = live.get((str(m.metric_id), "profile", profile, period_key, "target"))
+                t = live.get((str(m.metric_id), "profile", profile, period_key, "target", ""))
                 if t is None or t.weight is None:
                     missing.append(m.metric_code)
                 else:
@@ -501,7 +553,14 @@ def weight_checks(
                     gaps = []
                     for m in subject_metrics:
                         t = live.get(
-                            (str(m.metric_id), "subject", member.subject_id, period_key, "target")
+                            (
+                                str(m.metric_id),
+                                "subject",
+                                member.subject_id,
+                                period_key,
+                                "target",
+                                "",
+                            )
                         )
                         if t is None or t.weight is None:
                             gaps.append(m.metric_code)
@@ -583,14 +642,7 @@ def publish(
     blocked: list[dict[str, str]] = []
     for t in drafts:
         phase = period_phase(org_id, t.period_key)
-        live = Target.objects.filter(
-            metric_id=t.metric_id,
-            scope_type=t.scope_type,
-            scope_code=t.scope_code,
-            period_key=t.period_key,
-            series_type=t.series_type,
-            state="published",
-        ).exists()
+        live = Target.objects.filter(_key_filter(key_of(t)), state="published").exists()
         if phase == "locked" or (phase == "open" and live):
             blocked.append(
                 {
@@ -632,14 +684,9 @@ def publish(
     )
     superseded = 0
     for t in drafts:
-        superseded += Target.objects.filter(
-            metric_id=t.metric_id,
-            scope_type=t.scope_type,
-            scope_code=t.scope_code,
-            period_key=t.period_key,
-            series_type=t.series_type,
-            state="published",
-        ).update(state="superseded", updated_by=user_id, updated_at=now)
+        superseded += Target.objects.filter(_key_filter(key_of(t)), state="published").update(
+            state="superseded", updated_by=user_id, updated_at=now
+        )
     Target.objects.filter(target_id__in=[t.target_id for t in drafts]).update(
         state="published",
         batch=batch,
@@ -678,15 +725,7 @@ def revert(org_id: str, batch_id: str, *, user_id: int | None) -> tuple[TargetPu
         t.updated_at = now
         t.save(update_fields=["state", "updated_by", "updated_at"])
         prior = (
-            Target.objects.filter(
-                metric_id=t.metric_id,
-                scope_type=t.scope_type,
-                scope_code=t.scope_code,
-                period_key=t.period_key,
-                series_type=t.series_type,
-                state="superseded",
-                version__lt=t.version,
-            )
+            Target.objects.filter(_key_filter(key_of(t)), state="superseded", version__lt=t.version)
             .order_by("-version")
             .first()
         )
@@ -724,7 +763,14 @@ def copy_forward_rows(
     live = (
         Target.objects.filter(org_id=org_id, period_key__in=list(source_periods), state="published")
         .select_related("metric")
-        .order_by("period_key", "metric__metric_code", "scope_type", "scope_code", "series_type")
+        .order_by(
+            "period_key",
+            "metric__metric_code",
+            "scope_type",
+            "scope_code",
+            "series_type",
+            "product_line_code",
+        )
     )
     rows: list[dict[str, Any]] = []
     for t in live:
@@ -743,6 +789,7 @@ def copy_forward_rows(
                 "weight": None if t.weight is None else str(t.weight),
                 "cap": None if t.cap is None else str(t.cap),
                 "currency_code": t.currency_code,
+                "product_line_code": t.product_line_code,
             }
         )
     return rows
@@ -772,6 +819,7 @@ def coverage(
         org_id=org_id,
         period_key__in=list(period_keys),
         series_type="target",
+        product_line_code="",
         state__in=("published", "draft"),
     ).values_list("metric_id", "scope_type", "scope_code", "period_key", "state")
     have: dict[tuple[str, str, str, str], set[str]] = defaultdict(set)

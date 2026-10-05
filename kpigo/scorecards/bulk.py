@@ -151,6 +151,7 @@ def score_period(
                 metric_id__in=metric_ids,
                 period_key=period_key,
                 series_type="target",
+                product_line_code="",
                 state="published",
             ).values(
                 "metric_id",

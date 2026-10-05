@@ -3,6 +3,7 @@ import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { EmptyState, Loading, Skeleton } from "./components";
 import { AdminPlaceholder, ModulePage } from "./pages/ModulePage";
 import { AgentPerformancePage } from "./pages/agents/AgentPerformance";
+import { ProductLinesPage } from "./pages/agents/ProductLines";
 import { CompliancePage } from "./pages/inputs/Compliance";
 import { MyInputsPage } from "./pages/inputs/MyInputs";
 import { ScorecardPage } from "./pages/scorecards/Scorecard";
@@ -41,7 +42,7 @@ export function App() {
         <Route path="/admin/targets" element={<TargetsPage />} />
         <Route path="/admin/scorecard-setup" element={<ScorecardSetupPage />} />
         <Route path="/admin/calendar" element={<PeriodClosePage />} />
-        <Route path="/admin/product-lines" element={<AdminPlaceholder title="Product lines" what="The product line registry, groups and activation." />} />
+        <Route path="/admin/product-lines" element={<ProductLinesPage />} />
         <Route path="/admin/data-integration" element={<AdminPlaceholder title="Data integration" what="Connections, feeds, runs and rejections." />} />
         <Route path="/admin/widgets" element={<AdminPlaceholder title="Widgets" what="Executive widget placement and thresholds." />} />
         <Route path="/admin/audit" element={<AdminPlaceholder title="Audit log" what="Every action, who ran it and when." />} />

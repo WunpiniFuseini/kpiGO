@@ -1,4 +1,5 @@
 /** Story data for Agent Performance: a Sales leaderboard as of 17 June, working day 12 of 21. */
+import type { Output } from "../api/actions";
 import type { Leaderboard, AgentPace } from "../pages/agents/AgentPerformance";
 import type { Me } from "../session/Session";
 import { staffMe } from "./fixtures";
@@ -121,3 +122,67 @@ function metric(code: string, name: string, unit: string, actual: string | null,
     rag: pace ? "green" : null,
   };
 }
+
+// ── product lines ───────────────────────────────────────────────────────────
+
+type Registry = Output<"product_line.registry">;
+type RegistryLine = Registry["in_matrix"][number];
+
+function line(code: string, name: string, group: string | null, status: string, extra: Partial<RegistryLine> = {}): RegistryLine {
+  return {
+    line_id: `00000000-0000-0000-0000-0000000003${String(code.length).padStart(2, "0")}`,
+    code,
+    display_name: name,
+    sort_order: 10,
+    module: "agent_performance",
+    status,
+    group_code: group,
+    first_detected_at: "2026-05-02T06:10:00Z",
+    effective_from: "2026-05-01",
+    effective_to: null,
+    rag_green: null,
+    rag_amber: null,
+    ...extra,
+  };
+}
+
+export const productLineAdminMe: Me = {
+  ...agentMe,
+  user: { ...agentMe.user, display_name: "Ama Mensah", roles: ["admin"] },
+  permissions: ["auth.session", "agent.view", "dimension.view", "product_line.manage"],
+  pages: [
+    { page_key: "agent_performance", label: "Agent Performance", group: "modules", access: "view" },
+    { page_key: "admin.product_lines", label: "Product lines", group: "administer", access: "edit" },
+  ] as Me["pages"],
+};
+
+export const registry: Registry = {
+  as_of: "2026-10-05",
+  groups: [
+    { code: "lending", display_name: "Lending", sort_order: 10, module: "agent_performance", status: "active", line_codes: ["MORTGAGE", "LOANS"] },
+    { code: "cards", display_name: "Cards and payments", sort_order: 20, module: "agent_performance", status: "active", line_codes: ["CARDS"] },
+  ],
+  in_matrix: [
+    line("MORTGAGE", "Mortgages", "lending", "active"),
+    line("LOANS", "Personal loans", "lending", "active", { rag_green: "1.100", rag_amber: "0.900" }),
+    line("CARDS", "Cards", "cards", "retired", { effective_to: "2026-11-01" }),
+  ],
+  available: [line("BANCA", "BANCA", null, "available", { first_detected_at: "2026-10-03T05:40:00Z", effective_from: "2026-10-02" })],
+  retired: [line("OVERDRAFT", "Overdrafts", "lending", "retired", { effective_to: "2026-04-01" })],
+  suggest_grouped: false,
+};
+
+/** Nothing switched on yet: what the feed carries is waiting. */
+export const registryFresh: Registry = {
+  ...registry,
+  groups: [],
+  in_matrix: [],
+  retired: [],
+  available: [
+    line("CARDS", "CARDS", null, "available"),
+    line("LOANS", "LOANS", null, "available", { first_detected_at: "2026-05-03T06:10:00Z" }),
+  ],
+};
+
+/** The feed has carried no product line codes at all. */
+export const registryEmpty: Registry = { ...registryFresh, available: [] };
