@@ -373,3 +373,25 @@ def test_list_tabs() -> None:
     listed = run("campaign.list", admin(), tab="running").campaigns[0]
     assert listed.current_event is not None and listed.current_event.status == "running"
     assert [(b.currency, b.amount) for b in listed.budgets] == [("GHS", "25000.00")]
+
+
+# ── the builder ──────────────────────────────────────────────────────────────
+
+
+def test_builder_reference_offers_what_the_form_needs(make_user: Any) -> None:
+    out = run("campaign.builder.reference", admin())
+    assert out.currencies == ["GHS"] and out.default_currency == "GHS"
+    segment = next(d for d in out.dimensions if d.dimension_type == "segment")
+    assert [(m.member_code, m.parent_code) for m in segment.members][:2] == [
+        ("affluent", "retail"),
+        ("mass", "retail"),
+    ]
+    windows = {o.objective: o.default_window_days for o in out.objectives}
+    assert windows["cross_sell"] == 60
+    assert "whatsapp" in out.channels and out.budget_needs_approval is True
+
+
+def test_outputs_name_the_owner(make_user: Any) -> None:
+    owner = make_user("campaign_manager", username="kofi")
+    campaign(owner_user_id=owner.pk)
+    assert run("campaign.list", admin()).campaigns[0].owner_name == "kofi"

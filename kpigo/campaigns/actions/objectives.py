@@ -58,7 +58,7 @@ def outcome_candidates(org_id: str) -> list[Metric]:
     )
 
 
-def _objectives(org_id: str) -> list[CampaignObjectiveOut]:
+def objectives_for(org_id: str) -> list[CampaignObjectiveOut]:
     stored = {o.objective: o for o in CampaignObjective.objects.filter(org_id=org_id)}
     out = []
     for objective in OBJECTIVES:
@@ -78,7 +78,7 @@ def _objectives(org_id: str) -> list[CampaignObjectiveOut]:
 
 def _list(org_id: str) -> CampaignObjectiveListOut:
     return CampaignObjectiveListOut(
-        objectives=_objectives(org_id),
+        objectives=objectives_for(org_id),
         candidates=[
             CampaignOutcomeMetricOut(
                 metric_code=m.metric_code, display_name=m.display_name, unit=m.unit

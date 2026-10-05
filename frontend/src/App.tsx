@@ -3,6 +3,7 @@ import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { EmptyState, Loading, Skeleton } from "./components";
 import { AdminPlaceholder, ModulePage } from "./pages/ModulePage";
 import { AgentPerformancePage } from "./pages/agents/AgentPerformance";
+import { CampaignPage, CampaignsPage, NewCampaignPage } from "./pages/campaigns/Campaigns";
 import { ProductLinesPage } from "./pages/agents/ProductLines";
 import { CompliancePage } from "./pages/inputs/Compliance";
 import { MyInputsPage } from "./pages/inputs/MyInputs";
@@ -32,7 +33,9 @@ export function App() {
         <Route index element={<Home />} />
         <Route path="/scorecards" element={<ScorecardPage />} />
         <Route path="/agent-performance" element={<AgentPerformancePage />} />
-        <Route path="/campaign" element={<ModulePage pageKey="campaign" title="Campaign Manager" />} />
+        <Route path="/campaign" element={<CampaignsPage />} />
+        <Route path="/campaign/new" element={<NewCampaignPage />} />
+        <Route path="/campaign/:campaignId" element={<CampaignPage />} />
         <Route path="/executive" element={<ModulePage pageKey="executive" title="Executive" exec />} />
         <Route path="/my-inputs" element={<MyInputsPage />} />
         <Route path="/input-compliance" element={<CompliancePage />} />
