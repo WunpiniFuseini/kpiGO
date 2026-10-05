@@ -412,3 +412,36 @@ class FactActualDimensional(Stamped):
 
     def __str__(self) -> str:
         return f"{self.metric_id} {self.dimension_type}:{self.member_code} {self.period_key}"
+
+
+# ── daily retention (PRD AP-12, Scope §8.4) ─────────────────────────────────
+
+ARCHIVE_STATUSES = ("archived", "restored")
+
+
+class DailyArchive(Tracked):
+    """A month of ``fact_actual_daily`` rolled up to monthly and moved to the archive.
+
+    Install-wide, not per org: a partition holds every org's month. The daily rows
+    are never deleted; the partition is detached into the archive schema, and
+    ``restored`` re-attaches it.
+    """
+
+    month = models.DateField(primary_key=True)
+    partition_name = models.TextField()
+    archive_schema = models.TextField()
+    status = models.TextField(db_default="archived")
+    daily_rows = models.BigIntegerField()
+    # Monthly rows the roll-up wrote; a month already reported monthly is kept as it was.
+    rolled_up_rows = models.BigIntegerField()
+    # Metric × subject pairs left out of the roll-up because their days mixed currencies.
+    mixed_currency_pairs = models.BigIntegerField(db_default=0)
+    archived_at = models.DateTimeField()
+    restored_at = models.DateTimeField(null=True)
+
+    class Meta:
+        db_table = "daily_archive"
+        constraints = [one_of("status", ARCHIVE_STATUSES, "daily_archive_status_valid")]
+
+    def __str__(self) -> str:
+        return f"{self.partition_name} {self.status}"

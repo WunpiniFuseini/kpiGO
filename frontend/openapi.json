@@ -142,6 +142,273 @@
         "title": "ActivateOut",
         "type": "object"
       },
+      "AgentOut": {
+        "properties": {
+          "branch_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Code"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "profile_code": {
+            "title": "Profile Code",
+            "type": "string"
+          },
+          "region_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region Code"
+          },
+          "role_code": {
+            "title": "Role Code",
+            "type": "string"
+          },
+          "staff_no": {
+            "title": "Staff No",
+            "type": "string"
+          },
+          "subject_id": {
+            "format": "uuid",
+            "title": "Subject Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject_id",
+          "staff_no",
+          "full_name",
+          "role_code",
+          "profile_code",
+          "branch_code",
+          "region_code"
+        ],
+        "title": "AgentOut",
+        "type": "object"
+      },
+      "AgentPaceInQuery": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "enum": [
+                  "month",
+                  "week"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "title": "AgentPaceInQuery",
+        "type": "object"
+      },
+      "AgentPaceOut": {
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/AgentOut"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/MetricPaceOut"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "window": {
+            "$ref": "#/components/schemas/WindowOut"
+          }
+        },
+        "required": [
+          "product",
+          "window",
+          "agent",
+          "metrics"
+        ],
+        "title": "AgentPaceOut",
+        "type": "object"
+      },
+      "AgentSettingsGetInQuery": {
+        "properties": {
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "title": "AgentSettingsGetInQuery",
+        "type": "object"
+      },
+      "AgentSettingsOut": {
+        "properties": {
+          "grain": {
+            "title": "Grain",
+            "type": "string"
+          },
+          "pace_cap": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Pace Cap",
+            "type": "string"
+          },
+          "product": {
+            "title": "Product",
+            "type": "string"
+          },
+          "rag_amber": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Rag Amber",
+            "type": "string"
+          },
+          "rag_green": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Rag Green",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product",
+          "grain",
+          "pace_cap",
+          "rag_green",
+          "rag_amber"
+        ],
+        "title": "AgentSettingsOut",
+        "type": "object"
+      },
+      "AgentSettingsSetIn": {
+        "properties": {
+          "grain": {
+            "default": "daily",
+            "enum": [
+              "daily",
+              "weekly"
+            ],
+            "title": "Grain",
+            "type": "string"
+          },
+          "pace_cap": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 1.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "2",
+            "title": "Pace Cap"
+          },
+          "product": {
+            "enum": [
+              "agent_sales",
+              "agent_service"
+            ],
+            "title": "Product",
+            "type": "string"
+          },
+          "rag_amber": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 5.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "0.85",
+            "title": "Rag Amber"
+          },
+          "rag_green": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 5.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "1",
+            "title": "Rag Green"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "title": "AgentSettingsSetIn",
+        "type": "object"
+      },
       "AppliedOverrideOut": {
         "properties": {
           "change_type": {
@@ -2479,6 +2746,174 @@
           "status"
         ],
         "title": "CycleOut",
+        "type": "object"
+      },
+      "DailyArchiveListInQuery": {
+        "properties": {
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "DailyArchiveListInQuery",
+        "type": "object"
+      },
+      "DailyArchiveListOut": {
+        "properties": {
+          "hot_months": {
+            "title": "Hot Months",
+            "type": "integer"
+          },
+          "months": {
+            "items": {
+              "$ref": "#/components/schemas/DailyArchiveOut"
+            },
+            "title": "Months",
+            "type": "array"
+          }
+        },
+        "required": [
+          "hot_months",
+          "months"
+        ],
+        "title": "DailyArchiveListOut",
+        "type": "object"
+      },
+      "DailyArchiveOut": {
+        "properties": {
+          "archived_at": {
+            "format": "date-time",
+            "title": "Archived At",
+            "type": "string"
+          },
+          "daily_rows": {
+            "title": "Daily Rows",
+            "type": "integer"
+          },
+          "mixed_currency_pairs": {
+            "title": "Mixed Currency Pairs",
+            "type": "integer"
+          },
+          "partition_name": {
+            "title": "Partition Name",
+            "type": "string"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "restored_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restored At"
+          },
+          "rolled_up_rows": {
+            "title": "Rolled Up Rows",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_key",
+          "partition_name",
+          "status",
+          "daily_rows",
+          "rolled_up_rows",
+          "mixed_currency_pairs",
+          "archived_at",
+          "restored_at"
+        ],
+        "title": "DailyArchiveOut",
+        "type": "object"
+      },
+      "DailyArchiveRunIn": {
+        "properties": {
+          "limit": {
+            "default": 3,
+            "maximum": 24,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "period_key": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Key"
+          }
+        },
+        "title": "DailyArchiveRunIn",
+        "type": "object"
+      },
+      "DailyArchiveRunOut": {
+        "properties": {
+          "archived": {
+            "items": {
+              "$ref": "#/components/schemas/DailyArchiveOut"
+            },
+            "title": "Archived",
+            "type": "array"
+          },
+          "hot_months": {
+            "title": "Hot Months",
+            "type": "integer"
+          },
+          "keep_from": {
+            "title": "Keep From",
+            "type": "string"
+          },
+          "remaining": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Remaining",
+            "type": "array"
+          }
+        },
+        "required": [
+          "hot_months",
+          "keep_from",
+          "archived",
+          "remaining"
+        ],
+        "title": "DailyArchiveRunOut",
+        "type": "object"
+      },
+      "DailyRestoreIn": {
+        "properties": {
+          "period_key": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "Period Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_key"
+        ],
+        "title": "DailyRestoreIn",
         "type": "object"
       },
       "DatabaseOut": {
@@ -7184,6 +7619,215 @@
         "title": "MetricOut",
         "type": "object"
       },
+      "MetricPaceOut": {
+        "properties": {
+          "actual": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual"
+          },
+          "aggregation": {
+            "title": "Aggregation",
+            "type": "string"
+          },
+          "band": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaceBandOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
+          "days_reported": {
+            "title": "Days Reported",
+            "type": "integer"
+          },
+          "decimal_places": {
+            "title": "Decimal Places",
+            "type": "integer"
+          },
+          "direction": {
+            "title": "Direction",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "metric_id": {
+            "format": "uuid",
+            "title": "Metric Id",
+            "type": "string"
+          },
+          "pace": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pace"
+          },
+          "projected": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Projected"
+          },
+          "rag": {
+            "anyOf": [
+              {
+                "enum": [
+                  "green",
+                  "amber",
+                  "red"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rag"
+          },
+          "short_of_pace": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Of Pace"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "target_to_date": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target To Date"
+          },
+          "target_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Type"
+          },
+          "target_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Version"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "window_target": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Target"
+          }
+        },
+        "required": [
+          "metric_id",
+          "metric_code",
+          "display_name",
+          "direction",
+          "aggregation",
+          "unit",
+          "decimal_places",
+          "currency_code",
+          "state",
+          "actual",
+          "target_to_date",
+          "window_target",
+          "pace",
+          "short_of_pace",
+          "projected",
+          "days_reported",
+          "target_id",
+          "target_version",
+          "target_type",
+          "band",
+          "rag"
+        ],
+        "title": "MetricPaceOut",
+        "type": "object"
+      },
       "MetricScoreOut": {
         "properties": {
           "actual_currency": {
@@ -8228,6 +8872,24 @@
           "reason"
         ],
         "title": "OverrideRequestIn",
+        "type": "object"
+      },
+      "PaceBandOut": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "ramp_position": {
+            "title": "Ramp Position",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "label",
+          "ramp_position"
+        ],
+        "title": "PaceBandOut",
         "type": "object"
       },
       "PageOut": {
@@ -13396,6 +14058,51 @@
         ],
         "title": "WeightCheckOut",
         "type": "object"
+      },
+      "WindowOut": {
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "end": {
+            "format": "date",
+            "title": "End",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "month",
+              "week"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          },
+          "working_day": {
+            "title": "Working Day",
+            "type": "integer"
+          },
+          "working_days": {
+            "title": "Working Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "start",
+          "end",
+          "as_of",
+          "working_day",
+          "working_days"
+        ],
+        "title": "WindowOut",
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -13413,6 +14120,643 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/actions/agent.daily.archive": {
+      "post": {
+        "operationId": "agent_daily_archive",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DailyArchiveRunIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyArchiveRunOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Roll daily detail past the hot window up to monthly and move it to the archive.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.daily.archive"
+      }
+    },
+    "/api/v1/actions/agent.daily.archive.list": {
+      "get": {
+        "operationId": "agent_daily_archive_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyArchiveListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Months whose daily detail is archived or was restored.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.daily.archive.list"
+      }
+    },
+    "/api/v1/actions/agent.daily.restore": {
+      "post": {
+        "operationId": "agent_daily_restore",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DailyRestoreIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyArchiveOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Bring an archived month's daily detail back into the daily table.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.daily.restore"
+      }
+    },
+    "/api/v1/actions/agent.pace": {
+      "get": {
+        "operationId": "agent_pace",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product",
+            "required": true,
+            "schema": {
+              "enum": [
+                "agent_sales",
+                "agent_service"
+              ],
+              "title": "Product",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subject_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "in": "query",
+            "name": "window",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "month",
+                    "week"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Window"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentPaceOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "One agent's month or week to date on each metric, paced by working day.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.pace"
+      }
+    },
+    "/api/v1/actions/agent.settings.get": {
+      "get": {
+        "operationId": "agent_settings_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product",
+            "required": true,
+            "schema": {
+              "enum": [
+                "agent_sales",
+                "agent_service"
+              ],
+              "title": "Product",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentSettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "An Agent Performance module's grain, pace cap and RAG thresholds.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.settings.get"
+      }
+    },
+    "/api/v1/actions/agent.settings.set": {
+      "post": {
+        "operationId": "agent_settings_set",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentSettingsSetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentSettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Set an Agent Performance module's grain (daily, or the weekly opt-in) and thresholds.",
+        "tags": [
+          "agent_performance"
+        ],
+        "x-kpigo-action": "agent.settings.set"
+      }
+    },
     "/api/v1/actions/approval.policy.set": {
       "post": {
         "operationId": "approval_policy_set",

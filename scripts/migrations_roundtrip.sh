@@ -9,7 +9,7 @@ manage() { ${PYTHON:-uv run python} manage.py "$@"; }
 manage migrate --noinput
 # Reverse dependency order: ingestion sits on metrics and hierarchy, which sit on
 # periods and platform.
-for app in licence access ingestion metrics hierarchy periods platform; do
+for app in agents licence access ingestion metrics hierarchy periods platform; do
   manage migrate "$app" zero --noinput
 done
 manage migrate --noinput

@@ -20,6 +20,8 @@ from kpigo.metrics.models import Metric, MetricProfileAssignment
 from kpigo.scorecards.cycles import last_day
 
 PRODUCT = "scorecards"
+# Agent Performance paces against the target workbench's targets too (PRD AP-2).
+AGENT_PRODUCTS = ("agent_sales", "agent_service")
 
 
 def in_force(day: date) -> Q:
@@ -67,6 +69,18 @@ def profile_metrics(
     for row in rows.order_by("profile_code", "metric__metric_code"):
         out[row.profile_code].append(row.metric)
     return dict(out)
+
+
+def agent_profile_metrics(org_id: str, period_key: str, profile_code: str) -> list[Metric]:
+    """Metrics a profile is measured on in Agent Performance, in force on the period's last day."""
+    rows = (
+        MetricProfileAssignment.objects.filter(
+            product__in=AGENT_PRODUCTS, profile_code=profile_code, metric__org_id=org_id
+        )
+        .filter(in_force(last_day(period_key)))
+        .select_related("metric")
+    )
+    return [r.metric for r in rows]
 
 
 def assignments_in_force(org_id: str, period_key: str) -> QuerySet[Assignment]:

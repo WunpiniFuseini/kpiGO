@@ -91,7 +91,8 @@ SYSTEM_PAGE_ACCESS: dict[str, dict[str, Access]] = {
         "admin.health": "view",
     },
     "contributor": {"my_inputs": "edit"},
-    "staff": {"scorecards": "view"},
+    # Agent Performance is open by default: the comparison is the point (AP-7).
+    "staff": {"scorecards": "view", "agent_performance": "view"},
 }
 
 

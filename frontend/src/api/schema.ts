@@ -4,6 +4,108 @@
  */
 
 export interface paths {
+    "/api/v1/actions/agent.daily.archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Roll daily detail past the hot window up to monthly and move it to the archive. */
+        post: operations["agent_daily_archive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/agent.daily.archive.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Months whose daily detail is archived or was restored. */
+        get: operations["agent_daily_archive_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/agent.daily.restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bring an archived month's daily detail back into the daily table. */
+        post: operations["agent_daily_restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/agent.pace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One agent's month or week to date on each metric, paced by working day. */
+        get: operations["agent_pace"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/agent.settings.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** An Agent Performance module's grain, pace cap and RAG thresholds. */
+        get: operations["agent_settings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/agent.settings.set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set an Agent Performance module's grain (daily, or the weekly opt-in) and thresholds. */
+        post: operations["agent_settings_set"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/approval.policy.set": {
         parameters: {
             query?: never;
@@ -2782,6 +2884,99 @@ export interface components {
             /** Restart Required */
             restart_required: boolean;
         };
+        /** AgentOut */
+        AgentOut: {
+            /** Branch Code */
+            branch_code: string | null;
+            /** Full Name */
+            full_name: string;
+            /** Profile Code */
+            profile_code: string;
+            /** Region Code */
+            region_code: string | null;
+            /** Role Code */
+            role_code: string;
+            /** Staff No */
+            staff_no: string;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+        };
+        /** AgentPaceInQuery */
+        AgentPaceInQuery: {
+            /** As Of */
+            as_of?: string | null;
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+            /** Subject Id */
+            subject_id?: string | null;
+            /** Window */
+            window?: ("month" | "week") | null;
+        };
+        /** AgentPaceOut */
+        AgentPaceOut: {
+            agent: components["schemas"]["AgentOut"];
+            /** Metrics */
+            metrics: components["schemas"]["MetricPaceOut"][];
+            /** Product */
+            product: string;
+            window: components["schemas"]["WindowOut"];
+        };
+        /** AgentSettingsGetInQuery */
+        AgentSettingsGetInQuery: {
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+        };
+        /** AgentSettingsOut */
+        AgentSettingsOut: {
+            /** Grain */
+            grain: string;
+            /** Pace Cap */
+            pace_cap: string;
+            /** Product */
+            product: string;
+            /** Rag Amber */
+            rag_amber: string;
+            /** Rag Green */
+            rag_green: string;
+        };
+        /** AgentSettingsSetIn */
+        AgentSettingsSetIn: {
+            /**
+             * Grain
+             * @default daily
+             * @enum {string}
+             */
+            grain?: "daily" | "weekly";
+            /**
+             * Pace Cap
+             * @default 2
+             */
+            pace_cap?: number | string;
+            /**
+             * Product
+             * @enum {string}
+             */
+            product: "agent_sales" | "agent_service";
+            /**
+             * Rag Amber
+             * @default 0.85
+             */
+            rag_amber?: number | string;
+            /**
+             * Rag Green
+             * @default 1
+             */
+            rag_green?: number | string;
+        };
         /** AppliedOverrideOut */
         AppliedOverrideOut: {
             /** Change Type */
@@ -3594,6 +3789,66 @@ export interface components {
             start_month: number;
             /** Status */
             status: string;
+        };
+        /** DailyArchiveListInQuery */
+        DailyArchiveListInQuery: {
+            /** Status */
+            status?: string | null;
+        };
+        /** DailyArchiveListOut */
+        DailyArchiveListOut: {
+            /** Hot Months */
+            hot_months: number;
+            /** Months */
+            months: components["schemas"]["DailyArchiveOut"][];
+        };
+        /** DailyArchiveOut */
+        DailyArchiveOut: {
+            /**
+             * Archived At
+             * Format: date-time
+             */
+            archived_at: string;
+            /** Daily Rows */
+            daily_rows: number;
+            /** Mixed Currency Pairs */
+            mixed_currency_pairs: number;
+            /** Partition Name */
+            partition_name: string;
+            /** Period Key */
+            period_key: string;
+            /** Restored At */
+            restored_at: string | null;
+            /** Rolled Up Rows */
+            rolled_up_rows: number;
+            /** Status */
+            status: string;
+        };
+        /** DailyArchiveRunIn */
+        DailyArchiveRunIn: {
+            /**
+             * Limit
+             * @default 3
+             */
+            limit?: number;
+            /** Period Key */
+            period_key?: string | null;
+        };
+        /** DailyArchiveRunOut */
+        DailyArchiveRunOut: {
+            /** Archived */
+            archived: components["schemas"]["DailyArchiveOut"][];
+            /** Hot Months */
+            hot_months: number;
+            /** Keep From */
+            keep_from: string;
+            /** Remaining */
+            remaining: string[];
+        };
+        /** DailyRestoreIn */
+        DailyRestoreIn: {
+            /** Period Key */
+            period_key: string;
         };
         /** DatabaseOut */
         DatabaseOut: {
@@ -5175,6 +5430,53 @@ export interface components {
             /** Unit */
             unit: string;
         };
+        /** MetricPaceOut */
+        MetricPaceOut: {
+            /** Actual */
+            actual: string | null;
+            /** Aggregation */
+            aggregation: string;
+            band: components["schemas"]["PaceBandOut"] | null;
+            /** Currency Code */
+            currency_code: string | null;
+            /** Days Reported */
+            days_reported: number;
+            /** Decimal Places */
+            decimal_places: number;
+            /** Direction */
+            direction: string;
+            /** Display Name */
+            display_name: string;
+            /** Metric Code */
+            metric_code: string;
+            /**
+             * Metric Id
+             * Format: uuid
+             */
+            metric_id: string;
+            /** Pace */
+            pace: string | null;
+            /** Projected */
+            projected: string | null;
+            /** Rag */
+            rag: ("green" | "amber" | "red") | null;
+            /** Short Of Pace */
+            short_of_pace: string | null;
+            /** State */
+            state: string;
+            /** Target Id */
+            target_id: string | null;
+            /** Target To Date */
+            target_to_date: string | null;
+            /** Target Type */
+            target_type: string | null;
+            /** Target Version */
+            target_version: number | null;
+            /** Unit */
+            unit: string;
+            /** Window Target */
+            window_target: string | null;
+        };
         /** MetricScoreOut */
         MetricScoreOut: {
             /** Actual Currency */
@@ -5447,6 +5749,13 @@ export interface components {
             scope_type: "subject" | "profile" | "dimension";
             /** Target Type */
             target_type?: ("monthly" | "yearly" | "cumulative" | "quarterly" | "prorated") | null;
+        };
+        /** PaceBandOut */
+        PaceBandOut: {
+            /** Label */
+            label: string;
+            /** Ramp Position */
+            ramp_position: number;
         };
         /** PageOut */
         PageOut: {
@@ -7243,6 +7552,33 @@ export interface components {
             /** Weight Sum */
             weight_sum: string;
         };
+        /** WindowOut */
+        WindowOut: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "month" | "week";
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /** Working Day */
+            working_day: number;
+            /** Working Days */
+            working_days: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -7252,6 +7588,453 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    agent_daily_archive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DailyArchiveRunIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyArchiveRunOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    agent_daily_archive_list: {
+        parameters: {
+            query?: {
+                status?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyArchiveListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    agent_daily_restore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DailyRestoreIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyArchiveOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    agent_pace: {
+        parameters: {
+            query: {
+                product: "agent_sales" | "agent_service";
+                subject_id?: string | null;
+                as_of?: string | null;
+                window?: ("month" | "week") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentPaceOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    agent_settings_get: {
+        parameters: {
+            query: {
+                product: "agent_sales" | "agent_service";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentSettingsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    agent_settings_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentSettingsSetIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentSettingsOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     approval_policy_set: {
         parameters: {
             query?: never;

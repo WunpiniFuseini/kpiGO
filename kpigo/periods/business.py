@@ -76,3 +76,41 @@ def business_date(org_id: str, at: datetime, region_code: str | None = None) -> 
     if cutoff is not None and local.time().replace(tzinfo=None) >= cutoff:
         day += timedelta(days=1)
     return next_working_day(org_id, day, region_code)
+
+
+class WorkingCalendar:
+    """Working days over a date range for several regions, read once.
+
+    Pacing asks the same question for thousands of agents a day; this reads the
+    calendar's exceptions for ``[first, end)`` in one query and answers from memory.
+    A day outside the range falls back to the default working week.
+    """
+
+    def __init__(self, org_id: str, first: date, end: date) -> None:
+        self._org: dict[date, bool] = {}
+        self._regional: dict[str, dict[date, bool]] = {}
+        if end > first:
+            for row in CalendarDay.objects.filter(
+                org_id=org_id, date__gte=first, date__lt=end
+            ).values_list("date", "is_working_day", "region_code"):
+                day, working, region = row
+                if region is None:
+                    self._org[day] = working
+                else:
+                    self._regional.setdefault(region, {})[day] = working
+
+    def is_working(self, day: date, region_code: str | None = None) -> bool:
+        regional = self._regional.get(region_code or "", {}) if region_code else {}
+        if day in regional:
+            return regional[day]
+        if day in self._org:
+            return self._org[day]
+        return day.weekday() < 5
+
+    def working_days(self, first: date, end: date, region_code: str | None = None) -> list[date]:
+        """The working days in ``[first, end)``, in order."""
+        return [
+            first + timedelta(days=i)
+            for i in range((end - first).days)
+            if self.is_working(first + timedelta(days=i), region_code)
+        ]

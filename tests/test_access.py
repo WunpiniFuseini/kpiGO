@@ -144,7 +144,7 @@ def test_invite_accept_login_logout_over_http(make_user: Callable[..., User]) ->
     login = post(browser, "/auth/login", {"email": "KOFI@bank.example", "password": PASSWORD})
     assert login.status_code == 200, login.content
     me = get(browser, "/auth/me").json()
-    assert [p["page_key"] for p in me["pages"]] == ["scorecards"]
+    assert [p["page_key"] for p in me["pages"]] == ["scorecards", "agent_performance"]
     assert me["home"] == "scorecards"
     assert post(browser, "/auth/logout").status_code == 200
     assert get(browser, "/auth/me").status_code == 401
