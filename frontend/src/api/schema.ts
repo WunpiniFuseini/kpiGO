@@ -1279,6 +1279,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/scorecard.acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark your own closed scorecard as seen (not agreed). */
+        post: operations["scorecard_acknowledge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/scorecard.close.check": {
         parameters: {
             query?: never;
@@ -1290,6 +1307,23 @@ export interface paths {
         get: operations["scorecard_close_check"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/scorecard.comment.add": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a manager's comment to someone's scorecard. */
+        post: operations["scorecard_comment_add"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1358,6 +1392,57 @@ export interface paths {
         put?: never;
         /** Withdraw an exclusion from a period that has not closed. */
         post: operations["scorecard_exclusion_remove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/scorecard.export.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One scorecard as a PDF, exactly as it reads on screen. */
+        get: operations["scorecard_export_pdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/scorecard.history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A subject's total and band period by period, frozen where closed. */
+        get: operations["scorecard_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/scorecard.interaction.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Acknowledgement, queries and manager commentary on one scorecard. */
+        get: operations["scorecard_interaction_list"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1511,6 +1596,57 @@ export interface paths {
         put?: never;
         /** Set a profile's Scorecards metrics from a date; earlier months keep theirs. */
         post: operations["scorecard_profile_set_metrics"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/scorecard.query.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Your own scorecard queries, and the queue of queries you can resolve. */
+        get: operations["scorecard_query_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/scorecard.query.raise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Question one figure on your own scorecard; it goes to your line manager. */
+        post: operations["scorecard_query_raise"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/scorecard.query.resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer a scorecard query: explain the figure, or point at the override. */
+        post: operations["scorecard_query_resolve"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2388,6 +2524,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AcknowledgeIn */
+        AcknowledgeIn: {
+            /** Period Key */
+            period_key: string;
+        };
         /** ActionInfo */
         ActionInfo: {
             /** Config Change */
@@ -2830,6 +2971,24 @@ export interface components {
             profile_code: string | null;
             /** Subjects */
             subjects: string[];
+        };
+        /** CommentAddIn */
+        CommentAddIn: {
+            /** Body */
+            body: string;
+            /** Period Key */
+            period_key: string;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /**
+             * Visibility
+             * @default subject
+             * @enum {string}
+             */
+            visibility?: "subject" | "managers";
         };
         /** ConnectionCreateIn */
         ConnectionCreateIn: {
@@ -3545,6 +3704,16 @@ export interface components {
             /** Rows */
             rows: number;
         };
+        /** ExportPdfInQuery */
+        ExportPdfInQuery: {
+            /** Period Key */
+            period_key?: string | null;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+        };
         /** FamilyOut */
         FamilyOut: {
             /** Description */
@@ -3737,6 +3906,20 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** FileOut */
+        FileOut: {
+            /** Content Base64 */
+            content_base64: string;
+            /** Filename */
+            filename: string;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Media Type */
+            media_type: string;
+        };
         /** Finding */
         Finding: {
             /** Column */
@@ -3891,6 +4074,56 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
+        /** HistoryInQuery */
+        HistoryInQuery: {
+            /**
+             * Periods
+             * @default 12
+             */
+            periods?: number;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** To Period */
+            to_period?: string | null;
+        };
+        /** HistoryOut */
+        HistoryOut: {
+            /** Missing */
+            missing: string[];
+            /** Points */
+            points: components["schemas"]["HistoryPointOut"][];
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+        };
+        /** HistoryPointOut */
+        HistoryPointOut: {
+            /** Achievement Pct */
+            achievement_pct: string | null;
+            /** Band Label */
+            band_label: string | null;
+            /** Band Ramp Position */
+            band_ramp_position: number | null;
+            /** Graded Score */
+            graded_score: string | null;
+            /** Metrics Scored */
+            metrics_scored: number;
+            /** Metrics Total */
+            metrics_total: number;
+            /** Period Key */
+            period_key: string;
+            /** Snapshot Version */
+            snapshot_version: number | null;
+            /** Source */
+            source: string;
+            /** Total Score */
+            total_score: string;
+        };
         /** ImportListInQuery */
         ImportListInQuery: {
             /** Status */
@@ -3934,6 +4167,99 @@ export interface components {
             summary: {
                 [key: string]: number;
             };
+        };
+        /** InteractionListInQuery */
+        InteractionListInQuery: {
+            /** Period Key */
+            period_key?: string | null;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+        };
+        /** InteractionListOut */
+        InteractionListOut: {
+            /** Acknowledged */
+            acknowledged: boolean;
+            /** Acknowledged At */
+            acknowledged_at: string | null;
+            /** Acknowledged Version */
+            acknowledged_version: number | null;
+            /** Can Acknowledge */
+            can_acknowledge: boolean;
+            /** Can Comment */
+            can_comment: boolean;
+            /** Can Query */
+            can_query: boolean;
+            /** Comments */
+            comments: components["schemas"]["InteractionOut"][];
+            /** Is Self */
+            is_self: boolean;
+            /** Note */
+            note: string | null;
+            /** Period Key */
+            period_key: string;
+            /** Queries */
+            queries: components["schemas"]["InteractionOut"][];
+            /** Snapshot Version */
+            snapshot_version: number | null;
+        };
+        /** InteractionOut */
+        InteractionOut: {
+            /** Author Name */
+            author_name: string | null;
+            /** Author User Id */
+            author_user_id: number | null;
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Full Name */
+            full_name: string;
+            /**
+             * Interaction Id
+             * Format: uuid
+             */
+            interaction_id: string;
+            /** Interaction Type */
+            interaction_type: string;
+            /** Metric Code */
+            metric_code: string | null;
+            /** Metric Name */
+            metric_name: string | null;
+            /** Mine */
+            mine: boolean;
+            /** Outcome */
+            outcome: string | null;
+            /** Period Key */
+            period_key: string;
+            /** Resolution */
+            resolution: string | null;
+            /** Resolved At */
+            resolved_at: string | null;
+            /** Resolved By Name */
+            resolved_by_name: string | null;
+            /** Resulting Override Id */
+            resulting_override_id: string | null;
+            /** Routed To Id */
+            routed_to_id: string | null;
+            /** Routed To Name */
+            routed_to_name: string | null;
+            /** Snapshot Version */
+            snapshot_version: number | null;
+            /** Staff No */
+            staff_no: string;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Visibility */
+            visibility: string;
         };
         /** InviteAcceptIn */
         InviteAcceptIn: {
@@ -4886,6 +5212,52 @@ export interface components {
             /** Superseded */
             superseded: number;
         };
+        /** QueryListInQuery */
+        QueryListInQuery: {
+            /** Period Key */
+            period_key?: string | null;
+            /**
+             * Status
+             * @default open
+             * @enum {string}
+             */
+            status?: "open" | "resolved" | "all";
+        };
+        /** QueryListOut */
+        QueryListOut: {
+            /** Mine */
+            mine: components["schemas"]["InteractionOut"][];
+            /** Queue */
+            queue: components["schemas"]["InteractionOut"][];
+            /** Routed To Me */
+            routed_to_me: number;
+        };
+        /** QueryRaiseIn */
+        QueryRaiseIn: {
+            /** Body */
+            body: string;
+            /** Metric Code */
+            metric_code: string;
+            /** Period Key */
+            period_key: string;
+        };
+        /** QueryResolveIn */
+        QueryResolveIn: {
+            /**
+             * Interaction Id
+             * Format: uuid
+             */
+            interaction_id: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "explained" | "adjusted";
+            /** Override Id */
+            override_id?: string | null;
+            /** Resolution */
+            resolution: string;
+        };
         /** RateIn */
         RateIn: {
             /** From Currency */
@@ -5360,6 +5732,8 @@ export interface components {
             /** Assignment Id */
             assignment_id: string | null;
             band: components["schemas"]["ScoreBandOut"] | null;
+            /** Bands */
+            bands: components["schemas"]["ScoreBandOut"][];
             /** Cycle Months */
             cycle_months: number | null;
             /** Excluded */
@@ -12018,6 +12392,84 @@ export interface operations {
             };
         };
     };
+    scorecard_acknowledge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcknowledgeIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InteractionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     scorecard_close_check: {
         parameters: {
             query: {
@@ -12076,6 +12528,84 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    scorecard_comment_add: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommentAddIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InteractionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12367,6 +12897,211 @@ export interface operations {
             };
             /** @description Service Unavailable */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    scorecard_export_pdf: {
+        parameters: {
+            query: {
+                subject_id: string;
+                period_key?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    scorecard_history: {
+        parameters: {
+            query: {
+                subject_id: string;
+                to_period?: string | null;
+                periods?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    scorecard_interaction_list: {
+        parameters: {
+            query: {
+                subject_id: string;
+                period_key?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InteractionListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -13063,6 +13798,230 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    scorecard_query_list: {
+        parameters: {
+            query?: {
+                status?: "open" | "resolved" | "all";
+                period_key?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueryListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    scorecard_query_raise: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryRaiseIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InteractionOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    scorecard_query_resolve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryResolveIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InteractionOut"];
                 };
             };
             /** @description Unauthorized */

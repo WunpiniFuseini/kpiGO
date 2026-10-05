@@ -19,6 +19,10 @@ export interface GradeBannerProps {
   restatedOn?: string | null;
   /** Why there is no grade, when current is null. */
   emptyReason?: string;
+  /** Replaces the plain score line, e.g. "102.3 of 150 points · 68.2% of cap". */
+  detail?: string;
+  /** Overrides the standing line, e.g. "Closed and published · version 2". */
+  status?: string;
 }
 
 /**
@@ -33,10 +37,12 @@ export function GradeBanner({
   provisional = false,
   restatedOn = null,
   emptyReason = "No metrics have been scored for this period yet.",
+  detail,
+  status: statusText,
 }: GradeBannerProps) {
   const band = current === null ? null : bands[current];
   const next = current === null ? null : bands[current + 1];
-  const status = provisional ? "Provisional: the period is open" : restatedOn ? `Restated on ${restatedOn}` : "Final";
+  const status = statusText ?? (provisional ? "Provisional: the period is open" : restatedOn ? `Restated on ${restatedOn}` : "Final");
 
   if (band === null || band === undefined || score === null) {
     return (
@@ -63,7 +69,11 @@ export function GradeBanner({
           </div>
           <div className="kg-banner__grade">{band.label}</div>
           <div className="kg-cap">
-            Score <span className="num">{score.toFixed(1)}</span>
+            {detail ?? (
+              <>
+                Score <span className="num">{score.toFixed(1)}</span>
+              </>
+            )}
           </div>
         </div>
         <ol className="kg-scale" aria-label="Rating bands">
