@@ -179,6 +179,21 @@ only a `restating` period takes restatement loads and overrides, and closing it
 again writes version n+1 beside the old one. Closed periods are read from the
 snapshot, never recomputed.
 
+## Scorecards: the scorecard page
+
+Scorecards (`/scorecards`) shows one person's month: the grade banner, summary
+cards, the matrix grouped by the top level of the scorecard structure, and the
+history. Every figure in the matrix opens a provenance panel: the target and how
+its type was adjusted, the overrides applied with their reasons, the reported
+actual and any FX conversion, the feed run, the arithmetic and the period's
+footing. On a closed month the person acknowledges it (`scorecard.acknowledge`,
+"seen", once per snapshot version) and may query a figure
+(`scorecard.query.raise`); a query goes to their solid-line manager, or to the
+Admin queue when they have none, and is resolved as explained or adjusted
+against a named override (`scorecard.query.resolve`). Managers add commentary for
+the person or for managers only (`scorecard.comment.add`).
+`scorecard.export.pdf` renders the same `scorecard.compute` output to PDF.
+
 ## Layout
 
 ```

@@ -11,6 +11,8 @@ export interface MetricCardProps {
   value: string | null;
   target?: string | null;
   delta?: number | null;
+  /** What the delta is measured in; a percentage unless said otherwise. */
+  deltaSuffix?: string;
   higherIsBetter?: boolean;
   trend?: number[];
   state?: MetricCardState;
@@ -34,6 +36,7 @@ export function MetricCard({
   value,
   target,
   delta,
+  deltaSuffix = "%",
   higherIsBetter = true,
   trend,
   state = "ready",
@@ -58,7 +61,7 @@ export function MetricCard({
     <article className={`kg-card${greyed ? " kg-card--stale" : ""}`} aria-label={label}>
       <div className="kg-row">
         <h3 className="kg-eyebrow">{label}</h3>
-        {state === "ready" && delta !== undefined ? <DeltaChip value={delta} higherIsBetter={higherIsBetter} /> : null}
+        {state === "ready" && delta !== undefined ? <DeltaChip value={delta} suffix={deltaSuffix} higherIsBetter={higherIsBetter} /> : null}
       </div>
       {state === "no-access" ? (
         <>

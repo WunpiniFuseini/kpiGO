@@ -197,3 +197,32 @@
 .kg-stack > .kg-tree { padding-left: 0; border-left: 0; }
 .kg-tree__metrics { list-style: none; margin: 6px 0 0; padding: 0 0 0 12px; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
 .kg-tree__metrics li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* ── scorecard matrix and provenance ───────────────────── */
+.kg-matrix .kg-grouphead th {
+  background: var(--sunken); font-size: 11px; font-weight: 600; color: var(--ink-cap); text-transform: uppercase;
+  letter-spacing: 0.05em; padding: 8px 10px; border-bottom: 1px solid var(--line);
+}
+.kg-mname { display: block; font-weight: 500; }
+.kg-msub { display: block; font-size: 11.5px; color: var(--ink-cap); font-weight: 400; margin-top: 2px; }
+.kg-msub__flag { color: var(--warn-ink); font-weight: 600; }
+.kg-figbtn {
+  font: inherit; color: inherit; background: none; border: 0; padding: 2px 4px; margin: -2px -4px;
+  border-radius: 4px; cursor: pointer; text-decoration: underline dotted var(--ink-3); text-underline-offset: 3px;
+}
+.kg-figbtn:hover { background: var(--accent-soft); color: var(--accent-ink); }
+.kg-figbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.kg-prov:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+.kg-prov__list { margin: 0; display: grid; gap: 2px; }
+.kg-prov__list > div { display: grid; grid-template-columns: 120px 1fr; gap: 12px; padding: 10px 12px; border-radius: var(--r-sm); }
+.kg-prov__list > div[data-on] { background: var(--accent-soft); }
+.kg-prov__list dt { font-size: 11px; font-weight: 600; color: var(--ink-cap); text-transform: uppercase; letter-spacing: 0.05em; padding-top: 2px; }
+.kg-prov__list > div[data-on] dt { color: var(--accent-ink); }
+.kg-prov__list dd { margin: 0; font-size: 13px; color: var(--ink); }
+.kg-prov__overrides { margin: 0; padding-left: 18px; }
+.kg-ack p { margin: 0; }
+.kg-thread { list-style: none; margin: 0 0 12px; padding: 0; }
+.kg-thread li { padding: 10px 0; border-bottom: 1px solid var(--line-2); }
+.kg-thread li p { margin: 0 0 4px; font-size: 13px; }
+@media (max-width: 640px) { .kg-prov__list > div { grid-template-columns: 1fr; gap: 4px; } }
+.kg-prov__list > div[data-on] .kg-cap { color: var(--accent-ink); }

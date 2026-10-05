@@ -76,6 +76,11 @@ SCORECARD_CONFIG = (
 # Overrides (PRD SC-5): requested by one person, approved by another.
 OVERRIDE_REQUEST = ("override.view", "override.request")
 
+# Reading your own scorecard (PRD SC-14, SC-15): see it, say you have, ask about it.
+SCORECARD_READER = ("scorecard.view", "scorecard.acknowledge", "scorecard.query")
+# Managing others' (SC-15, SC-16): answer their queries, comment on their month.
+SCORECARD_MANAGER = ("scorecard.query.resolve", "scorecard.comment")
+
 SYSTEM_ROLES: dict[str, RoleSpec] = {
     r.code: r
     for r in (
@@ -94,15 +99,27 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "calendar.manage",
             "settings.manage",
             *SCORECARD_CONFIG,
-            "scorecard.view",
+            *SCORECARD_READER,
+            *SCORECARD_MANAGER,
             *OVERRIDE_REQUEST,
             "override.approve",
             "period.close",
         ),
         _role(
-            "executive", "Executive / Regional Head", *EVERYONE, "dimension.view", "scorecard.view"
+            "executive",
+            "Executive / Regional Head",
+            *EVERYONE,
+            "dimension.view",
+            *SCORECARD_READER,
         ),
-        _role("line_manager", "Line Manager", *EVERYONE, "scorecard.view", *OVERRIDE_REQUEST),
+        _role(
+            "line_manager",
+            "Line Manager",
+            *EVERYONE,
+            *SCORECARD_READER,
+            *SCORECARD_MANAGER,
+            *OVERRIDE_REQUEST,
+        ),
         _role("agent_supervisor", "Agent Supervisor", *EVERYONE),
         _role("campaign_manager", "Campaign Manager", *EVERYONE, "dimension.view"),
         _role(
@@ -125,7 +142,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "system.health.view",
         ),
         _role("contributor", "Contributor", *EVERYONE),
-        _role("staff", "Relationship Manager / Service Officer", *EVERYONE, "scorecard.view"),
+        _role("staff", "Relationship Manager / Service Officer", *EVERYONE, *SCORECARD_READER),
     )
 }
 

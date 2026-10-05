@@ -179,6 +179,8 @@ class ScorecardOut(BaseModel):
     excluded: int
     band: ScoreBandOut | None
     next_band: ScoreBandOut | None
+    # The rating scale in force, lowest first, for the grade banner.
+    bands: list[ScoreBandOut]
     # e.g. "5 of 7 metrics scored · 2 awaiting data" (SC-7).
     statement: str
 
@@ -225,6 +227,7 @@ def scorecard_out(org_id: str, subject: Subject, period_key: str) -> ScorecardOu
         "snapshot_version": meta.snapshot_version,
         "restated_at": meta.restated_at,
         "restatement_reason": meta.restatement_reason,
+        "bands": [b for b in map(_band, bands_for(org_id)) if b is not None],
     }
     if s is None:
         return ScorecardOut(

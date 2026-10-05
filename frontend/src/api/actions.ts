@@ -92,11 +92,16 @@ export const ROUTES = {
   "scope.grant.create": { method: "POST", path: "/api/v1/actions/scope.grant.create", pathParams: [], public: false },
   "scope.grant.end": { method: "POST", path: "/api/v1/actions/scope.grant.end", pathParams: [], public: false },
   "scope.grant.list": { method: "GET", path: "/api/v1/scope-grants", pathParams: [], public: false },
+  "scorecard.acknowledge": { method: "POST", path: "/api/v1/actions/scorecard.acknowledge", pathParams: [], public: false },
   "scorecard.close.check": { method: "GET", path: "/api/v1/actions/scorecard.close.check", pathParams: [], public: false },
+  "scorecard.comment.add": { method: "POST", path: "/api/v1/actions/scorecard.comment.add", pathParams: [], public: false },
   "scorecard.compute": { method: "GET", path: "/api/v1/actions/scorecard.compute", pathParams: [], public: false },
   "scorecard.exclusion.add": { method: "POST", path: "/api/v1/actions/scorecard.exclusion.add", pathParams: [], public: false },
   "scorecard.exclusion.list": { method: "GET", path: "/api/v1/actions/scorecard.exclusion.list", pathParams: [], public: false },
   "scorecard.exclusion.remove": { method: "POST", path: "/api/v1/actions/scorecard.exclusion.remove", pathParams: [], public: false },
+  "scorecard.export.pdf": { method: "GET", path: "/api/v1/actions/scorecard.export.pdf", pathParams: [], public: false },
+  "scorecard.history": { method: "GET", path: "/api/v1/actions/scorecard.history", pathParams: [], public: false },
+  "scorecard.interaction.list": { method: "GET", path: "/api/v1/actions/scorecard.interaction.list", pathParams: [], public: false },
   "scorecard.node.delete": { method: "POST", path: "/api/v1/actions/scorecard.node.delete", pathParams: [], public: false },
   "scorecard.node.save": { method: "POST", path: "/api/v1/actions/scorecard.node.save", pathParams: [], public: false },
   "scorecard.period.close": { method: "POST", path: "/api/v1/actions/scorecard.period.close", pathParams: [], public: false },
@@ -106,6 +111,9 @@ export const ROUTES = {
   "scorecard.placement.set": { method: "POST", path: "/api/v1/actions/scorecard.placement.set", pathParams: [], public: false },
   "scorecard.profile.list": { method: "GET", path: "/api/v1/actions/scorecard.profile.list", pathParams: [], public: false },
   "scorecard.profile.set_metrics": { method: "POST", path: "/api/v1/actions/scorecard.profile.set_metrics", pathParams: [], public: false },
+  "scorecard.query.list": { method: "GET", path: "/api/v1/actions/scorecard.query.list", pathParams: [], public: false },
+  "scorecard.query.raise": { method: "POST", path: "/api/v1/actions/scorecard.query.raise", pathParams: [], public: false },
+  "scorecard.query.resolve": { method: "POST", path: "/api/v1/actions/scorecard.query.resolve", pathParams: [], public: false },
   "scorecard.settings.get": { method: "GET", path: "/api/v1/actions/scorecard.settings.get", pathParams: [], public: false },
   "scorecard.settings.set": { method: "POST", path: "/api/v1/actions/scorecard.settings.set", pathParams: [], public: false },
   "scorecard.snapshot.list": { method: "GET", path: "/api/v1/actions/scorecard.snapshot.list", pathParams: [], public: false },
@@ -234,11 +242,16 @@ export interface Actions {
   "scope.grant.create": { input: NonNullable<operations["scope_grant_create"]["requestBody"]>["content"]["application/json"]; output: operations["scope_grant_create"]["responses"][200]["content"]["application/json"] };
   "scope.grant.end": { input: NonNullable<operations["scope_grant_end"]["requestBody"]>["content"]["application/json"]; output: operations["scope_grant_end"]["responses"][200]["content"]["application/json"] };
   "scope.grant.list": { input: NonNullable<operations["scope_grant_list"]["parameters"]["query"]>; output: operations["scope_grant_list"]["responses"][200]["content"]["application/json"] };
+  "scorecard.acknowledge": { input: NonNullable<operations["scorecard_acknowledge"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_acknowledge"]["responses"][200]["content"]["application/json"] };
   "scorecard.close.check": { input: NonNullable<operations["scorecard_close_check"]["parameters"]["query"]>; output: operations["scorecard_close_check"]["responses"][200]["content"]["application/json"] };
+  "scorecard.comment.add": { input: NonNullable<operations["scorecard_comment_add"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_comment_add"]["responses"][200]["content"]["application/json"] };
   "scorecard.compute": { input: NonNullable<operations["scorecard_compute"]["parameters"]["query"]>; output: operations["scorecard_compute"]["responses"][200]["content"]["application/json"] };
   "scorecard.exclusion.add": { input: NonNullable<operations["scorecard_exclusion_add"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_exclusion_add"]["responses"][200]["content"]["application/json"] };
   "scorecard.exclusion.list": { input: NonNullable<operations["scorecard_exclusion_list"]["parameters"]["query"]>; output: operations["scorecard_exclusion_list"]["responses"][200]["content"]["application/json"] };
   "scorecard.exclusion.remove": { input: NonNullable<operations["scorecard_exclusion_remove"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_exclusion_remove"]["responses"][200]["content"]["application/json"] };
+  "scorecard.export.pdf": { input: NonNullable<operations["scorecard_export_pdf"]["parameters"]["query"]>; output: operations["scorecard_export_pdf"]["responses"][200]["content"]["application/json"] };
+  "scorecard.history": { input: NonNullable<operations["scorecard_history"]["parameters"]["query"]>; output: operations["scorecard_history"]["responses"][200]["content"]["application/json"] };
+  "scorecard.interaction.list": { input: NonNullable<operations["scorecard_interaction_list"]["parameters"]["query"]>; output: operations["scorecard_interaction_list"]["responses"][200]["content"]["application/json"] };
   "scorecard.node.delete": { input: NonNullable<operations["scorecard_node_delete"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_node_delete"]["responses"][200]["content"]["application/json"] };
   "scorecard.node.save": { input: NonNullable<operations["scorecard_node_save"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_node_save"]["responses"][200]["content"]["application/json"] };
   "scorecard.period.close": { input: NonNullable<operations["scorecard_period_close"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_period_close"]["responses"][200]["content"]["application/json"] };
@@ -248,6 +261,9 @@ export interface Actions {
   "scorecard.placement.set": { input: NonNullable<operations["scorecard_placement_set"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_placement_set"]["responses"][200]["content"]["application/json"] };
   "scorecard.profile.list": { input: NonNullable<operations["scorecard_profile_list"]["parameters"]["query"]>; output: operations["scorecard_profile_list"]["responses"][200]["content"]["application/json"] };
   "scorecard.profile.set_metrics": { input: NonNullable<operations["scorecard_profile_set_metrics"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_profile_set_metrics"]["responses"][200]["content"]["application/json"] };
+  "scorecard.query.list": { input: NonNullable<operations["scorecard_query_list"]["parameters"]["query"]>; output: operations["scorecard_query_list"]["responses"][200]["content"]["application/json"] };
+  "scorecard.query.raise": { input: NonNullable<operations["scorecard_query_raise"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_query_raise"]["responses"][200]["content"]["application/json"] };
+  "scorecard.query.resolve": { input: NonNullable<operations["scorecard_query_resolve"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_query_resolve"]["responses"][200]["content"]["application/json"] };
   "scorecard.settings.get": { input: Record<string, never>; output: operations["scorecard_settings_get"]["responses"][200]["content"]["application/json"] };
   "scorecard.settings.set": { input: NonNullable<operations["scorecard_settings_set"]["requestBody"]>["content"]["application/json"]; output: operations["scorecard_settings_set"]["responses"][200]["content"]["application/json"] };
   "scorecard.snapshot.list": { input: NonNullable<operations["scorecard_snapshot_list"]["parameters"]["query"]>; output: operations["scorecard_snapshot_list"]["responses"][200]["content"]["application/json"] };

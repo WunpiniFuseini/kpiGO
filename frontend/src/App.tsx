@@ -2,6 +2,7 @@ import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 
 import { EmptyState, Loading, Skeleton } from "./components";
 import { AdminPlaceholder, ModulePage } from "./pages/ModulePage";
+import { ScorecardPage } from "./pages/scorecards/Scorecard";
 import { HealthPage } from "./pages/admin/Health";
 import { MetricsPage } from "./pages/admin/Metrics";
 import { PeriodClosePage } from "./pages/admin/PeriodClose";
@@ -25,7 +26,7 @@ export function App() {
       <Route path="/auth/callback" element={<OidcCallback />} />
       <Route element={<RequireSession />}>
         <Route index element={<Home />} />
-        <Route path="/scorecards" element={<ModulePage pageKey="scorecards" title="Scorecards" />} />
+        <Route path="/scorecards" element={<ScorecardPage />} />
         <Route path="/agent-performance" element={<ModulePage pageKey="agent_performance" title="Agent Performance" />} />
         <Route path="/campaign" element={<ModulePage pageKey="campaign" title="Campaign Manager" />} />
         <Route path="/executive" element={<ModulePage pageKey="executive" title="Executive" exec />} />

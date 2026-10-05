@@ -626,3 +626,82 @@ class ScoreHistory(models.Model):
 
     def __str__(self) -> str:
         return f"{self.subject_id} {self.metric_id} {self.period_key} v{self.snapshot_version}"
+
+
+# ── acknowledgement, queries and commentary (Schema §9, PRD SC-14–SC-16) ──────
+
+INTERACTION_TYPES = ("acknowledgement", "query", "manager_comment")
+INTERACTION_VISIBILITY = ("subject", "managers")
+QUERY_OUTCOMES = ("explained", "adjusted")
+
+
+class ScorecardInteraction(Tracked):
+    """What people say about a scorecard: seen, queried, commented on.
+
+    An acknowledgement records "seen", never "agreed": forcing agreement makes
+    the record worthless. A query never reopens a period; its resolution either
+    explains the standing figure or points at the override that will restate it.
+    """
+
+    interaction_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    subject = models.ForeignKey("hierarchy.Subject", on_delete=models.PROTECT, related_name="+")
+    period_key = models.CharField(max_length=6)
+    product = models.TextField(db_default="scorecards")
+    interaction_type = models.TextField()
+    metric = models.ForeignKey(Metric, on_delete=models.PROTECT, null=True, related_name="+")
+    body = models.TextField(db_default="")
+    author_user_id = models.BigIntegerField(null=True)
+    # manager_comment: ``subject`` (default) or ``managers`` only.
+    visibility = models.TextField(db_default="subject")
+    # acknowledgement: the version seen.
+    snapshot_version = models.IntegerField(null=True)
+    # query: the line manager it was routed to when raised.
+    routed_to = models.ForeignKey(
+        "hierarchy.Subject", on_delete=models.PROTECT, null=True, related_name="+"
+    )
+    resolved_at = models.DateTimeField(null=True)
+    resolved_by = models.BigIntegerField(null=True)
+    outcome = models.TextField(null=True)
+    resolution = models.TextField(null=True)
+    resulting_override = models.ForeignKey(
+        Override, on_delete=models.PROTECT, null=True, related_name="+"
+    )
+
+    class Meta:
+        db_table = "scorecard_interaction"
+        constraints = [
+            one_of("interaction_type", INTERACTION_TYPES, "scorecard_interaction_type_valid"),
+            one_of("visibility", INTERACTION_VISIBILITY, "scorecard_interaction_visibility_valid"),
+            one_of("product", PRODUCTS, "scorecard_interaction_product_valid"),
+            _period_check("scorecard_interaction_period_key_valid"),
+            models.CheckConstraint(
+                condition=models.Q(outcome__isnull=True) | models.Q(outcome__in=QUERY_OUTCOMES),
+                name="scorecard_interaction_outcome_valid",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(interaction_type="query") | models.Q(metric__isnull=False),
+                name="scorecard_interaction_query_has_metric",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(resolved_at__isnull=True)
+                | models.Q(interaction_type="query", outcome__isnull=False),
+                name="scorecard_interaction_resolution_shape",
+            ),
+            models.UniqueConstraint(
+                fields=["subject", "product", "period_key", "snapshot_version"],
+                condition=models.Q(interaction_type="acknowledgement"),
+                name="scorecard_interaction_one_ack_per_version",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["subject", "period_key"], name="scorecard_interaction_subject"),
+            models.Index(
+                fields=["org_id", "interaction_type"],
+                condition=models.Q(resolved_at__isnull=True),
+                name="scorecard_interaction_open",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.interaction_type} {self.subject_id} {self.period_key}"
