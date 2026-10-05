@@ -46,6 +46,8 @@ COLUMNS = (
     "cap",
     "currency_code",
 )
+# Products whose metrics take targets here: Scorecards, and Agent Performance's pacing.
+TARGETED_PRODUCTS = ("scorecards", *roster.AGENT_PRODUCTS)
 REQUIRED = ("metric_code", "scope_type", "scope_code", "period_key", "target_value")
 
 
@@ -149,10 +151,11 @@ def _subject_lookup(org_id: str, refs: Iterable[str]) -> dict[str, tuple[str, st
 def check_rows(org_id: str, rows: Sequence[dict[str, Any]], *, first_row_no: int = 1) -> Checked:
     """Validate a sheet before anything is written (Scope §6.7 step 1).
 
-    Checks the metric exists and is bound to Scorecards, the scope matches the
-    metric's declared ``target_scope`` (§3.3), values, weights and caps are
-    plausible, the period accepts a new version, and no key repeats. Weight
-    sums are checked at publish, over the whole profile.
+    Checks the metric exists and is bound to Scorecards or Agent Performance,
+    the scope matches the metric's declared ``target_scope`` (§3.3), values,
+    weights and caps are plausible (weights only for Scorecards metrics), the
+    period accepts a new version, and no key repeats. Weight sums are checked
+    at publish, over the whole profile.
     """
     settings = settings_for(org_id)
     out = Checked()
@@ -202,8 +205,20 @@ def check_rows(org_id: str, rows: Sequence[dict[str, Any]], *, first_row_no: int
                 f"'{code}' is {metric.status}; it takes no new targets.",
                 "metric_code",
             )
-        if not metric.bindings.filter(product="scorecards", is_active=True).exists():
-            bad("not_scorecards", f"'{code}' is not bound to Scorecards.", "metric_code")
+        # Agent Performance paces against the same published targets (PRD AP-2);
+        # only a Scorecards metric is weighted, so only it needs a weight and cap.
+        bound = set(
+            metric.bindings.filter(product__in=TARGETED_PRODUCTS, is_active=True).values_list(
+                "product", flat=True
+            )
+        )
+        if not bound:
+            bad(
+                "not_scorecards",
+                f"'{code}' is not bound to Scorecards or Agent Performance.",
+                "metric_code",
+            )
+        weighted = "scorecards" in bound
 
         scope_type = values["scope_type"] or ""
         if scope_type not in ("profile", "subject"):
@@ -231,6 +246,8 @@ def check_rows(org_id: str, rows: Sequence[dict[str, Any]], *, first_row_no: int
             if period_key not in profile_cache:
                 profile_cache[period_key] = roster.profile_metrics(org_id, period_key)
             on_card = profile_cache[period_key].get(scope_code, [])
+            if not weighted:
+                on_card = roster.agent_profile_metrics(org_id, period_key, scope_code)
             if all(m.metric_code != code for m in on_card):
                 bad(
                     "not_on_profile",
@@ -269,7 +286,7 @@ def check_rows(org_id: str, rows: Sequence[dict[str, Any]], *, first_row_no: int
                 "A target must be above zero: achievement divides by it.",
                 "target_value",
             )
-        if series == "target":
+        if series == "target" and weighted:
             _check_weight_cap(settings, weight, cap, bad)
 
         currency = values.get("currency_code") or None

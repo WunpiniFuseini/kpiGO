@@ -236,6 +236,30 @@ input not yet due is "still open", not missing. A contributor late or missing in
 nobody could be asked for; line managers and executives see the contributors in
 their visibility scope.
 
+## Agent Performance: daily pace
+
+Agent Performance reads the daily facts the `actual_daily` feed writes
+(`fact_actual_daily`, partitioned by month) for **Agent Sales** and **Agent
+Service**, two modules on one engine. Who is an agent, and on what, comes from
+`metric.profile.assign` with `product="agent_sales"` or `"agent_service"`.
+Targets are the target workbench's published monthly targets; a metric bound only
+to Agent Performance needs no weight or cap.
+
+`agent.pace` paces one agent's month to date against the target expected by now:
+a month target over N working days accrues `T / N` a working day on the business
+calendar (regional holidays included), so on working day 16 of 22 the bar reads
+against 16/22 of the target, not all of it. Averages, ratios and latest values are
+compared with the month target directly. Absent is not zero: a metric with no row
+is "not reported", never a pace of zero. `agent.settings.set` switches a module to
+the weekly opt-in (week to date, Monday to Sunday) and sets the RAG thresholds.
+The page is open by default: anyone with Agent Performance access sees every agent.
+
+Daily detail stays hot for `KPIGO_DAILY_HOT_MONTHS` (default 24). Older months are
+rolled up to `fact_actual_monthly` by each metric's aggregation and their partition
+moved to the `kpigo_archive` schema (`agent.daily.archive`; set
+`KPIGO_RETENTION_USER` to run it daily). Nothing is deleted: `agent.daily.restore`
+brings a month back, and a feed cannot load into an archived month until then.
+
 ## Layout
 
 ```
@@ -249,11 +273,13 @@ kpigo/
   metrics/           metric registry
   ingestion/         connections, feeds, runs, tmpl_* landing, fact_* tables
     validator.py     the feed contract and six gates; also the standalone validator
+    retention.py     daily roll-up and archive past the hot window
   access/            users, roles, page access, data scope grants, sign-in, directory import
     auth/            local + LDAP, OIDC, SAML, Entra Graph
   scorecards/        taxonomy, profile metrics, bands, target workbench, overrides,
                      scoring engine (engine.py rules, scoring.py per subject, bulk.py Polars),
                      close.py (pre-checks, snapshots, restatement)
+  agents/            Agent Performance: pace.py (pace to target), daily.py (read model)
   licence/           signed licence, fingerprint, grace states, the pipeline's licence gate
 tools/licence_vendor.py  vendor-side key generation and licence signing
 frontend/

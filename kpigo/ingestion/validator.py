@@ -37,7 +37,8 @@ domain         period key well formed, values in bounds,       rows
                no future activity
 volume         row count within the expected range             load
 period_status  a closed period refuses loads; a restating one   load
-               takes only restatement loads
+               takes only restatement loads; an archived
+               month's daily detail takes none until restored
 =============  =============================================  ==========
 
 Absent is not zero: a subject expected to report a metric whose row is missing
@@ -642,6 +643,8 @@ class Reference:
     product_lines: set[str] = field(default_factory=set)
     # (product, period_key) -> status; a period with no row is open.
     period_status: dict[tuple[str, str], str] = field(default_factory=dict)
+    # Months whose daily detail was rolled up and archived (PRD AP-12).
+    archived_months: set[str] = field(default_factory=set)
     profile_metrics: list[ProfileMetric] = field(default_factory=list)
     # Absent is not zero: warn on a feed's first live load, enforce after it.
     enforce_missing_rows: bool = False
@@ -736,6 +739,7 @@ def reference_to_json(ref: Reference) -> dict[str, Any]:
             {"product": p, "period_key": k, "status": s}
             for (p, k), s in sorted(ref.period_status.items())
         ],
+        "archived_months": sorted(ref.archived_months),
         "profile_metrics": [
             {
                 "metric_id": pm.metric_id,
@@ -794,6 +798,7 @@ def reference_from_json(data: dict[str, Any], *, today: date | None = None) -> R
         period_status={
             (p["product"], p["period_key"]): p["status"] for p in data.get("period_status", [])
         },
+        archived_months=set(data.get("archived_months", [])),
         profile_metrics=[
             ProfileMetric(
                 metric_id=pm["metric_id"],
@@ -1381,6 +1386,22 @@ def _period_status(template: Template, rows: list[Row], ref: Reference) -> list[
         if day is None:
             continue
         period = f"{day.year:04d}{day.month:02d}"
+        if "activity_date" in row.values and period in ref.archived_months:
+            if ("archived", period) not in seen:
+                seen.add(("archived", period))
+                issues.append(
+                    Issue(
+                        "period_status",
+                        "period_archived",
+                        "error",
+                        f"Daily detail for {period} is archived. An Admin restores the "
+                        "month before a load can write to it.",
+                        row_no=row.row_no,
+                        column="activity_date",
+                        value=period,
+                    )
+                )
+            continue
         for product in row.resolved.get("products", ()):
             status = ref.period_status.get((product, period), "open")
             if status not in LOCKED_STATUSES or (product, period) in seen:

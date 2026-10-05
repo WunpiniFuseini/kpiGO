@@ -1,6 +1,7 @@
 """Django settings. Everything an install varies is an environment variable."""
 
 import os
+import re
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -55,6 +56,7 @@ INSTALLED_APPS = [
     "kpigo.access",
     "kpigo.licence",
     "kpigo.scorecards",
+    "kpigo.agents",
 ]
 
 MIDDLEWARE = [
@@ -297,6 +299,28 @@ if KPIGO_LICENCE_HEARTBEAT_URL and env("KPIGO_LICENCE_HEARTBEAT_USER"):
         {
             "action": "licence.heartbeat",
             "run_as": env("KPIGO_LICENCE_HEARTBEAT_USER"),
+            "every_seconds": 24 * 3600,
+            "params": {},
+        }
+    )
+
+# --- Agent Performance daily retention (PRD AP-12) ---------------------------
+# Months of daily detail kept hot; older months roll up to monthly and their
+# partition moves to the archive schema (never deleted). Per install, since
+# retention obligations differ by regulator.
+KPIGO_DAILY_HOT_MONTHS = int(env("KPIGO_DAILY_HOT_MONTHS", "24") or 24)
+if KPIGO_DAILY_HOT_MONTHS < 3:
+    raise RuntimeError("KPIGO_DAILY_HOT_MONTHS must be at least 3.")
+# Optional tablespace for archived partitions (for example on cheaper storage).
+KPIGO_ARCHIVE_TABLESPACE = env("KPIGO_ARCHIVE_TABLESPACE") or None
+if KPIGO_ARCHIVE_TABLESPACE and not re.fullmatch(r"[a-z_][a-z0-9_]*", KPIGO_ARCHIVE_TABLESPACE):
+    raise RuntimeError("KPIGO_ARCHIVE_TABLESPACE must be a plain lower-case identifier.")
+# Archive months past the hot window daily, as this user.
+if env("KPIGO_RETENTION_USER"):
+    KPIGO_SCHEDULED_ACTIONS.append(
+        {
+            "action": "agent.daily.archive",
+            "run_as": env("KPIGO_RETENTION_USER"),
             "every_seconds": 24 * 3600,
             "params": {},
         }

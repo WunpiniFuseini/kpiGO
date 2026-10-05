@@ -16,6 +16,7 @@ from django.utils import timezone
 from kpigo.hierarchy.models import Assignment, Dimension, DimMember, ProductLine, Subject
 from kpigo.ingestion import validator as v
 from kpigo.ingestion.models import Feed, FeedRun
+from kpigo.ingestion.retention import archived_months
 from kpigo.metrics.models import Metric, MetricProfileAssignment
 from kpigo.periods.models import PeriodStatus
 from kpigo.platform.config import reporting_zone
@@ -152,6 +153,8 @@ def build_reference(
             org_id=org_id, product__in=sorted(template.products), period_key__in=periods
         ).values_list("product", "period_key", "status"):
             ref.period_status[(product, period_key)] = status
+        if "activity_date" in template.column_names:
+            ref.archived_months = archived_months() & set(periods)
 
     if feed is not None:
         live = FeedRun.objects.filter(feed=feed, is_dry_run=False, outcome="success")

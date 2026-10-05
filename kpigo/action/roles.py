@@ -84,6 +84,10 @@ SCORECARD_MANAGER = ("scorecard.query.resolve", "scorecard.comment")
 INPUT_MANAGE = ("input.manage", "input.submit", "input.followup")
 # Being told when someone else's input is overdue (MI-8): line managers and stakeholders.
 INPUT_FOLLOWUP = "input.followup"
+# Agent Performance (PRD AP-*): open by default, so reading it is broad (AP-7).
+AGENT_VIEW = "agent.view"
+# Module settings, and daily retention (AP-12).
+AGENT_ADMIN = ("agent.config.manage", "agent.retention.manage")
 
 SYSTEM_ROLES: dict[str, RoleSpec] = {
     r.code: r
@@ -109,6 +113,8 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "override.approve",
             "period.close",
             *INPUT_MANAGE,
+            AGENT_VIEW,
+            *AGENT_ADMIN,
         ),
         _role(
             "executive",
@@ -117,6 +123,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "dimension.view",
             *SCORECARD_READER,
             INPUT_FOLLOWUP,
+            AGENT_VIEW,
         ),
         _role(
             "line_manager",
@@ -127,9 +134,10 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *OVERRIDE_REQUEST,
             "input.submit",
             INPUT_FOLLOWUP,
+            AGENT_VIEW,
         ),
-        _role("agent_supervisor", "Agent Supervisor", *EVERYONE),
-        _role("campaign_manager", "Campaign Manager", *EVERYONE, "dimension.view"),
+        _role("agent_supervisor", "Agent Supervisor", *EVERYONE, AGENT_VIEW),
+        _role("campaign_manager", "Campaign Manager", *EVERYONE, "dimension.view", AGENT_VIEW),
         _role(
             "metric_owner",
             "Metric Owner",
@@ -148,9 +156,16 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *INGESTION,
             "licence.view",
             "system.health.view",
+            "agent.retention.manage",
         ),
         _role("contributor", "Contributor", *EVERYONE, "input.submit"),
-        _role("staff", "Relationship Manager / Service Officer", *EVERYONE, *SCORECARD_READER),
+        _role(
+            "staff",
+            "Relationship Manager / Service Officer",
+            *EVERYONE,
+            *SCORECARD_READER,
+            AGENT_VIEW,
+        ),
     )
 }
 
