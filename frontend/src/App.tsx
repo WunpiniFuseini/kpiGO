@@ -10,6 +10,7 @@ import { CompliancePage } from "./pages/inputs/Compliance";
 import { MyInputsPage } from "./pages/inputs/MyInputs";
 import { ScorecardPage } from "./pages/scorecards/Scorecard";
 import { HealthPage } from "./pages/admin/Health";
+import { WidgetsPage } from "./pages/admin/Widgets";
 import { MetricsPage } from "./pages/admin/Metrics";
 import { PeriodClosePage } from "./pages/admin/PeriodClose";
 import { ScorecardSetupPage } from "./pages/admin/ScorecardSetup";
@@ -48,7 +49,7 @@ export function App() {
         <Route path="/admin/calendar" element={<PeriodClosePage />} />
         <Route path="/admin/product-lines" element={<ProductLinesPage />} />
         <Route path="/admin/data-integration" element={<AdminPlaceholder title="Data integration" what="Connections, feeds, runs and rejections." />} />
-        <Route path="/admin/widgets" element={<AdminPlaceholder title="Widgets" what="Executive widget placement and thresholds." />} />
+        <Route path="/admin/widgets" element={<WidgetsPage />} />
         <Route path="/admin/audit" element={<AdminPlaceholder title="Audit log" what="Every action, who ran it and when." />} />
         <Route path="*" element={<Home />} />
       </Route>
