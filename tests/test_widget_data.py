@@ -275,7 +275,10 @@ def test_an_override_is_returned_as_stored() -> None:
     assert (th.source, th.basis, th.note) == ("override", "value", "Board tolerance 3.5%.")
 
 
-def test_a_campaign_metric_reports_pending_until_its_flow_is_wired() -> None:
+def test_a_deferred_campaign_result_kind_reports_pending() -> None:
+    # incremental_value has no honest month-by-dimension figure; the supported
+    # kinds (attributed_value, conversions, winbacks_confirmed) are exercised in
+    # tests/test_executive_campaign.py.
     from kpigo.campaigns.models import Campaign
     from tests.campaign_support import admin as campaign_admin
     from tests.campaign_support import campaign
