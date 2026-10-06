@@ -19,7 +19,9 @@ import uuid
 
 from django.db import models
 
-from kpigo.platform.db import Stamped, one_of
+from kpigo.metrics.models import Metric
+from kpigo.platform.db import Stamped, Tracked, one_of
+from kpigo.platform.vocab import PERIOD_KEY_PATTERN
 
 WIDGET_STATES = ("available", "placed", "removed")
 WIDGET_TYPES = (
@@ -100,3 +102,84 @@ class WidgetDefinition(Stamped):
 
     def __str__(self) -> str:
         return f"{self.widget_key} v{self.version} ({self.state})"
+
+
+# What an executive manual input changed, for provenance and the audit trail.
+INPUT_CHANGES = ("entered", "restated")
+
+
+class ExecutiveManualInput(Tracked):
+    """A hand-entered actual for an independent executive metric (PRD MI-4, TDD §5.5).
+
+    Independent-mode executive metrics (cost-to-income, NPS, capital ratios) are
+    fed via ``tmpl_actual_dimensional`` or entered by hand here. A submission
+    conforms to ``fact_actual_dimensional`` for its slice — an organisation-level
+    figure (``dimension_type`` and ``member_code`` both '') or one dimension
+    member — exactly as a feed lands, and carries the contributor, moment and
+    note in place of a feed run (MI-11). It is versioned: a correction after the
+    input deadline is a ``restated`` row with the next version, and the prior one
+    stays (MI-5).
+    """
+
+    input_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    metric = models.ForeignKey(Metric, on_delete=models.PROTECT, related_name="+")
+    # Kept beside the FK so provenance survives the metric versioning (MR-7).
+    metric_code = models.TextField()
+    dimension_type = models.TextField(db_default="")
+    member_code = models.TextField(db_default="")
+    period_key = models.CharField(max_length=6)
+    value = models.DecimalField(max_digits=18, decimal_places=4)
+    currency_code = models.CharField(max_length=3, null=True)
+    note = models.TextField(db_default="")
+    change = models.TextField(db_default="entered")
+    submitted_by = models.BigIntegerField(null=True)
+    submitted_at = models.DateTimeField()
+    approval_request_id = models.UUIDField(null=True)
+    version = models.IntegerField(db_default=1)
+    is_current = models.BooleanField(db_default=True)
+
+    class Meta:
+        db_table = "executive_manual_input"
+        constraints = [
+            one_of("change", INPUT_CHANGES, "executive_manual_input_change_valid"),
+            models.CheckConstraint(
+                condition=models.Q(period_key__regex=PERIOD_KEY_PATTERN),
+                name="executive_manual_input_period_key_valid",
+            ),
+            # Org-level (both '') or a member of a named dimension (both set), never one.
+            models.CheckConstraint(
+                condition=models.Q(dimension_type="", member_code="")
+                | (~models.Q(dimension_type="") & ~models.Q(member_code="")),
+                name="executive_manual_input_whole_dimension",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(version__gte=1),
+                name="executive_manual_input_version_positive",
+            ),
+            models.UniqueConstraint(
+                fields=[
+                    "org_id",
+                    "metric_code",
+                    "dimension_type",
+                    "member_code",
+                    "period_key",
+                    "version",
+                ],
+                name="executive_manual_input_version_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["org_id", "metric_code", "dimension_type", "member_code", "period_key"],
+                condition=models.Q(is_current=True),
+                name="executive_manual_input_one_current",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["org_id", "metric_code", "period_key"], name="executive_input_metric_period"
+            )
+        ]
+
+    def __str__(self) -> str:
+        slot = f"{self.dimension_type}:{self.member_code}" if self.dimension_type else "org"
+        return f"{self.metric_code} {slot} {self.period_key} v{self.version}"

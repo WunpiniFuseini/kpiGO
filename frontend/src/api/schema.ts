@@ -1296,6 +1296,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/executive.input.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The hand-entered executive values current for a period. */
+        get: operations["executive_input_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/executive.input.set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enter an executive metric's actual by hand for a period, org-level or by member. */
+        post: operations["executive_input_set"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/feed.contract.export": {
         parameters: {
             query?: never;
@@ -6601,6 +6635,70 @@ export interface components {
         ExclusionRemoveOut: {
             /** Removed */
             removed: boolean;
+        };
+        /** ExecutiveInputListInQuery */
+        ExecutiveInputListInQuery: {
+            /** Period Key */
+            period_key: string;
+        };
+        /** ExecutiveInputListOut */
+        ExecutiveInputListOut: {
+            /** Inputs */
+            inputs: components["schemas"]["ExecutiveInputOut"][];
+            /** Period Key */
+            period_key: string;
+        };
+        /** ExecutiveInputOut */
+        ExecutiveInputOut: {
+            /** Currency Code */
+            currency_code: string | null;
+            /** Dimension Type */
+            dimension_type: string;
+            /** Display Name */
+            display_name: string;
+            /** Member Code */
+            member_code: string;
+            /** Metric Code */
+            metric_code: string;
+            /** Note */
+            note: string;
+            /** Period Key */
+            period_key: string;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /** Value */
+            value: string;
+            /** Version */
+            version: number;
+        };
+        /** ExecutiveInputSetIn */
+        ExecutiveInputSetIn: {
+            /** Currency Code */
+            currency_code?: string | null;
+            /**
+             * Dimension Type
+             * @default
+             */
+            dimension_type?: string;
+            /**
+             * Member Code
+             * @default
+             */
+            member_code?: string;
+            /** Metric Code */
+            metric_code: string;
+            /**
+             * Note
+             * @default
+             */
+            note?: string;
+            /** Period Key */
+            period_key: string;
+            /** Value */
+            value: number | string;
         };
         /** ExportOut */
         ExportOut: {
@@ -16762,6 +16860,160 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    executive_input_list: {
+        parameters: {
+            query: {
+                period_key: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExecutiveInputListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    executive_input_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExecutiveInputSetIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExecutiveInputOut"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

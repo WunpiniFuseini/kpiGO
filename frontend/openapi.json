@@ -8241,6 +8241,174 @@
         "title": "ExclusionRemoveOut",
         "type": "object"
       },
+      "ExecutiveInputListInQuery": {
+        "properties": {
+          "period_key": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "Period Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_key"
+        ],
+        "title": "ExecutiveInputListInQuery",
+        "type": "object"
+      },
+      "ExecutiveInputListOut": {
+        "properties": {
+          "inputs": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutiveInputOut"
+            },
+            "title": "Inputs",
+            "type": "array"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "period_key",
+          "inputs"
+        ],
+        "title": "ExecutiveInputListOut",
+        "type": "object"
+      },
+      "ExecutiveInputOut": {
+        "properties": {
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
+          "dimension_type": {
+            "title": "Dimension Type",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "member_code": {
+            "title": "Member Code",
+            "type": "string"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "submitted_at": {
+            "format": "date-time",
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "value": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Value",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "metric_code",
+          "display_name",
+          "dimension_type",
+          "member_code",
+          "period_key",
+          "value",
+          "currency_code",
+          "note",
+          "version",
+          "submitted_at"
+        ],
+        "title": "ExecutiveInputOut",
+        "type": "object"
+      },
+      "ExecutiveInputSetIn": {
+        "properties": {
+          "currency_code": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Z]{3}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
+          "dimension_type": {
+            "default": "",
+            "maxLength": 64,
+            "pattern": "^[a-z][a-z0-9_]*$|^$",
+            "title": "Dimension Type",
+            "type": "string"
+          },
+          "member_code": {
+            "default": "",
+            "maxLength": 64,
+            "title": "Member Code",
+            "type": "string"
+          },
+          "metric_code": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Note",
+            "type": "string"
+          },
+          "period_key": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "Period Key",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "maximum": 100000000000000.0,
+                "minimum": -100000000000000.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "metric_code",
+          "period_key",
+          "value"
+        ],
+        "title": "ExecutiveInputSetIn",
+        "type": "object"
+      },
       "ExportOut": {
         "properties": {
           "content": {
@@ -30255,6 +30423,203 @@
           "platform"
         ],
         "x-kpigo-action": "directory.test"
+      }
+    },
+    "/api/v1/actions/executive.input.list": {
+      "get": {
+        "operationId": "executive_input_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_key",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+              "title": "Period Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutiveInputListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "The hand-entered executive values current for a period.",
+        "tags": [
+          "executive"
+        ],
+        "x-kpigo-action": "executive.input.list"
+      }
+    },
+    "/api/v1/actions/executive.input.set": {
+      "post": {
+        "operationId": "executive_input_set",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecutiveInputSetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutiveInputOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Enter an executive metric's actual by hand for a period, org-level or by member.",
+        "tags": [
+          "executive"
+        ],
+        "x-kpigo-action": "executive.input.set"
       }
     },
     "/api/v1/actions/feed.contract.export": {

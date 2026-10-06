@@ -103,6 +103,9 @@ CAMPAIGN_PUBLISH = "campaign.metric.publish"
 # sees); placing widgets and choosing their types is an Admin's (Scope §13.3).
 EXECUTIVE_VIEW = "executive.view"
 WIDGET_MANAGE = "widget.manage"
+# Hand-entering an independent executive metric's actual (PRD MI-4): the figures
+# that exist only at executive level (cost-to-income, NPS, capital ratios).
+EXECUTIVE_INPUT = "executive.input"
 
 SYSTEM_ROLES: dict[str, RoleSpec] = {
     r.code: r
@@ -136,6 +139,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             CAMPAIGN_PUBLISH,
             EXECUTIVE_VIEW,
             WIDGET_MANAGE,
+            EXECUTIVE_INPUT,
         ),
         _role(
             "executive",
@@ -146,6 +150,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             INPUT_FOLLOWUP,
             AGENT_VIEW,
             EXECUTIVE_VIEW,
+            EXECUTIVE_INPUT,
         ),
         _role(
             "line_manager",
