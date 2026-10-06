@@ -29,7 +29,7 @@ from decimal import Decimal
 from django.db.models import Q
 
 from kpigo.hierarchy.models import Assignment, DimMember
-from kpigo.ingestion.models import FactActualMonthly, FactWidgetData
+from kpigo.ingestion.models import FactActualDimensional, FactActualMonthly, FactWidgetData
 from kpigo.metrics.models import Metric
 from kpigo.platform.config import MissingRate, convert, org_settings
 from kpigo.scorecards.models import Target
@@ -291,12 +291,53 @@ def independent_series(
     rows = independent_rows(org_id, widget_key, metric, source_period)
     row = rows.get((dimension_type, member_code, kind))
     if row is None:
-        return SeriesFigure(series_type, None, reporting)
+        # No DE-shaped widget row: fall back to the shared dimensional actual store,
+        # where an independent-mode feed (tmpl_actual_dimensional) or a manual entry
+        # lands. That store carries the actual only, so comparison series stay empty.
+        return _dimensional_fallback(
+            org_id, metric, source_period, dimension_type, member_code, kind, series_type, reporting
+        )
     value: Decimal | None = row.value
     currency = row.currency_code
     if reporting and currency and currency != reporting:
         try:
             value = convert(org_id, row.value, currency, reporting, source_period)
+            currency = reporting
+        except MissingRate:
+            value = None
+    return SeriesFigure(series_type, value, currency)
+
+
+def _dimensional_fallback(
+    org_id: str,
+    metric: Metric,
+    source_period: str,
+    dimension_type: str,
+    member_code: str,
+    kind: str,
+    series_type: str,
+    reporting: str | None,
+) -> SeriesFigure:
+    if kind != "actual":
+        return SeriesFigure(series_type, None, reporting)
+    found = (
+        FactActualDimensional.objects.filter(
+            org_id=org_id,
+            metric=metric,
+            dimension_type=dimension_type,
+            member_code=member_code,
+            period_key=source_period,
+        )
+        .values_list("actual_value", "currency_code")
+        .first()
+    )
+    if found is None:
+        return SeriesFigure(series_type, None, reporting)
+    value: Decimal | None = found[0]
+    currency = found[1]
+    if reporting and currency and currency != reporting:
+        try:
+            value = convert(org_id, found[0], currency, reporting, source_period)
             currency = reporting
         except MissingRate:
             value = None
