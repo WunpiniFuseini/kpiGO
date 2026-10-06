@@ -3404,6 +3404,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/widget.data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** An Executive widget's figures for a period: org-level or by dimension member. */
+        get: operations["widget_data"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/widget.history": {
         parameters: {
             query?: never;
@@ -4591,6 +4608,13 @@ export interface components {
              * Format: password
              */
             setup_token: string;
+        };
+        /** BreadcrumbOut */
+        BreadcrumbOut: {
+            /** Member Code */
+            member_code: string;
+            /** Member Name */
+            member_name: string;
         };
         /** BusinessDateInQuery */
         BusinessDateInQuery: {
@@ -6164,6 +6188,13 @@ export interface components {
         DailyRestoreIn: {
             /** Period Key */
             period_key: string;
+        };
+        /** DataBandOut */
+        DataBandOut: {
+            /** Label */
+            label: string;
+            /** Threshold */
+            threshold: string;
         };
         /** DatabaseOut */
         DatabaseOut: {
@@ -7835,6 +7866,17 @@ export interface components {
             session: components["schemas"]["SessionOut"];
             user: components["schemas"]["UserOut"];
         };
+        /** MemberDataOut */
+        MemberDataOut: {
+            /** Has Children */
+            has_children: boolean;
+            /** Member Code */
+            member_code: string;
+            /** Member Name */
+            member_name: string;
+            /** Series */
+            series: components["schemas"]["SeriesOut"][];
+        };
         /** MemberIn */
         MemberIn: {
             /** Member Code */
@@ -7906,6 +7948,32 @@ export interface components {
             is_active: boolean;
             /** Product */
             product: string;
+        };
+        /** MetricDataOut */
+        MetricDataOut: {
+            /** Aggregation */
+            aggregation: string;
+            /** Direction */
+            direction: string;
+            /** Display Name */
+            display_name: string;
+            /** Members */
+            members: components["schemas"]["MemberDataOut"][];
+            /** Metric Code */
+            metric_code: string;
+            /** Org */
+            org: components["schemas"]["SeriesOut"][] | null;
+            /** Pending */
+            pending: string | null;
+            /** Run Id */
+            run_id: string | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "independent" | "rollup" | "campaign";
+            /** Unit */
+            unit: string;
         };
         /** MetricGetInQuery */
         MetricGetInQuery: {
@@ -9684,6 +9752,25 @@ export interface components {
             /** Weight Total */
             weight_total?: number | string | null;
         };
+        /** SeriesOut */
+        SeriesOut: {
+            /** Currency */
+            currency?: string | null;
+            /**
+             * Series Type
+             * @enum {string}
+             */
+            series_type: "actual" | "target" | "forecast" | "budget" | "prior" | "prior_year";
+            /**
+             * Skipped No Fx
+             * @default 0
+             */
+            skipped_no_fx?: number;
+            /** Subjects */
+            subjects?: number | null;
+            /** Value */
+            value: string | null;
+        };
         /** ServiceOut */
         ServiceOut: {
             /** Detail */
@@ -10302,6 +10389,23 @@ export interface components {
             /** Threshold */
             threshold: string;
         };
+        /** ThresholdsOut */
+        ThresholdsOut: {
+            /** Bands */
+            bands: components["schemas"]["DataBandOut"][];
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "achievement" | "value";
+            /** Note */
+            note: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "metric" | "override";
+        };
         /** TickIn */
         TickIn: Record<string, never>;
         /** TickOut */
@@ -10623,6 +10727,44 @@ export interface components {
             types: components["schemas"]["WidgetTypeOut"][];
             /** Widgets */
             widgets: components["schemas"]["WidgetOut"][];
+        };
+        /** WidgetDataInQuery */
+        WidgetDataInQuery: {
+            /** Drill To */
+            drill_to?: string | null;
+            /** Period Key */
+            period_key: string;
+            /** Widget Key */
+            widget_key: string;
+        };
+        /** WidgetDataOut */
+        WidgetDataOut: {
+            /** Breadcrumb */
+            breadcrumb: components["schemas"]["BreadcrumbOut"][];
+            /** Dimension */
+            dimension: string | null;
+            /** Empty */
+            empty: string | null;
+            /** Metrics */
+            metrics: components["schemas"]["MetricDataOut"][];
+            /** Period Key */
+            period_key: string;
+            /** Reporting Currency */
+            reporting_currency: string | null;
+            /** Series */
+            series: ("actual" | "target" | "forecast" | "budget" | "prior" | "prior_year")[];
+            thresholds: components["schemas"]["ThresholdsOut"] | null;
+            /** Title */
+            title: string;
+            /** Version */
+            version: number;
+            /** Widget Key */
+            widget_key: string;
+            /**
+             * Widget Type
+             * @enum {string}
+             */
+            widget_type: "kpi_card" | "bullet" | "gauge" | "bar" | "line" | "pie" | "ranked_list" | "table" | "funnel";
         };
         /** WidgetHistoryInQuery */
         WidgetHistoryInQuery: {
@@ -26120,6 +26262,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WidgetDashboardOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    widget_data: {
+        parameters: {
+            query: {
+                widget_key: string;
+                period_key: string;
+                drill_to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WidgetDataOut"];
                 };
             };
             /** @description Unauthorized */

@@ -222,6 +222,7 @@ export const ROUTES = {
   "visibility.list": { method: "GET", path: "/api/v1/actions/visibility.list", pathParams: [], public: false },
   "visibility.rebuild": { method: "POST", path: "/api/v1/actions/visibility.rebuild", pathParams: [], public: false },
   "widget.dashboard": { method: "GET", path: "/api/v1/actions/widget.dashboard", pathParams: [], public: false },
+  "widget.data": { method: "GET", path: "/api/v1/actions/widget.data", pathParams: [], public: false },
   "widget.history": { method: "GET", path: "/api/v1/actions/widget.history", pathParams: [], public: false },
   "widget.list": { method: "GET", path: "/api/v1/actions/widget.list", pathParams: [], public: false },
   "widget.place": { method: "POST", path: "/api/v1/actions/widget.place", pathParams: [], public: false },
@@ -451,6 +452,7 @@ export interface Actions {
   "visibility.list": { input: NonNullable<operations["visibility_list"]["parameters"]["query"]>; output: operations["visibility_list"]["responses"][200]["content"]["application/json"] };
   "visibility.rebuild": { input: NonNullable<operations["visibility_rebuild"]["requestBody"]>["content"]["application/json"]; output: operations["visibility_rebuild"]["responses"][200]["content"]["application/json"] };
   "widget.dashboard": { input: Record<string, never>; output: operations["widget_dashboard"]["responses"][200]["content"]["application/json"] };
+  "widget.data": { input: NonNullable<operations["widget_data"]["parameters"]["query"]>; output: operations["widget_data"]["responses"][200]["content"]["application/json"] };
   "widget.history": { input: NonNullable<operations["widget_history"]["parameters"]["query"]>; output: operations["widget_history"]["responses"][200]["content"]["application/json"] };
   "widget.list": { input: NonNullable<operations["widget_list"]["parameters"]["query"]>; output: operations["widget_list"]["responses"][200]["content"]["application/json"] };
   "widget.place": { input: NonNullable<operations["widget_place"]["requestBody"]>["content"]["application/json"]; output: operations["widget_place"]["responses"][200]["content"]["application/json"] };

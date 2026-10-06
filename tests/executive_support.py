@@ -95,3 +95,71 @@ def place(**over: Any) -> Any:
     }
     payload.update(over)
     return run("widget.place", **payload)
+
+
+def rm(staff_no: str, region: str, profile: str = "retail_rm") -> str:
+    """A subject assigned in a region, so a roll-up can place them under it."""
+    from tests.ingestion_support import SINCE
+
+    subject = run(
+        "subject.register",
+        staff_no=staff_no,
+        full_name=f"Person {staff_no}",
+        email=f"{staff_no.lower()}@bank.example",
+    )
+    run(
+        "assignment.create",
+        subject_id=str(subject.subject_id),
+        role_code="rm",
+        profile_code=profile,
+        region_code=region,
+        effective_from=SINCE,
+    )
+    return str(subject.subject_id)
+
+
+def actual(
+    metric_code: str, subject_id: str, value: str, period: str, currency: str = "GHS"
+) -> None:
+    from django.utils import timezone
+
+    from kpigo.hierarchy.models import Assignment
+    from kpigo.ingestion.models import FactActualMonthly
+    from kpigo.metrics.models import Metric
+    from tests.conftest import ORG_ID
+
+    metric = Metric.objects.get(org_id=ORG_ID, metric_code=metric_code)
+    assignment = Assignment.objects.filter(org_id=ORG_ID, subject_id=subject_id).first()
+    FactActualMonthly.objects.update_or_create(
+        metric=metric,
+        subject_id=subject_id,
+        period_key=period,
+        defaults={
+            "org_id": ORG_ID,
+            "assignment": assignment,
+            "actual_value": value,
+            "currency_code": currency,
+            "loaded_at": timezone.now(),
+        },
+    )
+
+
+def target(metric_code: str, profile: str, value: str, period: str, currency: str = "GHS") -> None:
+    from kpigo.metrics.models import Metric
+    from kpigo.scorecards.models import Target
+    from tests.conftest import ORG_ID
+
+    metric = Metric.objects.get(org_id=ORG_ID, metric_code=metric_code)
+    Target.objects.create(
+        org_id=ORG_ID,
+        metric=metric,
+        scope_type="profile",
+        scope_code=profile,
+        period_key=period,
+        series_type="target",
+        target_value=value,
+        target_type="monthly",
+        currency_code=currency,
+        version=1,
+        state="published",
+    )
