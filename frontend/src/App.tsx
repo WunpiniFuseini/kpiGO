@@ -1,8 +1,9 @@
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 
 import { EmptyState, Loading, Skeleton } from "./components";
-import { AdminPlaceholder, ModulePage } from "./pages/ModulePage";
+import { AdminPlaceholder } from "./pages/ModulePage";
 import { AgentPerformancePage } from "./pages/agents/AgentPerformance";
+import { ExecutiveDashboardPage } from "./pages/executive/Dashboard";
 import { CampaignPage, CampaignsPage, NewCampaignPage } from "./pages/campaigns/Campaigns";
 import { ProductLinesPage } from "./pages/agents/ProductLines";
 import { CompliancePage } from "./pages/inputs/Compliance";
@@ -36,7 +37,7 @@ export function App() {
         <Route path="/campaign" element={<CampaignsPage />} />
         <Route path="/campaign/new" element={<NewCampaignPage />} />
         <Route path="/campaign/:campaignId" element={<CampaignPage />} />
-        <Route path="/executive" element={<ModulePage pageKey="executive" title="Executive" exec />} />
+        <Route path="/executive" element={<ExecutiveDashboardPage />} />
         <Route path="/my-inputs" element={<MyInputsPage />} />
         <Route path="/input-compliance" element={<CompliancePage />} />
         <Route path="/admin/users" element={<UsersPage />} />
