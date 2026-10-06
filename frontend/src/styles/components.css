@@ -321,3 +321,16 @@
 
 /* RAG marker in a table cell: a dot plus a visually-hidden band label */
 .kg-rag { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--g); margin-left: 6px; vertical-align: middle; }
+
+/* Widgets admin (App Flow 6.1): placement form and list */
+.kg-check-inline { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.kg-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.kg-fieldset { border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px 14px; margin: 0; }
+.kg-fieldset legend { font-size: 12px; font-weight: 600; color: var(--ink-2); padding: 0 4px; }
+.kg-pick { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.kg-pick--inline { flex-direction: row; flex-wrap: wrap; gap: 10px 18px; }
+.kg-pick label { display: inline-flex; align-items: baseline; gap: 8px; font-size: 13px; cursor: pointer; }
+.kg-pick label.is-disabled { color: var(--ink-cap); cursor: not-allowed; }
+.kg-problems { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.kg-history { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.kg-history li { padding-bottom: 10px; border-bottom: 1px solid var(--line-2); font-size: 13px; }
