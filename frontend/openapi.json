@@ -2297,6 +2297,24 @@
         "title": "BootstrapIn",
         "type": "object"
       },
+      "BreadcrumbOut": {
+        "properties": {
+          "member_code": {
+            "title": "Member Code",
+            "type": "string"
+          },
+          "member_name": {
+            "title": "Member Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "member_code",
+          "member_name"
+        ],
+        "title": "BreadcrumbOut",
+        "type": "object"
+      },
       "BusinessDateInQuery": {
         "properties": {
           "at": {
@@ -7218,6 +7236,25 @@
           "period_key"
         ],
         "title": "DailyRestoreIn",
+        "type": "object"
+      },
+      "DataBandOut": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "threshold": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Threshold",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "threshold"
+        ],
+        "title": "DataBandOut",
         "type": "object"
       },
       "DatabaseOut": {
@@ -12466,6 +12503,37 @@
         "title": "MeOut",
         "type": "object"
       },
+      "MemberDataOut": {
+        "properties": {
+          "has_children": {
+            "title": "Has Children",
+            "type": "boolean"
+          },
+          "member_code": {
+            "title": "Member Code",
+            "type": "string"
+          },
+          "member_name": {
+            "title": "Member Name",
+            "type": "string"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesOut"
+            },
+            "title": "Series",
+            "type": "array"
+          }
+        },
+        "required": [
+          "member_code",
+          "member_name",
+          "has_children",
+          "series"
+        ],
+        "title": "MemberDataOut",
+        "type": "object"
+      },
       "MemberIn": {
         "properties": {
           "member_code": {
@@ -12678,6 +12746,96 @@
           "is_active"
         ],
         "title": "MetricBindingOut",
+        "type": "object"
+      },
+      "MetricDataOut": {
+        "properties": {
+          "aggregation": {
+            "title": "Aggregation",
+            "type": "string"
+          },
+          "direction": {
+            "title": "Direction",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/MemberDataOut"
+            },
+            "title": "Members",
+            "type": "array"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "org": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/SeriesOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Org"
+          },
+          "pending": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "source": {
+            "enum": [
+              "independent",
+              "rollup",
+              "campaign"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric_code",
+          "display_name",
+          "source",
+          "unit",
+          "aggregation",
+          "direction",
+          "org",
+          "members",
+          "pending",
+          "run_id"
+        ],
+        "title": "MetricDataOut",
         "type": "object"
       },
       "MetricGetInQuery": {
@@ -18201,6 +18359,67 @@
         "title": "ScorecardSettingsSetIn",
         "type": "object"
       },
+      "SeriesOut": {
+        "properties": {
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "series_type": {
+            "enum": [
+              "actual",
+              "target",
+              "forecast",
+              "budget",
+              "prior",
+              "prior_year"
+            ],
+            "title": "Series Type",
+            "type": "string"
+          },
+          "skipped_no_fx": {
+            "default": 0,
+            "title": "Skipped No Fx",
+            "type": "integer"
+          },
+          "subjects": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subjects"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "series_type",
+          "value"
+        ],
+        "title": "SeriesOut",
+        "type": "object"
+      },
       "ServiceOut": {
         "properties": {
           "detail": {
@@ -20060,6 +20279,45 @@
         "title": "ThresholdBandOut",
         "type": "object"
       },
+      "ThresholdsOut": {
+        "properties": {
+          "bands": {
+            "items": {
+              "$ref": "#/components/schemas/DataBandOut"
+            },
+            "title": "Bands",
+            "type": "array"
+          },
+          "basis": {
+            "enum": [
+              "achievement",
+              "value"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "metric",
+              "override"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "basis",
+          "bands",
+          "note"
+        ],
+        "title": "ThresholdsOut",
+        "type": "object"
+      },
       "TickIn": {
         "properties": {},
         "title": "TickIn",
@@ -21004,6 +21262,162 @@
           "types"
         ],
         "title": "WidgetDashboardOut",
+        "type": "object"
+      },
+      "WidgetDataInQuery": {
+        "properties": {
+          "drill_to": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Drill To"
+          },
+          "period_key": {
+            "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+            "title": "Period Key",
+            "type": "string"
+          },
+          "widget_key": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Widget Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "widget_key",
+          "period_key"
+        ],
+        "title": "WidgetDataInQuery",
+        "type": "object"
+      },
+      "WidgetDataOut": {
+        "properties": {
+          "breadcrumb": {
+            "items": {
+              "$ref": "#/components/schemas/BreadcrumbOut"
+            },
+            "title": "Breadcrumb",
+            "type": "array"
+          },
+          "dimension": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dimension"
+          },
+          "empty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Empty"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/MetricDataOut"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "period_key": {
+            "title": "Period Key",
+            "type": "string"
+          },
+          "reporting_currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reporting Currency"
+          },
+          "series": {
+            "items": {
+              "enum": [
+                "actual",
+                "target",
+                "forecast",
+                "budget",
+                "prior",
+                "prior_year"
+              ],
+              "type": "string"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "thresholds": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ThresholdsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "widget_key": {
+            "title": "Widget Key",
+            "type": "string"
+          },
+          "widget_type": {
+            "enum": [
+              "kpi_card",
+              "bullet",
+              "gauge",
+              "bar",
+              "line",
+              "pie",
+              "ranked_list",
+              "table",
+              "funnel"
+            ],
+            "title": "Widget Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "widget_key",
+          "version",
+          "widget_type",
+          "title",
+          "period_key",
+          "dimension",
+          "breadcrumb",
+          "reporting_currency",
+          "series",
+          "metrics",
+          "thresholds",
+          "empty"
+        ],
+        "title": "WidgetDataOut",
         "type": "object"
       },
       "WidgetHistoryInQuery": {
@@ -42667,6 +43081,123 @@
           "executive"
         ],
         "x-kpigo-action": "widget.dashboard"
+      }
+    },
+    "/api/v1/actions/widget.data": {
+      "get": {
+        "operationId": "widget_data",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "widget_key",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z][a-z0-9_]{0,63}$",
+              "title": "Widget Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period_key",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9]{4}(0[1-9]|1[0-2])$",
+              "title": "Period Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "drill_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Drill To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetDataOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "An Executive widget's figures for a period: org-level or by dimension member.",
+        "tags": [
+          "executive"
+        ],
+        "x-kpigo-action": "widget.data"
       }
     },
     "/api/v1/actions/widget.history": {

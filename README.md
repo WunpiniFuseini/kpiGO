@@ -366,6 +366,24 @@ widget afterwards. For a placed widget the gates warn when a row's metric is not
 it and when a widget that breaks down by a dimension gets only organisation-level
 rows.
 
+A viewer reads a placed widget's figures with `widget.data` (`executive.view`):
+for the period it returns each metric's series, either a single organisation
+figure or one per dimension member when the widget breaks down. An **independent**
+metric is read straight from `fact_widget_data`; a **roll-up** aggregates the
+Scorecards store over **distinct subjects** up the dimension — never a sum of
+subordinate totals — using the metric's own aggregation and converting each
+subject's currency to the reporting currency (a subject with no row contributes
+nothing, as absent is never zero; a missing FX rate drops that subject and is
+counted, never guessed). Roll-up targets resolve per subject, a subject-scoped row
+over the profile one, exactly as scoring does. `prior` and `prior_year` are derived
+by reading the actual at the shifted period, so a client need not feed them. A
+campaign-published metric reports itself pending until its value flow is wired in a
+later step. Data scope is applied member by member — no grant means no data, and the
+empty state names the grant the viewer lacks; a breakdown drills down the hierarchy
+by naming a parent, returning a breadcrumb. Thresholds come resolved (the metric's
+rating bands as % achieved, or a per-widget override) and every figure carries its
+provenance.
+
 ## Layout
 
 ```
