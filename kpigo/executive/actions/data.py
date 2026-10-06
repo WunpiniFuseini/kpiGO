@@ -18,6 +18,7 @@ from typing import Annotated, Any, Literal
 from pydantic import BaseModel, StringConstraints
 
 from kpigo.action import ActionContext, NotFound, action
+from kpigo.campaigns import executive as cx
 from kpigo.executive import compute as c
 from kpigo.executive import widgets as w
 from kpigo.executive.models import WidgetDefinition
@@ -60,7 +61,8 @@ class MetricDataOut(BaseModel):
     # One of the two is populated: ``org`` when the widget has no breakdown, else ``members``.
     org: list[SeriesOut] | None
     members: list[MemberDataOut]
-    # A campaign result's value flow is wired in a later step; until then it says so.
+    # Set when a metric has no figure to show (a campaign result kind with no
+    # honest month-by-dimension grain), with the reason.
     pending: str | None
     run_id: str | None
 
@@ -255,11 +257,12 @@ def _compute_metric(
         pending=None,
         run_id=None,
     )
-    if source == "campaign":
-        base.pending = "Campaign results feed the Executive dashboard in a later release."
-        return base
-
     org_id = ctx.org_id
+    if source == "campaign":
+        return _campaign_metric(
+            org_id, base, metric, period_key, series, dimension, shown_members, reporting
+        )
+
     if source == "independent":
         base.run_id = _independent_run(org_id, widget.widget_key, metric, period_key)
 
@@ -292,6 +295,53 @@ def _compute_metric(
                 member_name=member_name,
                 has_children=has_children,
                 series=series_for(dimension, code, placements.get(code, set())),
+            )
+        )
+    return base
+
+
+def _campaign_metric(
+    org_id: str,
+    base: MetricDataOut,
+    metric: Metric,
+    period_key: str,
+    series: list[str],
+    dimension: str | None,
+    shown_members: list[tuple[str, str, bool]],
+    reporting: str | None,
+) -> MetricDataOut:
+    """A published campaign result, aggregated for the period from the campaign engine."""
+    published = cx.published_metric(org_id, metric.metric_code)
+    if published is None:
+        base.pending = "This metric is no longer a published campaign result."
+        return base
+    res = cx.result(
+        org_id,
+        published,
+        period_key,
+        series,
+        dimension,
+        [c for c, _, _ in shown_members],
+        reporting,
+    )
+    if res.pending:
+        base.pending = res.pending
+        return base
+    currency = None if published.result_kind in cx.COUNT_KINDS else reporting
+
+    def out(values: dict[str, Decimal | None]) -> list[SeriesOut]:
+        return [SeriesOut(series_type=s, value=values.get(s), currency=currency) for s in series]
+
+    if dimension is None:
+        base.org = out(res.org)
+        return base
+    for code, member_name, has_children in shown_members:
+        base.members.append(
+            MemberDataOut(
+                member_code=code,
+                member_name=member_name,
+                has_children=has_children,
+                series=out({s: res.members.get(s, {}).get(code) for s in series}),
             )
         )
     return base
