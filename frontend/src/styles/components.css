@@ -301,3 +301,23 @@
 .kg-roi__lead > div { display: grid; gap: 2px; }
 .kg-roi__lead b { font-weight: 600; font-variant-numeric: tabular-nums; }
 .kg-roi__figure { font-size: 1.5rem; line-height: 1.2; }
+
+/* Executive dashboard (Scope §10): a 12-column canvas of placed widgets */
+.kg-exec-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.kg-exec-grid > * { grid-column: span var(--w, 4); min-width: 0; }
+.kg-widget { box-shadow: var(--shadow-lift); border-radius: var(--r-lg); display: flex; flex-direction: column; gap: 8px; }
+.kg-widget__body { min-width: 0; }
+.kg-linkish { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-align: left; }
+.kg-linkish:hover { text-decoration: underline; }
+.kg-crumbs .kg-linkish { font-size: 13px; }
+
+/* bullet: actual bar against a target marker, coloured by standing */
+.kg-bullets { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.kg-bullet__label { font-size: 13px; font-weight: 500; }
+.kg-bullet__fig { font-size: 13px; color: var(--ink-2); }
+.kg-bullet__track { position: relative; height: 10px; background: var(--sunken); border-radius: var(--r-pill); margin: 7px 0 4px; }
+.kg-bullet__bar { position: absolute; left: 0; top: 0; height: 100%; border-radius: var(--r-pill); background: var(--g, var(--accent)); }
+.kg-bullet__target { position: absolute; top: -3px; width: 2px; height: 16px; background: var(--ink); border-radius: 1px; }
+
+/* RAG marker in a table cell: a dot plus a visually-hidden band label */
+.kg-rag { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--g); margin-left: 6px; vertical-align: middle; }

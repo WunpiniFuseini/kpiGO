@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { chartTokens } from "../lib/chartTheme";
+import { chartGrades, chartTokens } from "../lib/chartTheme";
 
 const css = readFileSync(resolve(__dirname, "../styles/tokens.css"), "utf8");
 const tokens = Object.fromEntries([...css.matchAll(/(--[a-z0-9-]+):\s*(#[0-9a-f]{6})/gi)].map((m) => [m[1], m[2].toLowerCase()]));
@@ -56,5 +56,9 @@ describe("design tokens", () => {
     expect(chartTokens.line).toBe(tokens["--line"]);
     expect(chartTokens.line2).toBe(tokens["--line-2"]);
     expect(chartTokens.accent).toBe(tokens["--accent"]);
+  });
+
+  it("gives the chart grade ramp the same values as the grade tokens", () => {
+    expect([...chartGrades]).toEqual([tokens["--grade-1"], tokens["--grade-2"], tokens["--grade-3"], tokens["--grade-4"]]);
   });
 });

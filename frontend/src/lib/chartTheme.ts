@@ -13,6 +13,19 @@ export const chartTokens = {
   font: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
 } as const;
 
+/**
+ * The grade ramp (ordinal standing, from the client's rating bands) for marks a
+ * chart colours by standing — a bullet bar, a RAG cell. Separate from the
+ * categorical ramp above and never used for movement. Duplicated from the grade
+ * tokens because canvas cannot read CSS vars; tokens.test.ts fails on drift.
+ */
+export const chartGrades = ["#e5484d", "#f5a524", "#17b26a", "#05603a"] as const;
+
+/** A grade tone (1 lowest … 4 highest) as its ramp hex. */
+export function gradeColour(tone: 1 | 2 | 3 | 4): string {
+  return chartGrades[tone - 1];
+}
+
 export const kpigoTheme = {
   color: [chartTokens.accent, "#7a5af8", "#0ba5ec", "#ee46bc", "#15b79e", "#875bf7"],
   backgroundColor: "transparent",
