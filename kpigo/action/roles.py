@@ -63,6 +63,9 @@ OPERATIONS = (
     "notification.manage",
 )
 
+# Starter packs (PRD OP-9): viewing the shipped packs and loading one at onboarding.
+PACKS = ("pack.view", "pack.manage")
+
 # Configuration custodians: hierarchy, dimensions and FX are data-steward work.
 STEWARD = (
     "hierarchy.view",
@@ -137,6 +140,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *INGESTION,
             *ACCESS,
             *OPERATIONS,
+            *PACKS,
             "platform.registry.view",
             "platform.approval.decide",
             "platform.migrations.view",
@@ -213,6 +217,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "system.backup.view",
             "system.diagnostics.view",
             "system.update.view",
+            "pack.view",
             "agent.retention.manage",
             PRODUCT_LINES,
         ),

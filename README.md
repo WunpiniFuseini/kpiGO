@@ -357,6 +357,32 @@ clean no-op and the centre still carries everything. The escalation ladder sends
 its own immediate email, so its notices are marked out of the digest and never
 emailed twice.
 
+## Starter packs
+
+A starter pack is a versioned, industry-specific configuration bundle — metric
+definitions, a taxonomy, rating bands, product lines and widget placements for a
+recognised role — shipped with the product so onboarding is adopt-and-amend rather
+than author-from-blank. Four ship today: Retail RM, Service Officer, Executive
+Banking and Campaign Banking (`kpigo/platform/packs/catalog.py`).
+
+```bash
+docker compose exec app python manage.py action pack.list --user admin --json '{}'
+docker compose exec app python manage.py action pack.load --user admin \
+  --json '{"pack_key": "retail_rm"}'
+```
+
+A pack is **configuration, never data**: it ships no actuals and no target values,
+only definitions. Loading is **additive and non-destructive** — `pack.load` creates
+the metrics whose codes are free and, when the org is still on the default rating
+bands, adopts the pack's bands; a metric whose code or name is already taken is left
+exactly as it is and reported as a skip or a name conflict, and custom bands are
+never replaced. Every metric it creates becomes the client's own registry entry with
+no live link back to the pack, so they rename what doesn't fit, delete what they
+don't measure, and point their feeds at what remains. `pack.list` shows each pack in
+full — including the taxonomy objectives, product lines, widgets and (for Campaign)
+the attribution defaults it carries — so an Admin sees exactly what adopting one
+brings before anything changes.
+
 ## Agent Performance: daily pace
 
 Agent Performance reads the daily facts the `actual_daily` feed writes

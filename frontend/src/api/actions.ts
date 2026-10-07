@@ -138,6 +138,8 @@ export const ROUTES = {
   "override.request": { method: "POST", path: "/api/v1/actions/override.request", pathParams: [], public: false },
   "override.revoke": { method: "POST", path: "/api/v1/actions/override.revoke", pathParams: [], public: false },
   "override.withdraw": { method: "POST", path: "/api/v1/actions/override.withdraw", pathParams: [], public: false },
+  "pack.list": { method: "GET", path: "/api/v1/packs", pathParams: [], public: false },
+  "pack.load": { method: "POST", path: "/api/v1/packs/load", pathParams: [], public: false },
   "period.deadline.list": { method: "GET", path: "/api/v1/actions/period.deadline.list", pathParams: [], public: false },
   "period.deadline.set": { method: "POST", path: "/api/v1/actions/period.deadline.set", pathParams: [], public: false },
   "period.list": { method: "GET", path: "/api/v1/actions/period.list", pathParams: [], public: false },
@@ -382,6 +384,8 @@ export interface Actions {
   "override.request": { input: NonNullable<operations["override_request"]["requestBody"]>["content"]["application/json"]; output: operations["override_request"]["responses"][200]["content"]["application/json"] };
   "override.revoke": { input: NonNullable<operations["override_revoke"]["requestBody"]>["content"]["application/json"]; output: operations["override_revoke"]["responses"][200]["content"]["application/json"] };
   "override.withdraw": { input: NonNullable<operations["override_withdraw"]["requestBody"]>["content"]["application/json"]; output: operations["override_withdraw"]["responses"][200]["content"]["application/json"] };
+  "pack.list": { input: Record<string, never>; output: operations["pack_list"]["responses"][200]["content"]["application/json"] };
+  "pack.load": { input: NonNullable<operations["pack_load"]["requestBody"]>["content"]["application/json"]; output: operations["pack_load"]["responses"][200]["content"]["application/json"] };
   "period.deadline.list": { input: NonNullable<operations["period_deadline_list"]["parameters"]["query"]>; output: operations["period_deadline_list"]["responses"][200]["content"]["application/json"] };
   "period.deadline.set": { input: NonNullable<operations["period_deadline_set"]["requestBody"]>["content"]["application/json"]; output: operations["period_deadline_set"]["responses"][200]["content"]["application/json"] };
   "period.list": { input: NonNullable<operations["period_list"]["parameters"]["query"]>; output: operations["period_list"]["responses"][200]["content"]["application/json"] };
