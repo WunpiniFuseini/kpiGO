@@ -59,6 +59,9 @@ jobs:
   frontend:
     name: Frontend (types, tests, Storybook, axe-core)
     runs-on: ubuntu-latest
+    # A wedged Chromium download once hung this job until GitHub's 6-hour cap;
+    # bound it so a stalled step fails fast and is re-runnable.
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: frontend
@@ -77,6 +80,16 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm run build-storybook
+      # Cache the browser binary so a flaky Playwright CDN can't block the a11y
+      # gate: keyed on the pinned @playwright/test version, so a bump re-fetches.
+      - name: Resolve Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Chromium for the accessibility gate
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
       - name: Install Chromium for the accessibility gate
         run: npx playwright install --with-deps chromium
       - name: Accessibility (axe-core, WCAG 2.1 AA, every story)
