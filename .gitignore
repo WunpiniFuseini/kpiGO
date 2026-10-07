@@ -15,3 +15,5 @@ frontend/storybook-static/
 frontend/test-results/
 frontend/*.tmp.mjs
 *.tsbuildinfo
+deploy/certs/
+dist/
