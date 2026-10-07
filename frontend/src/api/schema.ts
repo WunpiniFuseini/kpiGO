@@ -3897,6 +3897,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ops/update/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Authorise a staged upgrade: re-check, take the mandatory pre-upgrade backup, log it. */
+        post: operations["system_update_apply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ops/update/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inspect the staged update bundle: signature, checksums, entitlement and path. */
+        get: operations["system_update_check"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ops/update/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The ledger of upgrades authorised on this install, newest first. */
+        get: operations["system_update_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/registry": {
         parameters: {
             query?: never;
@@ -7221,6 +7272,7 @@ export interface components {
              * @enum {string}
              */
             status: "ok" | "degraded" | "down";
+            update: components["schemas"]["UpdateHealth"] | null;
             version: components["schemas"]["VersionOut"];
         };
         /** HeartbeatIn */
@@ -10767,6 +10819,78 @@ export interface components {
             /** Metric Name */
             metric_name: string;
         };
+        /** UpdateApplyIn */
+        UpdateApplyIn: {
+            /** Confirm Version */
+            confirm_version: string;
+        };
+        /** UpdateApplyOut */
+        UpdateApplyOut: {
+            /** Authorised */
+            authorised: boolean;
+            /** Backup Id */
+            backup_id: string | null;
+            /** Message */
+            message: string;
+            /** Next Steps */
+            next_steps: string[];
+            record: components["schemas"]["VersionHistoryOut"];
+        };
+        /** UpdateCheckOut */
+        UpdateCheckOut: {
+            /** Artefacts Ok */
+            artefacts_ok: boolean;
+            /** Ceiling */
+            ceiling: number | null;
+            /** Entitled */
+            entitled: boolean;
+            /** Found */
+            found: boolean;
+            /** From Version */
+            from_version: string;
+            /** Installed Version */
+            installed_version: string;
+            /** Is Upgrade */
+            is_upgrade: boolean;
+            /** Key Id */
+            key_id: string;
+            /** Min From Version */
+            min_from_version: string;
+            /** Path Ok */
+            path_ok: boolean;
+            /** Ready */
+            ready: boolean;
+            /** Reason */
+            reason: string;
+            /** Signature Ok */
+            signature_ok: boolean;
+            /** To Version */
+            to_version: string;
+        };
+        /** UpdateHealth */
+        UpdateHealth: {
+            /** Available */
+            available: boolean;
+            /** Ready */
+            ready: boolean;
+            /** Reason */
+            reason: string;
+            /** To Version */
+            to_version: string;
+        };
+        /** UpdateHistoryInQuery */
+        UpdateHistoryInQuery: {
+            /**
+             * Limit
+             * @default 20
+             */
+            limit?: number;
+        };
+        /** UpdateHistoryOut */
+        UpdateHistoryOut: {
+            /** Updates */
+            updates: components["schemas"]["VersionHistoryOut"][];
+        };
         /** UpdateOut */
         UpdateOut: {
             metric: components["schemas"]["MetricOut"];
@@ -10885,6 +11009,31 @@ export interface components {
              * Format: uuid
              */
             user_id: string;
+        };
+        /** VersionHistoryOut */
+        VersionHistoryOut: {
+            /** Backup Id */
+            backup_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Detail
+             * @default
+             */
+            detail?: string;
+            /** From Version */
+            from_version: string;
+            /** Key Id */
+            key_id: string;
+            /** Outcome */
+            outcome: string;
+            /** To Version */
+            to_version: string;
+            /** Version Id */
+            version_id: string;
         };
         /** VersionOut */
         VersionOut: {
@@ -28718,6 +28867,216 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DiagnosticsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    system_update_apply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateApplyIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateApplyOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    system_update_check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateCheckOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    system_update_history: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateHistoryOut"];
                 };
             };
             /** @description Unauthorized */

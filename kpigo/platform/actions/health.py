@@ -67,6 +67,13 @@ class BackupHealth(BaseModel):
     last_ok_at: datetime | None
 
 
+class UpdateHealth(BaseModel):
+    available: bool
+    to_version: str
+    ready: bool
+    reason: str
+
+
 class HealthIn(BaseModel):
     check_workers: bool = True
 
@@ -81,6 +88,7 @@ class HealthOut(BaseModel):
     feeds: FeedsOut | None
     licence: LicenceHealth | None
     backup: BackupHealth | None
+    update: UpdateHealth | None
     version: VersionOut
 
 
@@ -202,6 +210,23 @@ def _backup(org_id: str) -> BackupHealth | None:
     )
 
 
+def _update(org_id: str) -> UpdateHealth | None:
+    try:
+        from kpigo.platform.updates import check_bundle
+
+        check = check_bundle(org_id)
+    except Exception:
+        return None
+    if not check.found:
+        return None
+    return UpdateHealth(
+        available=True,
+        to_version=check.to_version,
+        ready=check.ready,
+        reason=check.reason,
+    )
+
+
 @action(
     name="system.health",
     summary="Service, database, feed, queue, licence and version status for operations.",
@@ -223,6 +248,7 @@ def health(params: HealthIn, ctx: ActionContext) -> HealthOut:
     feeds = _feeds(ctx.org_id)
     licence = _licence(ctx.org_id)
     backup = _backup(ctx.org_id)
+    update = _update(ctx.org_id)
     if feeds is not None and (feeds.stale or feeds.quarantined or feeds.failed):
         services.append(
             ServiceOut(
@@ -249,5 +275,6 @@ def health(params: HealthIn, ctx: ActionContext) -> HealthOut:
         feeds=feeds,
         licence=licence,
         backup=backup,
+        update=update,
         version=VersionOut(product_version=product_version(), migrations=schema),
     )
