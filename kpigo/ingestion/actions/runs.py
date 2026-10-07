@@ -243,7 +243,32 @@ def run(params: FeedRunIn, ctx: ActionContext) -> RunOut:
     if feed.mode == "drop" and params.file is not None and not ctx.dry_run:
         name, ok = params.file, result.run.outcome == "success"
         transaction.on_commit(lambda: sources.file_away(feed, name, ok))
+    if result.run.outcome != "success" and not ctx.dry_run:
+        _notify_feed_problem(ctx, feed, result.run.outcome or "failed")
     return run_out(result.run, idempotent=result.idempotent, result=result)
+
+
+def _notify_feed_problem(ctx: ActionContext, feed: Feed, outcome: str) -> None:
+    """Tell the feed stewards in-app that a load did not land (PRD NT-2)."""
+    from kpigo.platform import notify
+
+    title = (
+        f"Feed '{feed.name}' load was quarantined"
+        if outcome == "quarantined"
+        else f"Feed '{feed.name}' load failed"
+    )
+    for who in notify.holders(ctx.org_id, "feed.run"):
+        notify.notify(
+            ctx.org_id,
+            who,
+            category="load_quarantined",
+            title=title,
+            body="The whole load was rejected; no rows were committed. Review the rejections and reload.",
+            link="/feeds",
+            level="warning",
+            subject_ref=feed.name,
+            created_by=ctx.user_id,
+        )
 
 
 class RunListIn(BaseModel):

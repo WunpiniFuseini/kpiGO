@@ -129,6 +129,9 @@ export const ROUTES = {
   "metric.register": { method: "POST", path: "/api/v1/actions/metric.register", pathParams: [], public: false },
   "metric.set_status": { method: "POST", path: "/api/v1/actions/metric.set_status", pathParams: [], public: false },
   "metric.update": { method: "POST", path: "/api/v1/actions/metric.update", pathParams: [], public: false },
+  "notification.digest": { method: "POST", path: "/api/v1/actions/notification.digest", pathParams: [], public: false },
+  "notification.list": { method: "GET", path: "/api/v1/notifications", pathParams: [], public: false },
+  "notification.mark_read": { method: "POST", path: "/api/v1/notifications/read", pathParams: [], public: false },
   "override.approve": { method: "POST", path: "/api/v1/actions/override.approve", pathParams: [], public: false },
   "override.list": { method: "GET", path: "/api/v1/actions/override.list", pathParams: [], public: false },
   "override.reject": { method: "POST", path: "/api/v1/actions/override.reject", pathParams: [], public: false },
@@ -370,6 +373,9 @@ export interface Actions {
   "metric.register": { input: NonNullable<operations["metric_register"]["requestBody"]>["content"]["application/json"]; output: operations["metric_register"]["responses"][200]["content"]["application/json"] };
   "metric.set_status": { input: NonNullable<operations["metric_set_status"]["requestBody"]>["content"]["application/json"]; output: operations["metric_set_status"]["responses"][200]["content"]["application/json"] };
   "metric.update": { input: NonNullable<operations["metric_update"]["requestBody"]>["content"]["application/json"]; output: operations["metric_update"]["responses"][200]["content"]["application/json"] };
+  "notification.digest": { input: NonNullable<operations["notification_digest"]["requestBody"]>["content"]["application/json"]; output: operations["notification_digest"]["responses"][200]["content"]["application/json"] };
+  "notification.list": { input: NonNullable<operations["notification_list"]["parameters"]["query"]>; output: operations["notification_list"]["responses"][200]["content"]["application/json"] };
+  "notification.mark_read": { input: NonNullable<operations["notification_mark_read"]["requestBody"]>["content"]["application/json"]; output: operations["notification_mark_read"]["responses"][200]["content"]["application/json"] };
   "override.approve": { input: NonNullable<operations["override_approve"]["requestBody"]>["content"]["application/json"]; output: operations["override_approve"]["responses"][200]["content"]["application/json"] };
   "override.list": { input: NonNullable<operations["override_list"]["parameters"]["query"]>; output: operations["override_list"]["responses"][200]["content"]["application/json"] };
   "override.reject": { input: NonNullable<operations["override_reject"]["requestBody"]>["content"]["application/json"]; output: operations["override_reject"]["responses"][200]["content"]["application/json"] };

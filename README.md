@@ -339,6 +339,24 @@ input not yet due is "still open", not missing. A contributor late or missing in
 nobody could be asked for; line managers and executives see the contributors in
 their visibility scope.
 
+## Notifications
+
+Every person has an in-app notification centre, always on whether or not a mail
+relay is configured (`notification.list` and `notification.mark_read`, scoped to
+the caller's own notices — never another's). Producers raise a notice through
+`kpigo.platform.notify.notify`: today the escalation ladder (inputs due, overdue
+and escalated — PRD NT-5) and feed loads that quarantine or fail (NT-2); the same
+helper is where scorecard-ready and grade-change notices (NT-1) hang as those
+paths are next touched.
+
+Delivery by email is batched (NT-4): `notification.digest`, scheduled daily when
+`KPIGO_DIGEST_USER` names a user, sends each person one message listing their
+un-emailed notices — titles and counts only, never scores or values, so the mail
+is safe to leave the install. With no relay (`KPIGO_EMAIL_HOST` unset) it is a
+clean no-op and the centre still carries everything. The escalation ladder sends
+its own immediate email, so its notices are marked out of the digest and never
+emailed twice.
+
 ## Agent Performance: daily pace
 
 Agent Performance reads the daily facts the `actual_daily` feed writes

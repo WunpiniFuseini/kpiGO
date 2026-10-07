@@ -406,6 +406,8 @@ def remind(params: InputRemindIn, ctx: ActionContext) -> InputRemindOut:
                 reminded += 1
             if steps_sent & {2, 3}:
                 escalated += 1
+    if not ctx.dry_run:
+        _notify_in_app(ctx, digest)
     emailed, not_emailed = _email(ctx, digest)
     return InputRemindOut(
         reminded=reminded,
@@ -416,6 +418,39 @@ def remind(params: InputRemindIn, ctx: ActionContext) -> InputRemindOut:
         escalated=escalated,
         escalated_to=sorted(escalated_to),
     )
+
+
+def _notify_in_app(ctx: ActionContext, digest: dict[str, tuple[AppUser, list[_Item]]]) -> None:
+    """One in-app notice per person for this run's new rungs (PRD NT-3/NT-5).
+
+    ``digest=False`` because the escalation ladder sends its own email; the daily
+    digest must not email the same thing a second time.
+    """
+    from kpigo.platform import notify
+
+    for who, items in digest.values():
+        top = max(i.step for i in items)
+        own = any(i.step == 1 for i in items)
+        count = len({(i.period_key, str(i.ia.assignment_id)) for i in items})
+        if own and top == 1:
+            category, level = "input_due", "info"
+            title = f"{count} input(s) are waiting for you"
+        elif top >= 3:
+            category, level = "input_overdue", "critical"
+            title = f"{count} input(s) are overdue"
+        else:
+            category, level = "escalation", "warning"
+            title = f"{count} input(s) your team has not submitted"
+        notify.notify(
+            ctx.org_id,
+            who,
+            category=category,
+            title=title,
+            link="/my-inputs",
+            level=level,
+            digest=False,
+            created_by=ctx.user_id,
+        )
 
 
 _HEADINGS = {

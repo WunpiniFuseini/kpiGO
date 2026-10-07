@@ -316,3 +316,63 @@ class VersionHistory(Tracked):
 
     def __str__(self) -> str:
         return f"{self.from_version} → {self.to_version} ({self.outcome})"
+
+
+NOTIFICATION_CATEGORIES = (
+    "scorecard_ready",
+    "grade_change",
+    "behind_pace",
+    "feed_missed",
+    "load_quarantined",
+    "query_raised",
+    "query_resolved",
+    "coverage_incomplete",
+    "input_due",
+    "input_overdue",
+    "escalation",
+    "digest",
+    "system",
+)
+NOTIFICATION_LEVELS = ("info", "warning", "critical")
+
+
+class Notification(Stamped):
+    """One notice for one person (PRD NT-1..5). The in-app centre is always on; the
+    daily digest (``notification.digest``) emails the un-emailed ones when a relay is
+    set. Bodies carry titles and counts, never scores or values — email stays safe to
+    send off the install (Deployment constraints). ``read_at`` is the only mutable
+    column; a notice is otherwise a fact of record.
+    """
+
+    notification_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    # The recipient's AppUser id (access.AppUser.user_id), so a notice follows the
+    # person regardless of sign-in backend.
+    recipient_id = models.UUIDField()
+    category = models.TextField()
+    level = models.TextField(db_default="info")
+    title = models.TextField()
+    body = models.TextField(blank=True, default="")
+    link = models.TextField(blank=True, default="")
+    # A free grouping tag (a subject, feed or period) for future dedup; not scored.
+    subject_ref = models.TextField(blank=True, default="")
+    read_at = models.DateTimeField(null=True)
+    emailed_at = models.DateTimeField(null=True)
+    # Eligible for the daily digest email (NT-4). False when a producer sends its
+    # own mail (the escalation ladder) so the digest does not email it twice.
+    digest = models.BooleanField(db_default=False)
+
+    class Meta:
+        db_table = "notification"
+        indexes = [
+            models.Index(
+                fields=["org_id", "recipient_id", "-created_at"], name="notification_inbox"
+            ),
+        ]
+        constraints = [
+            one_of("category", NOTIFICATION_CATEGORIES, "notification_category_valid"),
+            one_of("level", NOTIFICATION_LEVELS, "notification_level_valid"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.category} → {self.recipient_id} ({'read' if self.read_at else 'unread'})"

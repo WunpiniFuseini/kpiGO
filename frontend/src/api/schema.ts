@@ -1976,6 +1976,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/notification.digest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Email each person a single digest of their un-emailed notices (scheduled daily). */
+        post: operations["notification_digest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/override.approve": {
         parameters: {
             query?: never;
@@ -3840,6 +3857,40 @@ export interface paths {
         put?: never;
         /** Activate a signed licence file, offline. Works in every grace and lock state. */
         post: operations["licence_activate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in person's own notifications, newest first, with the unread count. */
+        get: operations["notification_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark one of your notifications read, or all of them. */
+        post: operations["notification_mark_read"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6563,6 +6614,19 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** DigestIn */
+        DigestIn: Record<string, never>;
+        /** DigestOut */
+        DigestOut: {
+            /** Emailed */
+            emailed: number;
+            /** Message */
+            message: string;
+            /** Recipients */
+            recipients: number;
+            /** Relay Configured */
+            relay_configured: boolean;
+        };
         /** DimensionDefineIn */
         DimensionDefineIn: {
             /** Dimension Type */
@@ -8070,6 +8134,18 @@ export interface components {
             /** Relationship Type */
             relationship_type: string;
         };
+        /** MarkReadIn */
+        MarkReadIn: {
+            /** Notification Id */
+            notification_id?: string | null;
+        };
+        /** MarkReadOut */
+        MarkReadOut: {
+            /** Marked */
+            marked: number;
+            /** Unread Count */
+            unread_count: number;
+        };
         /** MatrixCellOut */
         MatrixCellOut: {
             /** Achieved */
@@ -8555,6 +8631,48 @@ export interface components {
              * Format: uuid
              */
             template_id: string;
+        };
+        /** NotificationListInQuery */
+        NotificationListInQuery: {
+            /**
+             * Limit
+             * @default 30
+             */
+            limit?: number;
+            /**
+             * Unread Only
+             * @default false
+             */
+            unread_only?: boolean;
+        };
+        /** NotificationListOut */
+        NotificationListOut: {
+            /** Notifications */
+            notifications: components["schemas"]["NotificationOut"][];
+            /** Unread Count */
+            unread_count: number;
+        };
+        /** NotificationOut */
+        NotificationOut: {
+            /** Body */
+            body: string;
+            /** Category */
+            category: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Level */
+            level: string;
+            /** Link */
+            link: string;
+            /** Notification Id */
+            notification_id: string;
+            /** Read At */
+            read_at: string | null;
+            /** Title */
+            title: string;
         };
         /** OidcCompleteIn */
         OidcCompleteIn: {
@@ -20267,6 +20385,84 @@ export interface operations {
             };
         };
     };
+    notification_digest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DigestIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigestOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     override_approve: {
         parameters: {
             query?: never;
@@ -28648,6 +28844,152 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ActivateOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    notification_list: {
+        parameters: {
+            query?: {
+                unread_only?: boolean;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    notification_mark_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarkReadIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarkReadOut"];
                 };
             };
             /** @description Unauthorized */

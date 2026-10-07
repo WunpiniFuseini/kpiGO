@@ -26,7 +26,15 @@ def _role(code: str, name: str, *permissions: str) -> RoleSpec:
 
 # Reference data every role reads: metric definitions, the calendar, and the
 # subjects their own visibility closure lets them see (scope narrows the last).
-EVERYONE = ("platform.hello", "metric.view", "calendar.view", "subject.view", "auth.session")
+EVERYONE = (
+    "platform.hello",
+    "metric.view",
+    "calendar.view",
+    "subject.view",
+    "auth.session",
+    # Everyone reads and clears their own notification centre (PRD NT-3).
+    "notification.view",
+)
 
 # Users, roles, page access, data scope grants, maker-checker policy, directory.
 ACCESS = (
@@ -51,6 +59,8 @@ OPERATIONS = (
     "system.diagnostics.view",
     "system.update.view",
     "system.update.manage",
+    # Running the batched notification digest (scheduled daily) is an ops job.
+    "notification.manage",
 )
 
 # Configuration custodians: hierarchy, dimensions and FX are data-steward work.
