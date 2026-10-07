@@ -29,7 +29,50 @@ scripts/smoke.sh              # HTTP, CLI, a worker job, the web front, plus aud
 Open <http://localhost:8080>. Services: `postgres` (16), `redis`, `migrate`
 (one-shot), `app` (ASGI on :8000), `worker` and `beat` (Celery), and `web`
 (nginx on :8080: the UI, with `/api` proxied to the app on the same origin).
-TLS joins at R5 packaging.
+
+To terminate TLS at the web front, drop a certificate pair in `deploy/certs/`
+(`scripts/gen_selfsigned.sh` makes a self-signed one for a LAN install, or use
+the bank's own CA-issued `kpigo.crt`/`kpigo.key`) and bring the stack up with
+the overlay:
+
+```bash
+scripts/gen_selfsigned.sh kpigo.bank.example
+docker compose -f compose.yaml -f compose.tls.yaml up -d
+```
+
+`:8443` then serves HTTPS and `:8080` redirects to it. Swapping in a CA-issued
+certificate later is a file replacement, no rebuild.
+
+## Offline install bundle
+
+Banks will not run an installer that pulls from the internet. The whole stack
+ships as one tarball carried in on removable media and loaded on the air-gapped
+host.
+
+On a build machine with a network and Docker:
+
+```bash
+KPIGO_VERSION=1.0.0 scripts/build_bundle.sh
+# → dist/kpigo-1.0.0-bundle.tar: the image set (docker save of app, web,
+#   postgres:16, redis:7), compose.yaml, the nginx config, and a manifest
+#   carrying a SHA-256 over each artefact.
+```
+
+On the client's host (no network, Docker and Python 3 only):
+
+```bash
+scripts/load_bundle.sh kpigo-1.0.0-bundle.tar --into /opt/kpigo
+# Verifies every artefact against the manifest BEFORE loading, then
+# docker-loads the image set and places the compose files in /opt/kpigo.
+cd /opt/kpigo && cp .env.example .env   # set the secret key and DB password
+docker compose up -d --wait
+```
+
+`tools/bundle.py` builds and verifies the manifest; it is standard-library only
+so it runs on the vendor box and the client host alike. The manifest format
+(`from_version`, `to_version`, `min_from_version`, per-artefact digests) is what
+the update service verifies, entitles and applies for an in-place upgrade —
+signing of the bundle lands with that service.
 
 ## First run, sign-in and the licence
 
