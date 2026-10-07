@@ -27,10 +27,11 @@ from ninja.errors import ValidationError as NinjaValidationError
 from ninja.security import django_auth
 from pydantic import BaseModel, create_model
 
+from kpigo.action.adapters.tokens import REQUEST_TOKEN_ATTR, ApiTokenAuth
 from kpigo.action.context import ActionContext, SessionBridge
 from kpigo.action.definition import ActionDefinition
-from kpigo.action.errors import ActionError, InvalidInput, SessionExpired
-from kpigo.action.identity import anonymous_context, build_context
+from kpigo.action.errors import ActionError, InvalidInput, PermissionDenied, SessionExpired
+from kpigo.action.identity import anonymous_context, build_context, build_context_for_account
 from kpigo.action.pipeline import Proposal, invoke
 from kpigo.action.registry import Registry
 
@@ -105,6 +106,20 @@ def _context(definition: ActionDefinition, request: HttpRequest) -> ActionContex
         if spec.method != "GET" and not spec.form and request.content_type != "application/json":
             raise InvalidInput("Send this request as application/json.")
         return anonymous_context(
+            caller="http",
+            request_id=_request_id(request),
+            ip_address=_client_ip(request),
+            session=bridge,
+        )
+    token = getattr(request, REQUEST_TOKEN_ATTR, None)
+    if token is not None:
+        # A bearer token reaches only read-only actions; it carries no session, so it
+        # cannot sign in, sign out, or drive an approval. Writes are refused before the
+        # action runs, not merely by permission, so a read token can never mutate.
+        if not definition.read_only:
+            raise PermissionDenied("This API token may call read-only actions only.")
+        return build_context_for_account(
+            token.app_user,
             caller="http",
             request_id=_request_id(request),
             ip_address=_client_ip(request),
@@ -206,11 +221,15 @@ def _make_endpoint(definition: ActionDefinition) -> Callable[..., Any]:
 
 
 def build_api(registry: Registry, *, urls_namespace: str = "kpigo-api") -> NinjaAPI:
+    # A protected route accepts either the session (the UI) or a bearer token (the read
+    # API). Ninja tries each in order; the session wins when a cookie is present, so the
+    # UI is unaffected and the token path is reached only by a non-session caller.
+    protected = [django_auth, ApiTokenAuth()]
     api = NinjaAPI(
         title=API_TITLE,
         version="1",
         urls_namespace=urls_namespace,
-        auth=django_auth,
+        auth=protected,
         docs_decorator=staff_only,
     )
 
@@ -246,7 +265,7 @@ def build_api(registry: Registry, *, urls_namespace: str = "kpigo-api") -> Ninja
             operation_id=definition.name.replace(".", "_"),
             summary=definition.summary or definition.name,
             tags=[definition.module],
-            auth=None if definition.public else django_auth,
+            auth=None if definition.public else protected,
             url_name=definition.name.replace(".", "-"),
             # The frontend's generated client keys every route by this name.
             openapi_extra={"x-kpigo-action": definition.name},

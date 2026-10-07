@@ -8,7 +8,7 @@ read on every invocation. Subject scope comes from the visibility closure.
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -48,6 +48,34 @@ def build_context(
         dry_run=dry_run,
         ip_address=ip_address,
         approval=approval,
+        request_id=request_id or uuid.uuid4().hex,
+        session=session or SessionBridge(),
+    )
+
+
+def build_context_for_account(
+    account: Any,
+    *,
+    caller: Caller,
+    request_id: str | None = None,
+    ip_address: str | None = None,
+    session: SessionBridge | None = None,
+) -> ActionContext:
+    """A context for an account that authenticated without a Django session — an API token
+    (PRD OP-8). It carries exactly the account's UI permissions and visibility; the caller
+    restricts it to read-only actions."""
+    from kpigo.access.identity import principal_for_account
+
+    org_id = str(settings.KPIGO_ORG_ID)
+    principal = principal_for_account(account, org_id)
+    return ActionContext(
+        caller=caller,
+        user=None,
+        org_id=org_id,
+        permissions=principal.permissions,
+        visible_subjects=principal.subjects,
+        data_scopes=principal.data_scopes,
+        ip_address=ip_address,
         request_id=request_id or uuid.uuid4().hex,
         session=session or SessionBridge(),
     )

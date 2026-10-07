@@ -250,3 +250,34 @@ class UserPreference(Tracked):
 
     def __str__(self) -> str:
         return f"{self.app_user_id} {self.key}={self.value}"
+
+
+class ApiToken(Tracked):
+    """A bearer token for the read API (PRD OP-8). It is bound to one account and carries
+    exactly that account's permissions and visibility — the same as the UI — but reaches
+    only read-only actions, so an integration can pull scorecards and reports without a
+    browser session and can never change anything. Only the SHA-256 hash is stored, like
+    an invite token; the raw token is shown once at issue and never recoverable. ``prefix``
+    is the leading, non-secret part, kept so a token can be recognised in a list.
+    """
+
+    token_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    app_user = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name="api_tokens")
+    name = models.TextField()
+    token_hash = models.TextField()
+    prefix = models.TextField()
+    status = models.TextField(db_default="active")
+    expires_at = models.DateTimeField(null=True)
+    last_used_at = models.DateTimeField(null=True)
+
+    class Meta:
+        db_table = "api_token"
+        constraints = [
+            models.UniqueConstraint(fields=["org_id", "name"], name="api_token_name_unique"),
+            models.UniqueConstraint(fields=["token_hash"], name="api_token_hash_unique"),
+            one_of("status", ("active", "revoked"), "api_token_status_valid"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.prefix}…, {self.status})"

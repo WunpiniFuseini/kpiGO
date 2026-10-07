@@ -385,6 +385,40 @@ recorded on the endpoint (`last_status`) and retried on the next notice, never
 raised into the action that produced the notice. At-least-once retry with a
 delivery log is a planned follow-up.
 
+## REST read API
+
+Integrations that pull from kpiGo — a reporting job, a warehouse load, a BI
+tool — authenticate with a **bearer token** instead of a browser session (PRD
+OP-8). Every registered read-only action is already a REST endpoint under
+`/api/v1/`; a token simply lets a non-browser caller reach it.
+
+An Admin issues a token with `apitoken.issue`; it is **bound to the issuer's own
+account**, so it carries exactly that account's permissions and subject
+visibility — never more — and reaches **read-only actions only**. A write
+request made with a token is refused (`403`) before the action runs, so a token
+can never change anything, including minting or revoking tokens: that always
+takes a signed-in Admin.
+
+```bash
+# Issue (optionally with a lifetime); the raw token is shown ONCE.
+docker compose exec app python manage.py action apitoken.issue --user admin --json \
+  '{"name":"reporting-etl","expires_in_days":365}'
+
+# Use it: no cookie, just the bearer token.
+curl -H "Authorization: Bearer kpigo_…" \
+  https://kpigo.bank.local/api/v1/scorecard/<subject_id>/202610
+
+docker compose exec app python manage.py action apitoken.list --user admin --json '{}'
+docker compose exec app python manage.py action apitoken.revoke --user admin --json '{"name":"reporting-etl"}'
+```
+
+Only the token's SHA-256 hash is stored, like an invite token; the raw value is
+returned once and is never recoverable, so a lost token is revoked and reissued,
+not looked up. Permissions, visibility and the token's own status are read on
+**every** request, so revoking a token (or letting it expire) stops it at once,
+and a disabled account or a removed role takes effect on the next call. A session
+cookie, when present, still wins, so the UI is untouched by this path.
+
 ## Starter packs
 
 A starter pack is a versioned, industry-specific configuration bundle — metric
