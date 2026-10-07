@@ -15,9 +15,11 @@ the MCP (R6) and agent (R7) releases integrations rather than rewrites.
 
 How it is enforced:
 
-- `kpigo/urls.py` mounts only the API built from the registry.
+- `kpigo/urls.py` mounts only the API built from the registry, and the MCP
+  adapter (`/api/mcp`), whose tools are the registry's read-only actions.
 - `tests/test_governing_rule.py` fails on any URL, Celery task or custom
-  management command that is not an action (OpenAPI docs are the only allowance).
+  management command that is not an action (OpenAPI docs are the only allowance;
+  the MCP view is checked to offer only registered actions).
 - The only custom management command is `action`.
 
 ## Writing an action

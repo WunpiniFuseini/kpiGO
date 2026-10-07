@@ -41,6 +41,12 @@ def resolve_api_token(raw: str) -> Any | None:
     return token
 
 
+def touch_token(token: Any) -> None:
+    """Best-effort last-used stamp; a failure here must not block the read."""
+    with contextlib.suppress(Exception):  # pragma: no cover - bookkeeping only
+        type(token).objects.filter(pk=token.pk).update(last_used_at=timezone.now())
+
+
 class ApiTokenAuth(HttpBearer):
     """Ninja auth: resolve a bearer token and remember it on the request."""
 
@@ -49,7 +55,5 @@ class ApiTokenAuth(HttpBearer):
         if found is None:
             return None
         setattr(request, REQUEST_TOKEN_ATTR, found)
-        # Best-effort last-used stamp; a failure here must not block the read.
-        with contextlib.suppress(Exception):  # pragma: no cover - bookkeeping only
-            type(found).objects.filter(pk=found.pk).update(last_used_at=timezone.now())
+        touch_token(found)
         return found.token_id

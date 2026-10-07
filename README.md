@@ -419,6 +419,33 @@ not looked up. Permissions, visibility and the token's own status are read on
 and a disabled account or a removed role takes effect on the next call. A session
 cookie, when present, still wins, so the UI is untouched by this path.
 
+## MCP: your own assistant reads kpiGo
+
+A client's own assistant — Claude, Copilot, or a local model behind an MCP-capable
+client — can read kpiGo through the **Model Context Protocol** at `/api/mcp`
+(Streamable HTTP; TDD §13, R6). It authenticates with the same API token as the
+REST read API above, so it sees exactly what the token's account sees in the UI.
+
+Every **read-only** action the account holds the permission for is a tool, named
+after the action with dots as underscores (`scorecard.compute` →
+`scorecard_compute`), with the action's own input and output schemas. Mutating
+actions are never tools, whatever the account may do in the UI. Each call runs
+through the same pipeline — permission, subject scope, licence, audit — and is
+audited with `caller="mcp"`, attributed to the token's account. No model runs
+inside kpiGo for this: the assistant is the client's.
+
+```bash
+# Issue a token for the assistant (shown once), as above:
+docker compose exec app python manage.py action apitoken.issue --user admin --json \
+  '{"name":"assistant","expires_in_days":90}'
+# Point the client at https://kpigo.bank.local/api/mcp with the header
+#   Authorization: Bearer kpigo_…
+```
+
+`KPIGO_MCP_ENABLED=0` turns the endpoint off install-wide (it then answers `404`).
+Browser requests from another origin are refused unless listed in
+`KPIGO_MCP_ALLOWED_ORIGINS`; desktop and server clients send no origin.
+
 ## Starter packs
 
 A starter pack is a versioned, industry-specific configuration bundle — metric

@@ -38,6 +38,7 @@ dev = [
     "celery-types>=0.22",
     "types-openpyxl>=3.1.5.20260827",
     "types-pymysql>=1.2.0.20260923",
+    "mcp>=1.10",
 ]
 
 [build-system]
