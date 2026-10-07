@@ -41,8 +41,15 @@ ACCESS = (
     "directory.manage",
 )
 
-# The licence and the health page (PRD OP-2, OP-3).
-OPERATIONS = ("licence.view", "licence.manage", "system.health.view")
+# The licence, the health page, backups and the diagnostic bundle (PRD OP-2–OP-5).
+OPERATIONS = (
+    "licence.view",
+    "licence.manage",
+    "system.health.view",
+    "system.backup.view",
+    "system.backup.manage",
+    "system.diagnostics.view",
+)
 
 # Configuration custodians: hierarchy, dimensions and FX are data-steward work.
 STEWARD = (
@@ -191,6 +198,8 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *INGESTION,
             "licence.view",
             "system.health.view",
+            "system.backup.view",
+            "system.diagnostics.view",
             "agent.retention.manage",
             PRODUCT_LINES,
         ),

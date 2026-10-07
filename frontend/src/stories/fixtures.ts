@@ -129,6 +129,11 @@ export const healthOk: Output<"system.health"> = {
   queue_depth: 0,
   feeds: { total: 6, fresh: 5, stale: 1, never_loaded: 0, quarantined: [], failed: [] },
   licence: { state: "active", mode: "full", message: "Licensed until 30 Jun 2027.", restart_required: false },
+  backup: {
+    last_at: "2026-10-04T02:00:00Z",
+    last_outcome: "ok",
+    last_ok_at: "2026-10-04T02:00:00Z",
+  },
   version: { product_version: "0.1.0", migrations: {} },
 };
 

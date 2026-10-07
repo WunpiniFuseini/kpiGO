@@ -248,3 +248,40 @@ class ApprovalPolicy(Tracked):
 
     def __str__(self) -> str:
         return f"{self.approval_class}: {'on' if self.enabled else 'off'}"
+
+
+BACKUP_KINDS = ("scheduled", "manual", "pre_upgrade")
+BACKUP_OUTCOMES = ("ok", "failed")
+
+
+class BackupRun(Tracked):
+    """A record of one backup (PRD OP-5, TDD §12): a pg_dump plus a configuration
+    summary, bundled into a single consistent artefact with a checksum.
+
+    The row is the audit trail — what was backed up, when, how big, and whether it
+    verified — so the health page and the update service's mandatory-backup gate can
+    answer "is there a fresh, verified backup?" without reading the artefact. The
+    artefact itself lives on the install's backup volume, never in the database.
+    """
+
+    backup_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    kind = models.TextField(db_default="manual")
+    outcome = models.TextField()
+    product_version = models.TextField()
+    config_version = models.BigIntegerField()
+    artefact_path = models.TextField()
+    sha256 = models.TextField(blank=True, default="")
+    size_bytes = models.BigIntegerField(db_default=0)
+    detail = models.TextField(blank=True, default="")
+
+    class Meta:
+        db_table = "backup_run"
+        indexes = [models.Index(fields=["org_id", "-created_at"], name="backup_run_org_time")]
+        constraints = [
+            one_of("kind", BACKUP_KINDS, "backup_run_kind_valid"),
+            one_of("outcome", BACKUP_OUTCOMES, "backup_run_outcome_valid"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.kind} backup {self.created_at:%Y-%m-%d %H:%M} ({self.outcome})"

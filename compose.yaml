@@ -20,11 +20,14 @@ x-app: &app
     KPIGO_SECURE_COOKIES: ${KPIGO_SECURE_COOKIES:-false}
     KPIGO_DROP_ROOT: /var/lib/kpigo/drop
     KPIGO_LICENCE_FILE: /var/lib/kpigo/licence/kpigo.lic
+    KPIGO_BACKUP_DIR: /var/lib/kpigo/backups
   # Drop-folder feeds read here. A client usually binds its network share instead.
-  # The licence file licence.activate writes must survive restarts and upgrades.
+  # The licence file licence.activate writes, and backups, must survive restarts
+  # and upgrades.
   volumes:
     - drop:/var/lib/kpigo/drop
     - licence:/var/lib/kpigo/licence
+    - backups:/var/lib/kpigo/backups
   depends_on:
     postgres:
       condition: service_healthy
@@ -114,6 +117,7 @@ volumes:
   pgdata:
   drop:
   licence:
+  backups:
 
 networks:
   kpigo:
