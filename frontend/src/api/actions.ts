@@ -78,6 +78,9 @@ export const ROUTES = {
   "cycle.bind": { method: "POST", path: "/api/v1/actions/cycle.bind", pathParams: [], public: false },
   "cycle.create": { method: "POST", path: "/api/v1/actions/cycle.create", pathParams: [], public: false },
   "cycle.list": { method: "GET", path: "/api/v1/actions/cycle.list", pathParams: [], public: false },
+  "demo.reset": { method: "POST", path: "/api/v1/demo/reset", pathParams: [], public: false },
+  "demo.seed": { method: "POST", path: "/api/v1/demo/seed", pathParams: [], public: false },
+  "demo.status": { method: "GET", path: "/api/v1/demo/status", pathParams: [], public: false },
   "dimension.define": { method: "POST", path: "/api/v1/actions/dimension.define", pathParams: [], public: false },
   "dimension.list": { method: "GET", path: "/api/v1/actions/dimension.list", pathParams: [], public: false },
   "dimension.member.list": { method: "GET", path: "/api/v1/actions/dimension.member.list", pathParams: [], public: false },
@@ -324,6 +327,9 @@ export interface Actions {
   "cycle.bind": { input: NonNullable<operations["cycle_bind"]["requestBody"]>["content"]["application/json"]; output: operations["cycle_bind"]["responses"][200]["content"]["application/json"] };
   "cycle.create": { input: NonNullable<operations["cycle_create"]["requestBody"]>["content"]["application/json"]; output: operations["cycle_create"]["responses"][200]["content"]["application/json"] };
   "cycle.list": { input: Record<string, never>; output: operations["cycle_list"]["responses"][200]["content"]["application/json"] };
+  "demo.reset": { input: NonNullable<operations["demo_reset"]["requestBody"]>["content"]["application/json"]; output: operations["demo_reset"]["responses"][200]["content"]["application/json"] };
+  "demo.seed": { input: NonNullable<operations["demo_seed"]["requestBody"]>["content"]["application/json"]; output: operations["demo_seed"]["responses"][200]["content"]["application/json"] };
+  "demo.status": { input: Record<string, never>; output: operations["demo_status"]["responses"][200]["content"]["application/json"] };
   "dimension.define": { input: NonNullable<operations["dimension_define"]["requestBody"]>["content"]["application/json"]; output: operations["dimension_define"]["responses"][200]["content"]["application/json"] };
   "dimension.list": { input: Record<string, never>; output: operations["dimension_list"]["responses"][200]["content"]["application/json"] };
   "dimension.member.list": { input: NonNullable<operations["dimension_member_list"]["parameters"]["query"]>; output: operations["dimension_member_list"]["responses"][200]["content"]["application/json"] };
