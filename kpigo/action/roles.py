@@ -69,6 +69,9 @@ PACKS = ("pack.view", "pack.manage")
 # Demo mode (PRD OP-9): loading and clearing a synthetic world for evaluation.
 DEMO = ("demo.view", "demo.manage")
 
+# Outbound webhooks (PRD OP-8): configuring the endpoints kpiGo delivers notices to.
+WEBHOOKS = ("webhook.view", "webhook.manage")
+
 # Configuration custodians: hierarchy, dimensions and FX are data-steward work.
 STEWARD = (
     "hierarchy.view",
@@ -145,6 +148,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *OPERATIONS,
             *PACKS,
             *DEMO,
+            *WEBHOOKS,
             "platform.registry.view",
             "platform.approval.decide",
             "platform.migrations.view",

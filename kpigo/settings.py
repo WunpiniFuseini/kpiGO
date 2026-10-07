@@ -284,6 +284,15 @@ DEFAULT_FROM_EMAIL = KPIGO_EMAIL_FROM or "kpigo@localhost"
 # The address people open kpiGo at, for links in email; optional.
 KPIGO_PUBLIC_URL = (env("KPIGO_PUBLIC_URL", "") or "").rstrip("/")
 
+# Outbound webhooks (PRD OP-8) go only to the install's own configured endpoints. They
+# are off until at least one endpoint is registered; this switch turns them off
+# install-wide regardless, for an air-gapped install that wants no outbound call at all.
+KPIGO_WEBHOOKS_ENABLED = (env("KPIGO_WEBHOOKS_ENABLED", "1") or "1").lower() not in (
+    "0",
+    "false",
+    "no",
+)
+
 # Run the manual-input escalation ladder as this user; it checks daily who is due.
 if env("KPIGO_INPUT_REMINDER_USER"):
     KPIGO_SCHEDULED_ACTIONS.append(

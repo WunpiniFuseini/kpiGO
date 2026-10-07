@@ -6,6 +6,7 @@ Schema §4: org_settings (with the config_version counter), currency, fx_rate.
 
 import uuid
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from kpigo.platform.db import Stamped, Tracked, one_of
@@ -404,3 +405,38 @@ class DemoArtifact(models.Model):
 
     def __str__(self) -> str:
         return f"{self.model_label}:{self.object_pk}"
+
+
+class WebhookEndpoint(Tracked):
+    """A client-configured outbound endpoint (PRD OP-8). When a notice is raised, kpiGo
+    POSTs a small signed payload to every active endpoint subscribed to that category —
+    to the install's own systems, never the vendor. Like email it is off until configured
+    (no endpoint, no call) and the payload carries category, level, title and link only,
+    never a score or a value (Deployment constraints). ``secret_ref`` points at a
+    Fernet-stored signing secret used to HMAC each delivery so the receiver can trust it.
+    """
+
+    endpoint_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    name = models.TextField()
+    url = models.TextField()
+    # Which notification categories to deliver; empty means every category.
+    categories = ArrayField(models.TextField(), default=list, blank=True)
+    # Deliver only notices at or above this level (info < warning < critical).
+    min_level = models.TextField(db_default="info")
+    secret_ref = models.UUIDField(null=True)
+    status = models.TextField(db_default="active")
+    last_delivery_at = models.DateTimeField(null=True)
+    # The outcome of the last attempt, for the operator: "200", "error: timeout", etc.
+    last_status = models.TextField(blank=True, default="")
+
+    class Meta:
+        db_table = "webhook_endpoint"
+        constraints = [
+            models.UniqueConstraint(fields=["org_id", "name"], name="webhook_endpoint_name_unique"),
+            one_of("min_level", NOTIFICATION_LEVELS, "webhook_endpoint_level_valid"),
+            one_of("status", ("active", "disabled"), "webhook_endpoint_status_valid"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.name} → {self.url} ({self.status})"

@@ -240,6 +240,10 @@ export const ROUTES = {
   "user.update": { method: "POST", path: "/api/v1/actions/user.update", pathParams: [], public: false },
   "visibility.list": { method: "GET", path: "/api/v1/actions/visibility.list", pathParams: [], public: false },
   "visibility.rebuild": { method: "POST", path: "/api/v1/actions/visibility.rebuild", pathParams: [], public: false },
+  "webhook.list": { method: "GET", path: "/api/v1/webhooks", pathParams: [], public: false },
+  "webhook.register": { method: "POST", path: "/api/v1/webhooks", pathParams: [], public: false },
+  "webhook.remove": { method: "POST", path: "/api/v1/webhooks/remove", pathParams: [], public: false },
+  "webhook.test": { method: "POST", path: "/api/v1/webhooks/test", pathParams: [], public: false },
   "widget.dashboard": { method: "GET", path: "/api/v1/actions/widget.dashboard", pathParams: [], public: false },
   "widget.data": { method: "GET", path: "/api/v1/actions/widget.data", pathParams: [], public: false },
   "widget.history": { method: "GET", path: "/api/v1/actions/widget.history", pathParams: [], public: false },
@@ -489,6 +493,10 @@ export interface Actions {
   "user.update": { input: NonNullable<operations["user_update"]["requestBody"]>["content"]["application/json"]; output: operations["user_update"]["responses"][200]["content"]["application/json"] };
   "visibility.list": { input: NonNullable<operations["visibility_list"]["parameters"]["query"]>; output: operations["visibility_list"]["responses"][200]["content"]["application/json"] };
   "visibility.rebuild": { input: NonNullable<operations["visibility_rebuild"]["requestBody"]>["content"]["application/json"]; output: operations["visibility_rebuild"]["responses"][200]["content"]["application/json"] };
+  "webhook.list": { input: Record<string, never>; output: operations["webhook_list"]["responses"][200]["content"]["application/json"] };
+  "webhook.register": { input: NonNullable<operations["webhook_register"]["requestBody"]>["content"]["application/json"]; output: operations["webhook_register"]["responses"][200]["content"]["application/json"] };
+  "webhook.remove": { input: NonNullable<operations["webhook_remove"]["requestBody"]>["content"]["application/json"]; output: operations["webhook_remove"]["responses"][200]["content"]["application/json"] };
+  "webhook.test": { input: NonNullable<operations["webhook_test"]["requestBody"]>["content"]["application/json"]; output: operations["webhook_test"]["responses"][200]["content"]["application/json"] };
   "widget.dashboard": { input: Record<string, never>; output: operations["widget_dashboard"]["responses"][200]["content"]["application/json"] };
   "widget.data": { input: NonNullable<operations["widget_data"]["parameters"]["query"]>; output: operations["widget_data"]["responses"][200]["content"]["application/json"] };
   "widget.history": { input: NonNullable<operations["widget_history"]["parameters"]["query"]>; output: operations["widget_history"]["responses"][200]["content"]["application/json"] };
