@@ -383,6 +383,31 @@ full — including the taxonomy objectives, product lines, widgets and (for Camp
 the attribution defaults it carries — so an Admin sees exactly what adopting one
 brings before anything changes.
 
+## Demo mode
+
+Demo mode loads a small, self-contained Scorecards world so anyone evaluating the
+product sees a populated system without wiring up a feed. `demo.seed` builds a demo
+area manager and a team of six relationship managers on one profile, four metrics,
+published monthly targets and actuals for the last three months, and a default
+rating-band set when the org has none — then rebuilds each period's visibility
+closure. No period is closed, so the live scorecard, history and roll-up screens
+compute straight from the seeded data.
+
+```bash
+docker compose exec app python manage.py action demo.status --user admin --json '{}'
+docker compose exec app python manage.py action demo.seed   --user admin --json '{}'
+docker compose exec app python manage.py action demo.reset  --user admin --json '{}'
+```
+
+The world is namespaced — `DEMO-` staff numbers and `demo_` metric codes — so it
+reads as a demonstration and cannot collide with a real registry. Every row the
+seeder writes is recorded in a demo ledger (`demo_artifact`), so `demo.reset`
+removes exactly what it created and nothing a client authored: a client's own
+subjects, metrics, targets and rating bands are never touched. `demo.seed` refuses
+if demo data is already loaded; clear it first. The seed covers the Scorecards
+surface today; Agent Performance, Campaign and Executive demo data are a planned
+follow-up.
+
 ## Agent Performance: daily pace
 
 Agent Performance reads the daily facts the `actual_daily` feed writes

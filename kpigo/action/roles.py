@@ -66,6 +66,9 @@ OPERATIONS = (
 # Starter packs (PRD OP-9): viewing the shipped packs and loading one at onboarding.
 PACKS = ("pack.view", "pack.manage")
 
+# Demo mode (PRD OP-9): loading and clearing a synthetic world for evaluation.
+DEMO = ("demo.view", "demo.manage")
+
 # Configuration custodians: hierarchy, dimensions and FX are data-steward work.
 STEWARD = (
     "hierarchy.view",
@@ -141,6 +144,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *ACCESS,
             *OPERATIONS,
             *PACKS,
+            *DEMO,
             "platform.registry.view",
             "platform.approval.decide",
             "platform.migrations.view",

@@ -376,3 +376,31 @@ class Notification(Stamped):
 
     def __str__(self) -> str:
         return f"{self.category} → {self.recipient_id} ({'read' if self.read_at else 'unread'})"
+
+
+class DemoArtifact(models.Model):
+    """One row the demo seeder created, so ``demo.reset`` can remove exactly what it made
+    and nothing a client authored (PRD OP-9). The demo is a separate thing from a client's
+    own data: it is tracked here, not by a flag on every table, so loading or clearing it
+    never touches a real subject, metric or target. ``batch_id`` groups a single seed run;
+    ``model_label`` is the Django ``app_label.ModelName`` and ``object_pk`` its primary key
+    as text (uuid or composite), deleted newest-first within a batch at reset.
+    """
+
+    demo_artifact_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    batch_id = models.UUIDField()
+    model_label = models.TextField()
+    object_pk = models.TextField()
+    # A short note on what the row is (e.g. "subject", "target 202610"), for the report only.
+    note = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "demo_artifact"
+        indexes = [
+            models.Index(fields=["org_id", "batch_id"], name="demo_artifact_batch"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.model_label}:{self.object_pk}"
