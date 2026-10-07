@@ -89,6 +89,9 @@ export const ROUTES = {
   "directory.test": { method: "GET", path: "/api/v1/actions/directory.test", pathParams: [], public: false },
   "executive.input.list": { method: "GET", path: "/api/v1/actions/executive.input.list", pathParams: [], public: false },
   "executive.input.set": { method: "POST", path: "/api/v1/actions/executive.input.set", pathParams: [], public: false },
+  "executive.view.delete": { method: "POST", path: "/api/v1/actions/executive.view.delete", pathParams: [], public: false },
+  "executive.view.list": { method: "GET", path: "/api/v1/actions/executive.view.list", pathParams: [], public: false },
+  "executive.view.save": { method: "POST", path: "/api/v1/actions/executive.view.save", pathParams: [], public: false },
   "feed.contract.export": { method: "GET", path: "/api/v1/actions/feed.contract.export", pathParams: [], public: false },
   "feed.dry_run": { method: "POST", path: "/api/v1/actions/feed.dry_run", pathParams: [], public: false },
   "feed.get": { method: "GET", path: "/api/v1/actions/feed.get", pathParams: [], public: false },
@@ -321,6 +324,9 @@ export interface Actions {
   "directory.test": { input: NonNullable<operations["directory_test"]["parameters"]["query"]>; output: operations["directory_test"]["responses"][200]["content"]["application/json"] };
   "executive.input.list": { input: NonNullable<operations["executive_input_list"]["parameters"]["query"]>; output: operations["executive_input_list"]["responses"][200]["content"]["application/json"] };
   "executive.input.set": { input: NonNullable<operations["executive_input_set"]["requestBody"]>["content"]["application/json"]; output: operations["executive_input_set"]["responses"][200]["content"]["application/json"] };
+  "executive.view.delete": { input: NonNullable<operations["executive_view_delete"]["requestBody"]>["content"]["application/json"]; output: operations["executive_view_delete"]["responses"][200]["content"]["application/json"] };
+  "executive.view.list": { input: Record<string, never>; output: operations["executive_view_list"]["responses"][200]["content"]["application/json"] };
+  "executive.view.save": { input: NonNullable<operations["executive_view_save"]["requestBody"]>["content"]["application/json"]; output: operations["executive_view_save"]["responses"][200]["content"]["application/json"] };
   "feed.contract.export": { input: NonNullable<operations["feed_contract_export"]["parameters"]["query"]>; output: operations["feed_contract_export"]["responses"][200]["content"]["application/json"] };
   "feed.dry_run": { input: NonNullable<operations["feed_dry_run"]["requestBody"]>["content"]["application/json"]; output: operations["feed_dry_run"]["responses"][200]["content"]["application/json"] };
   "feed.get": { input: NonNullable<operations["feed_get"]["parameters"]["query"]>; output: operations["feed_get"]["responses"][200]["content"]["application/json"] };

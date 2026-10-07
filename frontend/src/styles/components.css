@@ -311,6 +311,10 @@
 .kg-linkish:hover { text-decoration: underline; }
 .kg-crumbs .kg-linkish { font-size: 13px; }
 
+/* saved-views bar: the reader's own named snapshots of the dashboard's filters */
+.kg-viewbar { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+.kg-viewbar__save { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+
 /* bullet: actual bar against a target marker, coloured by standing */
 .kg-bullets { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
 .kg-bullet__label { font-size: 13px; font-weight: 500; }

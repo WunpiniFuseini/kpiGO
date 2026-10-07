@@ -27,6 +27,7 @@ function execApp({ me = adminMe, dash = "ok", dataError = false }: { me?: Me; da
     setTransport(async (url) => {
       const name = nameFor(url);
       if (name === "auth.me") return json(me);
+      if (name === "executive.view.list") return json({ views: [] });
       if (name === "widget.dashboard") {
         if (dash === "pending") return new Promise<Response>(() => {});
         if (dash === "error") return json(serverError, 500);

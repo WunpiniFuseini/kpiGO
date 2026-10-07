@@ -27,7 +27,16 @@ function serveExec(me: Me, widgets: unknown, tile: unknown = kpiData) {
   setTransport(async (url) => {
     const action = (Object.keys(ROUTES) as ActionName[]).find((n) => ROUTES[n].path === url.split("?")[0]);
     calls.push({ action, url });
-    const payload = action === "auth.me" ? me : action === "widget.dashboard" ? widgets : action === "widget.data" ? tile : {};
+    const payload =
+      action === "auth.me"
+        ? me
+        : action === "executive.view.list"
+          ? { views: [] }
+          : action === "widget.dashboard"
+            ? widgets
+            : action === "widget.data"
+              ? tile
+              : {};
     return new Response(JSON.stringify(payload), { status: 200 });
   });
   return calls;
