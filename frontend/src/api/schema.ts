@@ -3999,6 +3999,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/packs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The starter packs shipped with this version, with their full contents. */
+        get: operations["pack_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/packs/load": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Load a starter pack into this org: additive and non-destructive (adopt-and-amend). */
+        post: operations["pack_load"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/registry": {
         parameters: {
             query?: never;
@@ -8819,6 +8853,100 @@ export interface components {
             label: string;
             /** Ramp Position */
             ramp_position: number;
+        };
+        /** PackBandOut */
+        PackBandOut: {
+            /** Label */
+            label: string;
+            /** Ramp Position */
+            ramp_position: number;
+            /** Threshold */
+            threshold: string;
+        };
+        /** PackListOut */
+        PackListOut: {
+            /** Packs */
+            packs: components["schemas"]["PackOut"][];
+        };
+        /** PackLoadIn */
+        PackLoadIn: {
+            /** Pack Key */
+            pack_key: string;
+        };
+        /** PackLoadOut */
+        PackLoadOut: {
+            /** Bands Applied */
+            bands_applied: boolean;
+            /** Bands Note */
+            bands_note: string;
+            /** Message */
+            message: string;
+            /** Metrics Created */
+            metrics_created: string[];
+            /** Metrics Skipped */
+            metrics_skipped: string[];
+            /** Name Conflicts */
+            name_conflicts: string[];
+            /** Pack Key */
+            pack_key: string;
+            /** Pack Version */
+            pack_version: string;
+        };
+        /** PackMetricOut */
+        PackMetricOut: {
+            /** Aggregation */
+            aggregation: string;
+            /** Cap */
+            cap: number | null;
+            /** Code */
+            code: string;
+            /** Collection */
+            collection: string;
+            /** Direction */
+            direction: string;
+            /** Name */
+            name: string;
+            /** Objective */
+            objective: string;
+            /** Products */
+            products: string[];
+            /** Target Scope */
+            target_scope: string;
+            /** Unit */
+            unit: string;
+            /** Weight */
+            weight: number | null;
+        };
+        /** PackOut */
+        PackOut: {
+            /** Bands */
+            bands: components["schemas"]["PackBandOut"][];
+            /** Campaign Defaults */
+            campaign_defaults: {
+                [key: string]: unknown;
+            };
+            /** Feed Template */
+            feed_template: string;
+            /** Key */
+            key: string;
+            /** Metric Count */
+            metric_count: number;
+            /** Metrics */
+            metrics: components["schemas"]["PackMetricOut"][];
+            /** Objectives */
+            objectives: string[];
+            /** Product Lines */
+            product_lines: string[];
+            /** Role */
+            role: string;
+            /** Summary */
+            summary: string;
+            /** Title */
+            title: string;
+            /** Version */
+            version: string;
+            /** Widgets */
+            widgets: string[];
         };
         /** PageOut */
         PageOut: {
@@ -29459,6 +29587,149 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    pack_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    pack_load: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackLoadIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackLoadOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -14855,6 +14855,286 @@
         "title": "PaceBandOut",
         "type": "object"
       },
+      "PackBandOut": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "ramp_position": {
+            "title": "Ramp Position",
+            "type": "integer"
+          },
+          "threshold": {
+            "title": "Threshold",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "threshold",
+          "ramp_position"
+        ],
+        "title": "PackBandOut",
+        "type": "object"
+      },
+      "PackListOut": {
+        "properties": {
+          "packs": {
+            "items": {
+              "$ref": "#/components/schemas/PackOut"
+            },
+            "title": "Packs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "packs"
+        ],
+        "title": "PackListOut",
+        "type": "object"
+      },
+      "PackLoadIn": {
+        "properties": {
+          "pack_key": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Pack Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pack_key"
+        ],
+        "title": "PackLoadIn",
+        "type": "object"
+      },
+      "PackLoadOut": {
+        "properties": {
+          "bands_applied": {
+            "title": "Bands Applied",
+            "type": "boolean"
+          },
+          "bands_note": {
+            "title": "Bands Note",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "metrics_created": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Metrics Created",
+            "type": "array"
+          },
+          "metrics_skipped": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Metrics Skipped",
+            "type": "array"
+          },
+          "name_conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Name Conflicts",
+            "type": "array"
+          },
+          "pack_key": {
+            "title": "Pack Key",
+            "type": "string"
+          },
+          "pack_version": {
+            "title": "Pack Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pack_key",
+          "pack_version",
+          "metrics_created",
+          "metrics_skipped",
+          "name_conflicts",
+          "bands_applied",
+          "bands_note",
+          "message"
+        ],
+        "title": "PackLoadOut",
+        "type": "object"
+      },
+      "PackMetricOut": {
+        "properties": {
+          "aggregation": {
+            "title": "Aggregation",
+            "type": "string"
+          },
+          "cap": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "collection": {
+            "title": "Collection",
+            "type": "string"
+          },
+          "direction": {
+            "title": "Direction",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "objective": {
+            "title": "Objective",
+            "type": "string"
+          },
+          "products": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Products",
+            "type": "array"
+          },
+          "target_scope": {
+            "title": "Target Scope",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "objective",
+          "direction",
+          "aggregation",
+          "unit",
+          "target_scope",
+          "collection",
+          "products",
+          "weight",
+          "cap"
+        ],
+        "title": "PackMetricOut",
+        "type": "object"
+      },
+      "PackOut": {
+        "properties": {
+          "bands": {
+            "items": {
+              "$ref": "#/components/schemas/PackBandOut"
+            },
+            "title": "Bands",
+            "type": "array"
+          },
+          "campaign_defaults": {
+            "additionalProperties": true,
+            "title": "Campaign Defaults",
+            "type": "object"
+          },
+          "feed_template": {
+            "title": "Feed Template",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "metric_count": {
+            "title": "Metric Count",
+            "type": "integer"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/PackMetricOut"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "objectives": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Objectives",
+            "type": "array"
+          },
+          "product_lines": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Product Lines",
+            "type": "array"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          },
+          "widgets": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Widgets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "version",
+          "title",
+          "role",
+          "summary",
+          "metric_count",
+          "metrics",
+          "objectives",
+          "bands",
+          "product_lines",
+          "widgets",
+          "campaign_defaults",
+          "feed_template"
+        ],
+        "title": "PackOut",
+        "type": "object"
+      },
       "PageOut": {
         "properties": {
           "access": {
@@ -47250,6 +47530,182 @@
           "platform"
         ],
         "x-kpigo-action": "system.update.history"
+      }
+    },
+    "/api/v1/packs": {
+      "get": {
+        "operationId": "pack_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "The starter packs shipped with this version, with their full contents.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "pack.list"
+      }
+    },
+    "/api/v1/packs/load": {
+      "post": {
+        "operationId": "pack_load",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PackLoadIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackLoadOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Load a starter pack into this org: additive and non-destructive (adopt-and-amend).",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "pack.load"
       }
     },
     "/api/v1/registry": {
