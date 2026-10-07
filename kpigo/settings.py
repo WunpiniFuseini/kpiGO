@@ -295,6 +295,11 @@ if env("KPIGO_INPUT_REMINDER_USER"):
         }
     )
 
+# Where a carried-in update bundle is unpacked for the update service to verify
+# (PRD UP-*). A signed manifest.json plus its image artefacts land here; nothing
+# reaches the network. system.update.check/apply read this directory.
+KPIGO_UPDATE_DIR = env("KPIGO_UPDATE_DIR", "/var/lib/kpigo/updates")
+
 # Take a backup daily as this user, when one is named (PRD OP-5).
 KPIGO_BACKUP_DIR = env("KPIGO_BACKUP_DIR", "/var/lib/kpigo/backups")
 if env("KPIGO_BACKUP_USER"):

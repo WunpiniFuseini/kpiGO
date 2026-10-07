@@ -49,6 +49,8 @@ OPERATIONS = (
     "system.backup.view",
     "system.backup.manage",
     "system.diagnostics.view",
+    "system.update.view",
+    "system.update.manage",
 )
 
 # Configuration custodians: hierarchy, dimensions and FX are data-steward work.
@@ -200,6 +202,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             "system.health.view",
             "system.backup.view",
             "system.diagnostics.view",
+            "system.update.view",
             "agent.retention.manage",
             PRODUCT_LINES,
         ),

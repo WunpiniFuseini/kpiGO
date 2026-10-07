@@ -285,3 +285,34 @@ class BackupRun(Tracked):
 
     def __str__(self) -> str:
         return f"{self.kind} backup {self.created_at:%Y-%m-%d %H:%M} ({self.outcome})"
+
+
+UPDATE_OUTCOMES = ("authorised", "failed")
+
+
+class VersionHistory(Tracked):
+    """The ledger of upgrades authorised on this install (PRD UP-*, TDD §12.1).
+
+    One row per ``system.update.apply``: which versions, which signing key, the
+    pre-upgrade backup that gates it, and whether the pre-flight passed. The row is
+    the record an operator and kpiGo support read to see what this install has been
+    through; the mechanical apply (image load, migrations, restart) is driven by the
+    operator after the row is written, so an authorisation always has a restore point.
+    """
+
+    version_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    from_version = models.TextField()
+    to_version = models.TextField()
+    outcome = models.TextField()
+    key_id = models.TextField(blank=True, default="")
+    backup_id = models.UUIDField(null=True)
+    detail = models.TextField(blank=True, default="")
+
+    class Meta:
+        db_table = "version_history"
+        indexes = [models.Index(fields=["org_id", "-created_at"], name="version_history_org_time")]
+        constraints = [one_of("outcome", UPDATE_OUTCOMES, "version_history_outcome_valid")]
+
+    def __str__(self) -> str:
+        return f"{self.from_version} → {self.to_version} ({self.outcome})"

@@ -134,6 +134,7 @@ export const healthOk: Output<"system.health"> = {
     last_outcome: "ok",
     last_ok_at: "2026-10-04T02:00:00Z",
   },
+  update: null,
   version: { product_version: "0.1.0", migrations: {} },
 };
 

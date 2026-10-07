@@ -210,6 +210,9 @@ export const ROUTES = {
   "system.backup.list": { method: "GET", path: "/api/v1/ops/backups", pathParams: [], public: false },
   "system.diagnostics": { method: "GET", path: "/api/v1/ops/diagnostics", pathParams: [], public: false },
   "system.health": { method: "GET", path: "/api/v1/health", pathParams: [], public: false },
+  "system.update.apply": { method: "POST", path: "/api/v1/ops/update/apply", pathParams: [], public: false },
+  "system.update.check": { method: "GET", path: "/api/v1/ops/update/check", pathParams: [], public: false },
+  "system.update.history": { method: "GET", path: "/api/v1/ops/update/history", pathParams: [], public: false },
   "target.batch.list": { method: "GET", path: "/api/v1/actions/target.batch.list", pathParams: [], public: false },
   "target.batch.revert": { method: "POST", path: "/api/v1/actions/target.batch.revert", pathParams: [], public: false },
   "target.copy_forward": { method: "POST", path: "/api/v1/actions/target.copy_forward", pathParams: [], public: false },
@@ -448,6 +451,9 @@ export interface Actions {
   "system.backup.list": { input: NonNullable<operations["system_backup_list"]["parameters"]["query"]>; output: operations["system_backup_list"]["responses"][200]["content"]["application/json"] };
   "system.diagnostics": { input: Record<string, never>; output: operations["system_diagnostics"]["responses"][200]["content"]["application/json"] };
   "system.health": { input: NonNullable<operations["system_health"]["parameters"]["query"]>; output: operations["system_health"]["responses"][200]["content"]["application/json"] };
+  "system.update.apply": { input: NonNullable<operations["system_update_apply"]["requestBody"]>["content"]["application/json"]; output: operations["system_update_apply"]["responses"][200]["content"]["application/json"] };
+  "system.update.check": { input: Record<string, never>; output: operations["system_update_check"]["responses"][200]["content"]["application/json"] };
+  "system.update.history": { input: NonNullable<operations["system_update_history"]["parameters"]["query"]>; output: operations["system_update_history"]["responses"][200]["content"]["application/json"] };
   "target.batch.list": { input: NonNullable<operations["target_batch_list"]["parameters"]["query"]>; output: operations["target_batch_list"]["responses"][200]["content"]["application/json"] };
   "target.batch.revert": { input: NonNullable<operations["target_batch_revert"]["requestBody"]>["content"]["application/json"]; output: operations["target_batch_revert"]["responses"][200]["content"]["application/json"] };
   "target.copy_forward": { input: NonNullable<operations["target_copy_forward"]["requestBody"]>["content"]["application/json"]; output: operations["target_copy_forward"]["responses"][200]["content"]["application/json"] };

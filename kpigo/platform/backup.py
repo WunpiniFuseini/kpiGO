@@ -160,15 +160,20 @@ def run_backup(
     org_id: str,
     directory: Path,
     *,
-    dump: Callable[[Path, dict[str, str]], None] = _pg_dump,
+    dump: Callable[[Path, dict[str, str]], None] | None = None,
 ) -> BackupResult:
     """Write a dump + a config summary + a manifest into a timestamped folder.
 
     Returns a ``BackupResult`` describing the artefact. The caller records it as a
     ``BackupRun`` and audits it; this function does no database writes of its own.
+
+    ``dump`` defaults to ``_pg_dump``, resolved from the module at call time so a
+    test can swap it (``monkeypatch.setattr(backup, "_pg_dump", ...)``).
     """
     from kpigo.licence.state import product_version
     from kpigo.platform.models import OrgSettings
+
+    dump = dump or _pg_dump
 
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     folder = directory / f"kpigo-backup-{stamp}"

@@ -131,6 +131,37 @@ The **diagnostic bundle** (`system.diagnostics`) is the one artefact safe to sen
 kpiGo support: versions, migration state, table sizes, counts and licence state,
 and **no client data** — no names, feeds, values or scores.
 
+## Upgrades
+
+An upgrade arrives the same way a first install does: a single carried-in bundle,
+no network. kpiGo proves it before anything is applied — a bundle that is not
+signed by a key this release trusts, whose files do not match its manifest, whose
+version is above the licence ceiling, or that skips a required step is refused.
+
+```bash
+# Stage the unpacked bundle (manifest.json + images.tar) under KPIGO_UPDATE_DIR,
+# then see whether it is good to apply:
+docker compose exec app python manage.py action system.update.check --user ops --json '{}'
+
+# Apply it: re-checks the bundle, takes the MANDATORY pre-upgrade backup, logs it,
+# loads the images, and prints the maintenance/migrate steps.
+scripts/apply_update.sh /var/lib/kpigo/updates --run-as ops
+```
+
+`system.update.apply` is the audited gate and ledger: it will not authorise an
+upgrade without a fresh pre-upgrade backup to fall back on, and it records every
+authorisation (`system.update.history`). The mechanical steps it then hands you —
+maintenance mode on, `migrate`, maintenance off, restart — are host operations,
+because maintenance mode is env-driven (`KPIGO_MAINTENANCE_MODE`), not something an
+action flips under you. The health page shows a staged update and whether it is
+ready. Migrations are additive and reversible within a major, so the pre-upgrade
+backup plus `scripts/restore.sh` is always a clean way back.
+
+> kpiGo ships with **no bundle-signing key trusted yet** — `BUNDLE_TRUSTED_KEYS` in
+> `kpigo/platform/updates.py` is empty, so every bundle is refused until the
+> release adds its public key (`tools/bundle_vendor.py keygen`). The private half
+> never leaves the vendor's vault.
+
 ## Develop
 
 Python 3.12 with [uv](https://docs.astral.sh/uv/), Postgres 16 and Redis on

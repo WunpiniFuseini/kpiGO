@@ -9842,6 +9842,16 @@
             "title": "Status",
             "type": "string"
           },
+          "update": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UpdateHealth"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "version": {
             "$ref": "#/components/schemas/VersionOut"
           }
@@ -9856,6 +9866,7 @@
           "feeds",
           "licence",
           "backup",
+          "update",
           "version"
         ],
         "title": "HealthOut",
@@ -20900,6 +20911,205 @@
         "title": "UnassignedMetricOut",
         "type": "object"
       },
+      "UpdateApplyIn": {
+        "properties": {
+          "confirm_version": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Confirm Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confirm_version"
+        ],
+        "title": "UpdateApplyIn",
+        "type": "object"
+      },
+      "UpdateApplyOut": {
+        "properties": {
+          "authorised": {
+            "title": "Authorised",
+            "type": "boolean"
+          },
+          "backup_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Backup Id"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "next_steps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Next Steps",
+            "type": "array"
+          },
+          "record": {
+            "$ref": "#/components/schemas/VersionHistoryOut"
+          }
+        },
+        "required": [
+          "authorised",
+          "record",
+          "backup_id",
+          "next_steps",
+          "message"
+        ],
+        "title": "UpdateApplyOut",
+        "type": "object"
+      },
+      "UpdateCheckOut": {
+        "properties": {
+          "artefacts_ok": {
+            "title": "Artefacts Ok",
+            "type": "boolean"
+          },
+          "ceiling": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ceiling"
+          },
+          "entitled": {
+            "title": "Entitled",
+            "type": "boolean"
+          },
+          "found": {
+            "title": "Found",
+            "type": "boolean"
+          },
+          "from_version": {
+            "title": "From Version",
+            "type": "string"
+          },
+          "installed_version": {
+            "title": "Installed Version",
+            "type": "string"
+          },
+          "is_upgrade": {
+            "title": "Is Upgrade",
+            "type": "boolean"
+          },
+          "key_id": {
+            "title": "Key Id",
+            "type": "string"
+          },
+          "min_from_version": {
+            "title": "Min From Version",
+            "type": "string"
+          },
+          "path_ok": {
+            "title": "Path Ok",
+            "type": "boolean"
+          },
+          "ready": {
+            "title": "Ready",
+            "type": "boolean"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "signature_ok": {
+            "title": "Signature Ok",
+            "type": "boolean"
+          },
+          "to_version": {
+            "title": "To Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "found",
+          "installed_version",
+          "to_version",
+          "from_version",
+          "min_from_version",
+          "key_id",
+          "signature_ok",
+          "artefacts_ok",
+          "entitled",
+          "ceiling",
+          "path_ok",
+          "is_upgrade",
+          "ready",
+          "reason"
+        ],
+        "title": "UpdateCheckOut",
+        "type": "object"
+      },
+      "UpdateHealth": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "ready": {
+            "title": "Ready",
+            "type": "boolean"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "to_version": {
+            "title": "To Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "available",
+          "to_version",
+          "ready",
+          "reason"
+        ],
+        "title": "UpdateHealth",
+        "type": "object"
+      },
+      "UpdateHistoryInQuery": {
+        "properties": {
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "UpdateHistoryInQuery",
+        "type": "object"
+      },
+      "UpdateHistoryOut": {
+        "properties": {
+          "updates": {
+            "items": {
+              "$ref": "#/components/schemas/VersionHistoryOut"
+            },
+            "title": "Updates",
+            "type": "array"
+          }
+        },
+        "required": [
+          "updates"
+        ],
+        "title": "UpdateHistoryOut",
+        "type": "object"
+      },
       "UpdateOut": {
         "properties": {
           "metric": {
@@ -21343,6 +21553,62 @@
           "user_id"
         ],
         "title": "UserUpdateIn",
+        "type": "object"
+      },
+      "VersionHistoryOut": {
+        "properties": {
+          "backup_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Backup Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "detail": {
+            "default": "",
+            "title": "Detail",
+            "type": "string"
+          },
+          "from_version": {
+            "title": "From Version",
+            "type": "string"
+          },
+          "key_id": {
+            "title": "Key Id",
+            "type": "string"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "to_version": {
+            "title": "To Version",
+            "type": "string"
+          },
+          "version_id": {
+            "title": "Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version_id",
+          "from_version",
+          "to_version",
+          "outcome",
+          "key_id",
+          "backup_id",
+          "created_at"
+        ],
+        "title": "VersionHistoryOut",
         "type": "object"
       },
       "VersionOut": {
@@ -46256,6 +46522,273 @@
           "platform"
         ],
         "x-kpigo-action": "system.diagnostics"
+      }
+    },
+    "/api/v1/ops/update/apply": {
+      "post": {
+        "operationId": "system_update_apply",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateApplyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateApplyOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Authorise a staged upgrade: re-check, take the mandatory pre-upgrade backup, log it.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "system.update.apply"
+      }
+    },
+    "/api/v1/ops/update/check": {
+      "get": {
+        "operationId": "system_update_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateCheckOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Inspect the staged update bundle: signature, checksums, entitlement and path.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "system.update.check"
+      }
+    },
+    "/api/v1/ops/update/history": {
+      "get": {
+        "operationId": "system_update_history",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateHistoryOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "The ledger of upgrades authorised on this install, newest first.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "system.update.history"
       }
     },
     "/api/v1/registry": {

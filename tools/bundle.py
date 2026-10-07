@@ -83,6 +83,18 @@ def build_manifest(
     }
 
 
+def canonical_payload(manifest: dict[str, Any]) -> bytes:
+    """The exact bytes a bundle's signature covers: the manifest without its own
+    ``key_id`` and ``signature``, canonicalised (sorted keys, no whitespace).
+
+    Both the vendor signer (``tools/bundle_vendor.py``) and the app's update
+    service compute the signed bytes this way, so a manifest signed on the build
+    box verifies byte-for-byte on the air-gapped install host.
+    """
+    body = {k: v for k, v in manifest.items() if k not in ("key_id", "signature")}
+    return json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
+
+
 def read_manifest(path: Path) -> dict[str, Any]:
     """Load and shape-check a manifest. Does not verify checksums or signature."""
     try:
