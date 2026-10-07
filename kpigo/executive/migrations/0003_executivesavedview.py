@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("access", "0002_user_preference"),
         ("executive", "0002_executivemanualinput"),
@@ -19,16 +18,12 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "created_at",
-                    models.DateTimeField(
-                        db_default=django.db.models.functions.datetime.Now()
-                    ),
+                    models.DateTimeField(db_default=django.db.models.functions.datetime.Now()),
                 ),
                 ("created_by", models.BigIntegerField(null=True)),
                 (
                     "updated_at",
-                    models.DateTimeField(
-                        db_default=django.db.models.functions.datetime.Now()
-                    ),
+                    models.DateTimeField(db_default=django.db.models.functions.datetime.Now()),
                 ),
                 ("updated_by", models.BigIntegerField(null=True)),
                 (
@@ -55,9 +50,7 @@ class Migration(migrations.Migration):
             options={
                 "db_table": "executive_saved_view",
                 "indexes": [
-                    models.Index(
-                        fields=["org_id", "app_user"], name="executive_view_owner"
-                    )
+                    models.Index(fields=["org_id", "app_user"], name="executive_view_owner")
                 ],
                 "constraints": [
                     models.UniqueConstraint(
