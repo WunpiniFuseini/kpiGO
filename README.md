@@ -357,6 +357,34 @@ clean no-op and the centre still carries everything. The escalation ladder sends
 its own immediate email, so its notices are marked out of the digest and never
 emailed twice.
 
+## Webhooks
+
+The same notices can be delivered to the client's own systems over HTTP (PRD OP-8).
+An Admin registers an endpoint with `webhook.register`; whenever a notice is raised,
+kpiGo POSTs a small JSON payload to every active endpoint subscribed to that
+category and at or above its `min_level`.
+
+```bash
+docker compose exec app python manage.py action webhook.register --user admin --json \
+  '{"name":"ops-bus","url":"https://events.bank.local/kpigo",
+    "categories":["load_quarantined","escalation"],"min_level":"warning"}'
+docker compose exec app python manage.py action webhook.test --user admin --json '{"name":"ops-bus"}'
+docker compose exec app python manage.py action webhook.list --user admin --json '{}'
+```
+
+Like email, webhooks are **off until configured** (no endpoint, no call) and go
+only to the install's own endpoints — never the vendor; `KPIGO_WEBHOOKS_ENABLED=0`
+turns them off install-wide for an air-gapped deployment. The payload carries the
+event category, level, title, link and subject reference and an ISO timestamp —
+**titles and counts only, never a score or a value** — so it is safe to send off
+the install. `webhook.register` returns a signing secret **once**; kpiGo signs
+every delivery with it (`X-KpiGo-Signature: sha256=…`, HMAC-SHA256 over the body)
+so the receiver can trust the origin, and the secret is stored only encrypted and
+never shown again. Delivery is best-effort: a receiver that is down or slow is
+recorded on the endpoint (`last_status`) and retried on the next notice, never
+raised into the action that produced the notice. At-least-once retry with a
+delivery log is a planned follow-up.
+
 ## Starter packs
 
 A starter pack is a versioned, industry-specific configuration bundle — metric

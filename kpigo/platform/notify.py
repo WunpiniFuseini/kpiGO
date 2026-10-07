@@ -13,8 +13,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.db import transaction
+
 from kpigo.access.identity import role_codes, role_permissions
 from kpigo.access.models import AppUser
+from kpigo.platform import webhooks
 from kpigo.platform.models import Notification
 
 
@@ -46,7 +49,7 @@ def notify(
     that decides whether it sticks, so a dry run rolls it back with everything else.
     """
     recipient_id = getattr(recipient, "user_id", recipient)
-    return Notification.objects.create(
+    notification = Notification.objects.create(
         org_id=org_id,
         recipient_id=recipient_id,
         category=category,
@@ -58,3 +61,7 @@ def notify(
         digest=digest,
         created_by=created_by,
     )
+    # Fan the notice out to any configured webhook endpoints, but only once the caller's
+    # transaction has committed — a dry run rolls back and sends nothing (PRD OP-8).
+    transaction.on_commit(lambda: webhooks.deliver_for(notification))
+    return notification
