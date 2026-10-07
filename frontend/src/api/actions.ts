@@ -21,6 +21,9 @@ export const ROUTES = {
   "agent.visibility.clear": { method: "POST", path: "/api/v1/actions/agent.visibility.clear", pathParams: [], public: false },
   "agent.visibility.list": { method: "GET", path: "/api/v1/actions/agent.visibility.list", pathParams: [], public: false },
   "agent.visibility.set": { method: "POST", path: "/api/v1/actions/agent.visibility.set", pathParams: [], public: false },
+  "apitoken.issue": { method: "POST", path: "/api/v1/api-tokens", pathParams: [], public: false },
+  "apitoken.list": { method: "GET", path: "/api/v1/api-tokens", pathParams: [], public: false },
+  "apitoken.revoke": { method: "POST", path: "/api/v1/api-tokens/revoke", pathParams: [], public: false },
   "approval.policy.list": { method: "GET", path: "/api/v1/approval-policies", pathParams: [], public: false },
   "approval.policy.set": { method: "POST", path: "/api/v1/actions/approval.policy.set", pathParams: [], public: false },
   "assignment.create": { method: "POST", path: "/api/v1/actions/assignment.create", pathParams: [], public: false },
@@ -274,6 +277,9 @@ export interface Actions {
   "agent.visibility.clear": { input: NonNullable<operations["agent_visibility_clear"]["requestBody"]>["content"]["application/json"]; output: operations["agent_visibility_clear"]["responses"][200]["content"]["application/json"] };
   "agent.visibility.list": { input: NonNullable<operations["agent_visibility_list"]["parameters"]["query"]>; output: operations["agent_visibility_list"]["responses"][200]["content"]["application/json"] };
   "agent.visibility.set": { input: NonNullable<operations["agent_visibility_set"]["requestBody"]>["content"]["application/json"]; output: operations["agent_visibility_set"]["responses"][200]["content"]["application/json"] };
+  "apitoken.issue": { input: NonNullable<operations["apitoken_issue"]["requestBody"]>["content"]["application/json"]; output: operations["apitoken_issue"]["responses"][200]["content"]["application/json"] };
+  "apitoken.list": { input: Record<string, never>; output: operations["apitoken_list"]["responses"][200]["content"]["application/json"] };
+  "apitoken.revoke": { input: NonNullable<operations["apitoken_revoke"]["requestBody"]>["content"]["application/json"]; output: operations["apitoken_revoke"]["responses"][200]["content"]["application/json"] };
   "approval.policy.list": { input: Record<string, never>; output: operations["approval_policy_list"]["responses"][200]["content"]["application/json"] };
   "approval.policy.set": { input: NonNullable<operations["approval_policy_set"]["requestBody"]>["content"]["application/json"]; output: operations["approval_policy_set"]["responses"][200]["content"]["application/json"] };
   "assignment.create": { input: NonNullable<operations["assignment_create"]["requestBody"]>["content"]["application/json"]; output: operations["assignment_create"]["responses"][200]["content"]["application/json"] };

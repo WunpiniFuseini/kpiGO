@@ -48,6 +48,13 @@ def resolve(user: Any, org_id: str) -> Principal:
     account = app_user_for(user, org_id)
     if account is None:
         raise NotAuthenticated("This sign-in has no kpiGo account.")
+    return principal_for_account(account, org_id)
+
+
+def principal_for_account(account: AppUser, org_id: str) -> Principal:
+    """The principal for a known account, however it authenticated (session or API token).
+    Roles, permissions and scope are read here, not at sign-in, so a disabled account or a
+    removed role takes effect on the next request."""
     if account.status != "active":
         raise NotAuthenticated(f"This kpiGo account is {account.status}.")
     codes = role_codes(account)

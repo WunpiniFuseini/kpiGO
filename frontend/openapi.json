@@ -1442,6 +1442,164 @@
         "title": "AgentTrendPointOut",
         "type": "object"
       },
+      "ApiTokenIssueIn": {
+        "properties": {
+          "expires_in_days": {
+            "anyOf": [
+              {
+                "maximum": 3650,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires In Days"
+          },
+          "name": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ApiTokenIssueIn",
+        "type": "object"
+      },
+      "ApiTokenIssueOut": {
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "secret": {
+            "title": "Secret",
+            "type": "string"
+          },
+          "token": {
+            "$ref": "#/components/schemas/ApiTokenOut"
+          }
+        },
+        "required": [
+          "token",
+          "secret",
+          "message"
+        ],
+        "title": "ApiTokenIssueOut",
+        "type": "object"
+      },
+      "ApiTokenListOut": {
+        "properties": {
+          "tokens": {
+            "items": {
+              "$ref": "#/components/schemas/ApiTokenOut"
+            },
+            "title": "Tokens",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tokens"
+        ],
+        "title": "ApiTokenListOut",
+        "type": "object"
+      },
+      "ApiTokenOut": {
+        "properties": {
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "prefix": {
+            "title": "Prefix",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "prefix",
+          "status",
+          "expires_at",
+          "last_used_at",
+          "created_at"
+        ],
+        "title": "ApiTokenOut",
+        "type": "object"
+      },
+      "ApiTokenRevokeIn": {
+        "properties": {
+          "name": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ApiTokenRevokeIn",
+        "type": "object"
+      },
+      "ApiTokenRevokeOut": {
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "message"
+        ],
+        "title": "ApiTokenRevokeOut",
+        "type": "object"
+      },
       "AppliedOverrideOut": {
         "properties": {
           "change_type": {
@@ -23563,6 +23721,10 @@
       }
     },
     "securitySchemes": {
+      "ApiTokenAuth": {
+        "scheme": "bearer",
+        "type": "http"
+      },
       "SessionAuth": {
         "in": "cookie",
         "name": "sessionid",
@@ -23677,6 +23839,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Custom leaderboard cohorts and who is in them on a day.",
@@ -23775,6 +23940,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Create or change a custom leaderboard cohort and its members from a date.",
@@ -23873,6 +24041,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Roll daily detail past the hot window up to monthly and move it to the archive.",
@@ -23968,6 +24139,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Months whose daily detail is archived or was restored.",
@@ -24066,6 +24240,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Bring an archived month's daily detail back into the daily table.",
@@ -24245,6 +24422,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "How the agents in view spread on one metric to date, in equal-width bins.",
@@ -24439,6 +24619,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Regions, branches or RMs by day: each day's figure against its target, with RAG.",
@@ -24638,6 +24821,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Agents ranked within a cohort, with the summary cards (month or week to date).",
@@ -24736,6 +24922,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Refresh the daily totals the leaderboard reads (done after every daily load).",
@@ -24956,6 +25145,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Product-line matrix: actual, target and % achieved per line, drilling region \u2192 RM.",
@@ -25102,6 +25294,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "One agent's month or week to date on each metric, paced by working day.",
@@ -25284,6 +25479,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The sales pipeline by stage for the agents in view, drilling region \u2192 branch \u2192 RM.",
@@ -25393,6 +25591,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The Sales or Service page: its sections in order, each with its starting metric.",
@@ -25485,6 +25686,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "An Agent Performance module's grain, thresholds and leaderboard ranking.",
@@ -25593,6 +25797,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Set an Agent Performance module's grain (daily, or the weekly opt-in) and thresholds.",
@@ -25772,6 +25979,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Each day to date across the agents in view: the total or mean, against target.",
@@ -25880,6 +26090,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Remove a visibility rule: that role or profile goes back to the module's default.",
@@ -25972,6 +26185,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Who sees whom in an Agent Performance module: open unless a rule narrows it.",
@@ -26080,6 +26296,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Narrow (or keep open) which agents a role or profile sees in a module.",
@@ -26188,6 +26407,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Turn maker-checker on or off for an action class.",
@@ -26296,6 +26518,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Start a role period for a subject. Overlapping periods are refused.",
@@ -26404,6 +26629,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "End a role period. Periods can be shortened, never reopened or extended.",
@@ -26493,6 +26721,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Every role period a subject has held, oldest first.",
@@ -26591,6 +26822,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change your own password (local accounts only).",
@@ -26669,6 +26903,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The Scorecards rating bands, lowest first.",
@@ -26777,6 +27014,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Replace the Scorecards rating bands: label, threshold and ramp step.",
@@ -26885,6 +27125,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The business day an instant counts toward, after timezone, cutoff and holidays.",
@@ -27003,6 +27246,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Calendar exceptions in a date range, and the working-day count.",
@@ -27111,6 +27357,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Mark holidays and working weekends, org-wide or for a region.",
@@ -27219,6 +27468,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Set the org's collision rule and attribute every outcome again under it.",
@@ -27317,6 +27569,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Attribute outcomes again: every one, or those since a day.",
@@ -27428,6 +27683,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Estimate how many customers an audience covers, from the population feed.",
@@ -27524,6 +27782,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The quarter's campaign value, spend, ROI and win-backs, and each campaign's figures.",
@@ -27602,6 +27863,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Currencies, audience dimensions, objective windows and channels for the builder.",
@@ -27700,6 +27964,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Close a campaign and every event in it. Final: a closed campaign is not reopened.",
@@ -27798,6 +28065,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Author a campaign and its events. Every event starts as a draft.",
@@ -27896,6 +28166,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Add an event to a campaign as a draft: a recurring campaign runs many.",
@@ -28004,6 +28277,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change an event's budget. Waits for a second person's approval unless turned off.",
@@ -28093,6 +28369,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Every published version of an event: what changed, when, by whom, and approvals.",
@@ -28191,6 +28470,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Publish a draft event: it is scheduled, then runs on its dates.",
@@ -28289,6 +28571,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Delete a draft event. A published event is closed, never deleted.",
@@ -28387,6 +28672,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Repeat an event: draft copies on the following weeks, months or quarters.",
@@ -28485,6 +28773,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Pause, resume or close an event. Closing is final.",
@@ -28583,6 +28874,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change an event's name, period, window, channels or audience (and a draft's budget).",
@@ -28672,6 +28966,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "One campaign with its events, budgets, audiences and any budget change pending.",
@@ -28794,6 +29091,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Campaigns in your scope for a board tab, with budgets and the event in play.",
@@ -28902,6 +29202,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Publish a campaign result as a registry metric, with a lineage link.",
@@ -29010,6 +29313,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Withdraw a published campaign metric; it goes inactive in the registry.",
@@ -29099,6 +29405,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The registry metrics published from a campaign, active and withdrawn.",
@@ -29177,6 +29486,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Each objective's default attribution window and the outcome metrics it counts.",
@@ -29285,6 +29597,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Set an objective's default window and the outcome metrics attribution counts for it.",
@@ -29374,6 +29689,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Each event's reach: estimated audience, contacts, outcome reach and conversions.",
@@ -29463,6 +29781,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Attributed value against source totals, with what other events won and why.",
@@ -29561,6 +29882,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change a campaign's name, type, product, owner, description or priority.",
@@ -29650,6 +29974,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Each event's gross and incremental value, control-group lift and ROI.",
@@ -29758,6 +30085,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change whether campaign value and ROI lead with incremental or gross.",
@@ -29866,6 +30196,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change how many days a win-back must hold before it is confirmed.",
@@ -29955,6 +30288,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Each event's win-backs: provisional, confirmed after the retention window, lapsed.",
@@ -30053,6 +30389,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Register a read-only source database. The password is stored encrypted.",
@@ -30131,6 +30470,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Registered source connections. Passwords are never returned.",
@@ -30265,6 +30607,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Connect with the stored credentials and, optionally, describe a source object.",
@@ -30363,6 +30708,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change a connection's address, account, limits or status, or rotate its password.",
@@ -30452,6 +30800,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Currencies configured for the org.",
@@ -30560,6 +30911,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Add a currency or update its name, minor units or active flag.",
@@ -30668,6 +31022,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Make a product follow a cycle from a date.",
@@ -30776,6 +31133,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Create a performance cycle, e.g. January to December.",
@@ -30854,6 +31214,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Performance cycles and which product follows which.",
@@ -30962,6 +31325,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Define a dimension (branch, region, segment, or a custom one), or rename it.",
@@ -31040,6 +31406,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The org's dimensions.",
@@ -31151,6 +31520,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "A dimension's members.",
@@ -31259,6 +31631,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Add or update a dimension's members. Parents must exist and never form a loop.",
@@ -31367,6 +31742,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Apply a reviewed directory import to subjects and reporting lines.",
@@ -31465,6 +31843,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Discard a previewed directory import without applying it.",
@@ -31565,6 +31946,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Directory imports, newest first.",
@@ -31663,6 +32047,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Read the directory and show what would change: new, changed, moved, leavers.",
@@ -31755,6 +32142,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Test the directory connection configured for this install.",
@@ -31844,6 +32234,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The hand-entered executive values current for a period.",
@@ -31952,6 +32345,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Enter an executive metric's actual by hand for a period, org-level or by member.",
@@ -32050,6 +32446,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Delete one of your saved views of the Executive dashboard.",
@@ -32128,6 +32527,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Your saved views of the Executive dashboard, by name.",
@@ -32226,6 +32628,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Save or replace one of your named views of the Executive dashboard.",
@@ -32337,6 +32742,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The feed's contract and reference data, for the client's standalone validator.",
@@ -32435,6 +32843,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Read a feed and run every gate, writing nothing but the run's report.",
@@ -32526,6 +32937,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "One feed with its recent run history.",
@@ -32652,6 +33066,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Feeds with their freshness, as-of time and last run.",
@@ -32760,6 +33177,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Register a feed: template, source, cadence, owner and deadline.",
@@ -32849,6 +33269,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The run's rejection report as CSV: row, column, gate, rule and message.",
@@ -32947,6 +33370,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Load a feed all or nothing: commit every row, or quarantine the whole load.",
@@ -33036,6 +33462,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "One run: counts per gate and rule, the diff against the last load, first findings.",
@@ -33155,6 +33584,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "A feed's run history, newest first.",
@@ -33253,6 +33685,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Pick up dropped files, start due pulls and mark feeds fresh or stale.",
@@ -33361,6 +33796,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change a feed's source, cadence, owner, thresholds or status. Fields left out keep their value.",
@@ -33471,6 +33909,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "FX rates loaded for a period.",
@@ -33579,6 +34020,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Load FX rates for a period. One unit of from_currency = rate to_currency.",
@@ -33677,6 +34121,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Assign a slice of a manual-input metric to a contributor.",
@@ -33775,6 +34222,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Stop a contributor's assignment from a date.",
@@ -33871,6 +34321,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Who enters each manual-input metric, and where each slice stands this month.",
@@ -33969,6 +34422,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Name who is told when this slice's input is overdue, in place of the org's stakeholders.",
@@ -34077,6 +34533,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Who was asked for manual inputs, who submitted, and when, per contributor over time.",
@@ -34155,6 +34614,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Inputs escalated to you that are still owed.",
@@ -34251,6 +34713,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The escalation ladder for overdue inputs, and the days it falls on for a month.",
@@ -34359,6 +34824,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change when overdue inputs escalate, and who the stakeholders are.",
@@ -34457,6 +34925,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Climb the escalation ladder for inputs still owed: remind the contributor, then tell their line manager, then the stakeholders, in-app and by email when a relay is set (scheduled daily).",
@@ -34555,6 +35026,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Save manual inputs as drafts; nothing reaches a scorecard until submitted.",
@@ -34663,6 +35137,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Submit manual inputs: each lands as the actual for everyone in its slice.",
@@ -34759,6 +35236,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The manual inputs you owe for a month, and where each stands.",
@@ -34849,6 +35329,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Whether this install may apply a version: the max_major_version gate (UP-2/3).",
@@ -34947,6 +35430,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Send the licence heartbeat, the only outbound call kpiGo makes.",
@@ -35055,6 +35541,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Bind a metric to a product, or switch an existing binding on or off.",
@@ -35145,6 +35634,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Check a proposed metric name for duplicates and similar existing metrics.",
@@ -35235,6 +35727,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "A metric's family and every effective period of its definition.",
@@ -35376,6 +35871,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "List metric definitions in force on a date.",
@@ -35484,6 +35982,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Show a metric for a profile in a product, for an effective period.",
@@ -35592,6 +36093,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Register a metric: its family, definition and product bindings.",
@@ -35700,6 +36204,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Activate, deactivate or deprecate a metric. Nothing is deleted.",
@@ -35808,6 +36315,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change a metric. Definitional changes open a new effective period.",
@@ -35906,6 +36416,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Email each person a single digest of their un-emailed notices (scheduled daily).",
@@ -36004,6 +36517,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Approve someone else's pending override; it applies from now on.",
@@ -36191,6 +36707,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Overrides, newest first, filtered by status, metric, scope or period.",
@@ -36289,6 +36808,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Reject a pending override, saying why.",
@@ -36387,6 +36909,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Request an override of a target, weight, cap, actual or target type, with a reason.",
@@ -36485,6 +37010,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Stop an approved override applying, saying why; scores revert to the inputs beneath it.",
@@ -36583,6 +37111,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Withdraw your own pending override request.",
@@ -36672,6 +37203,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Feed deadlines for a period, earliest first.",
@@ -36780,6 +37314,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Set when a feed's data for a period is due.",
@@ -36899,6 +37436,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Period status per product.",
@@ -37007,6 +37547,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Move a period through open, closing, closed and restating.",
@@ -37099,6 +37642,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "A module's pipeline stages in order, and the snapshot metrics a stage can read.",
@@ -37207,6 +37753,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Take a stage out of the funnel. The facts it read stay where they are.",
@@ -37315,6 +37864,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Add or change a pipeline stage: its name, place, and the snapshot metrics it reads.",
@@ -37413,6 +37965,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Approve a pending request and execute it with the identical payload.",
@@ -37511,6 +38066,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Reject a pending request. Nothing is executed.",
@@ -37589,6 +38147,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Dry-run pending migrations: the SQL, tables touched, row estimates, warnings.",
@@ -37667,6 +38228,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Your view preferences, each with its allowed values.",
@@ -37765,6 +38329,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Set one of your view preferences, such as the matrix's grouped view.",
@@ -37873,6 +38440,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Create or change a product group, the column group lines collapse into.",
@@ -37981,6 +38551,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Name, group and switch on a product line the feed made available.",
@@ -38081,6 +38654,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Product lines, including those feeds detected that await an Admin.",
@@ -38189,6 +38765,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Move a product line to another group from a date; earlier periods keep the old one.",
@@ -38285,6 +38864,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Product groups and lines on a day: in the matrix, available from the feed, retired.",
@@ -38383,6 +38965,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Put product lines in the order the matrix shows them (quick settings).",
@@ -38491,6 +39076,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Retire a product line from a date; closed periods keep its columns and facts.",
@@ -38589,6 +39177,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Rename, reorder or rebind a product line, or override its RAG thresholds.",
@@ -38697,6 +39288,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Add a solid or dotted reporting line for an effective period.",
@@ -38805,6 +39399,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "End a reporting line. Lines can be shortened, never reopened or extended.",
@@ -38935,6 +39532,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Reporting lines, filtered by subject, manager or the date they are in force.",
@@ -39043,6 +39643,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Clone a role, its permissions and page access, under a new code.",
@@ -39133,6 +39736,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "One role with its permissions and page access.",
@@ -39241,6 +39847,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Edit a cloned role: name, permissions, or its page access matrix.",
@@ -39340,6 +39949,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Roll-up policy overrides.",
@@ -39448,6 +40060,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Override whether a line type counts toward roll-up for a role or profile.",
@@ -39556,6 +40171,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Grant a role or a user Executive or Campaign data for a dimension member.",
@@ -39664,6 +40282,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "End a grant. Grants are ended, never deleted, so history stays explainable.",
@@ -39762,6 +40383,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Mark your own closed scorecard as seen (not agreed).",
@@ -39851,6 +40475,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "What stands between a Scorecards period and its close.",
@@ -39949,6 +40576,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Add a manager's comment to someone's scorecard.",
@@ -40055,6 +40685,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "A subject's scorecard for a period: every metric, the total and the band.",
@@ -40153,6 +40786,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Leave an unscored metric out of a period's scores, with a reason.",
@@ -40242,6 +40878,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The exclusions recorded for a period.",
@@ -40340,6 +40979,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Withdraw an exclusion from a period that has not closed.",
@@ -40446,6 +41088,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "One scorecard as a PDF, exactly as it reads on screen.",
@@ -40564,6 +41209,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "A subject's total and band period by period, frozen where closed.",
@@ -40670,6 +41318,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Acknowledgement, queries and manager commentary on one scorecard.",
@@ -40778,6 +41429,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Remove a node that has no children and no metrics placed under it.",
@@ -40886,6 +41540,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Add a node to the taxonomy, or rename or reorder one.",
@@ -40994,6 +41651,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Close a Scorecards period: pre-check, score everyone, freeze the snapshot.",
@@ -41121,6 +41781,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Scorecard totals and bands for everyone you can see in a period.",
@@ -41229,6 +41892,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Reopen a closed Scorecards period for restatement, saying why.",
@@ -41337,6 +42003,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Remove a metric's placement; it then shows under the default, or ungrouped.",
@@ -41445,6 +42114,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Place a metric under a node of the taxonomy, by default or for one profile.",
@@ -41541,6 +42213,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Each profile's scorecard metrics and headcount in a period.",
@@ -41649,6 +42324,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Set a profile's Scorecards metrics from a date; earlier months keep theirs.",
@@ -41760,6 +42438,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Your own scorecard queries, and the queue of queries you can resolve.",
@@ -41858,6 +42539,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Question one figure on your own scorecard; it goes to your line manager.",
@@ -41956,6 +42640,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Answer a scorecard query: explain the figure, or point at the override.",
@@ -42034,6 +42721,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Weight total and tolerance, cap plausibility and the denominator policy.",
@@ -42142,6 +42832,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change the scoring settings.",
@@ -42231,6 +42924,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Every frozen version of a Scorecards period, newest first.",
@@ -42339,6 +43035,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Make a template the one every scorecard renders from.",
@@ -42435,6 +43134,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "A template with its levels, nodes and metric placements.",
@@ -42513,6 +43215,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Scorecard templates, the active one first.",
@@ -42621,6 +43326,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Create a scorecard template, or rename it and relabel its levels.",
@@ -42699,6 +43407,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Reporting currency, timezone, business-day cutoff and the config version.",
@@ -42807,6 +43518,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change the reporting currency, timezone or business-day cutoff.",
@@ -42913,6 +43627,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "A subject you can see: identity, current role and reporting lines.",
@@ -43052,6 +43769,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "List subjects for hierarchy administration.",
@@ -43160,6 +43880,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Register a measured person: stable identity only.",
@@ -43268,6 +43991,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Correct a subject's identity details or mark them inactive.",
@@ -43359,6 +44085,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Publish batches, newest first.",
@@ -43467,6 +44196,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Revert a publish while its periods are still in the future.",
@@ -43565,6 +44297,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Copy published targets forward as drafts, with an optional uplift.",
@@ -43680,6 +44415,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The coverage grid: profile \u00d7 metric \u00d7 period, what is set, missing or draft.",
@@ -43778,6 +44516,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Throw away drafts. Published targets are never deleted.",
@@ -43867,6 +44608,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "One target and every version of it.",
@@ -44050,6 +44794,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Targets on the workbench, filtered by period, metric, scope or state.",
@@ -44158,6 +44905,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Publish drafts as one versioned batch, after the weight-sum check.",
@@ -44256,6 +45006,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Validate a target sheet and, when it is clean, save it as drafts.",
@@ -44364,6 +45117,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Disable a user. Their sessions stop working; their history is kept.",
@@ -44472,6 +45228,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Re-enable a disabled user.",
@@ -44561,6 +45320,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "One user.",
@@ -44659,6 +45421,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Issue a fresh invitation link for a local user who has not accepted yet.",
@@ -44767,6 +45532,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Move a user's ownerships (feeds, metric families) to another user.",
@@ -44875,6 +45643,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change a user's name, roles, subject link or sign-in method, or unlock them.",
@@ -44974,6 +45745,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Who a subject can see in a period, and whether each counts toward roll-up.",
@@ -45072,6 +45846,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Rebuild a period's visibility closure. Refuses if the lines contain a cycle.",
@@ -45150,6 +45927,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The Executive dashboard's placed widgets, in grid order.",
@@ -45267,6 +46047,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "An Executive widget's figures for a period: org-level or by dimension member.",
@@ -45356,6 +46139,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Every version of a widget's definition, newest first.",
@@ -45445,6 +46231,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Every widget key: placed, available from a feed, and optionally removed.",
@@ -45543,6 +46332,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Place a widget on the Executive dashboard: metrics, type, breakdown and series.",
@@ -45641,6 +46433,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Take a widget off the dashboard for everyone; its history is kept.",
@@ -45749,6 +46544,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Override a widget's threshold bands, or return them to the metric's.",
@@ -45847,6 +46645,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Change a placed widget: its type, metrics, breakdown, series, title or position.",
@@ -45854,6 +46655,287 @@
           "executive"
         ],
         "x-kpigo-action": "widget.update"
+      }
+    },
+    "/api/v1/api-tokens": {
+      "get": {
+        "operationId": "apitoken_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiTokenListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "summary": "The API tokens you have issued.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "apitoken.list"
+      },
+      "post": {
+        "operationId": "apitoken_issue",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiTokenIssueIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiTokenIssueOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "summary": "Issue a read-API bearer token bound to your account; returns the token once.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "apitoken.issue"
+      }
+    },
+    "/api/v1/api-tokens/revoke": {
+      "post": {
+        "operationId": "apitoken_revoke",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiTokenRevokeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiTokenRevokeOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "summary": "Revoke one of your API tokens; it stops working at once.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "apitoken.revoke"
       }
     },
     "/api/v1/approval-policies": {
@@ -45925,6 +47007,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Which action classes need a second Admin's approval.",
@@ -46209,6 +47294,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Sign out of this session.",
@@ -46287,6 +47375,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The signed-in user: roles, pages, licence banner and why any page is empty.",
@@ -46848,6 +47939,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Remove all demonstration data this org's demo seeder created.",
@@ -46946,6 +48040,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Load a synthetic Scorecards world for demonstration and evaluation.",
@@ -47024,6 +48121,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Whether demonstration data is loaded in this org.",
@@ -47113,6 +48213,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Service, database, feed, queue, licence and version status for operations.",
@@ -47204,6 +48307,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Say hello. Proves an action is reachable on every surface.",
@@ -47282,6 +48388,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The installed licence, its grace state, the install fingerprint and version.",
@@ -47380,6 +48489,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Activate a signed licence file, offline. Works in every grace and lock state.",
@@ -47481,6 +48593,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The signed-in person's own notifications, newest first, with the unread count.",
@@ -47579,6 +48694,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Mark one of your notifications read, or all of them.",
@@ -47677,6 +48795,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Take a backup: a consistent database dump and a configuration summary.",
@@ -47768,6 +48889,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Recent backups and when the last good one ran (for the health page).",
@@ -47846,6 +48970,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "A diagnostic bundle for kpiGo support: versions, sizes and status, no client data.",
@@ -47944,6 +49071,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Authorise a staged upgrade: re-check, take the mandatory pre-upgrade backup, log it.",
@@ -48022,6 +49152,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Inspect the staged update bundle: signature, checksums, entitlement and path.",
@@ -48113,6 +49246,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The ledger of upgrades authorised on this install, newest first.",
@@ -48191,6 +49327,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The starter packs shipped with this version, with their full contents.",
@@ -48289,6 +49428,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Load a starter pack into this org: additive and non-destructive (adopt-and-amend).",
@@ -48384,6 +49526,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "List every registered action with its schemas and permission.",
@@ -48462,6 +49607,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Every role with its permissions and page access matrix.",
@@ -48604,6 +49752,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "List data scope grants.",
@@ -48904,6 +50055,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "List users, by status, role or a search on name and email.",
@@ -49012,6 +50166,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Invite a user: identity, roles and an optional link to their subject.",
@@ -49090,6 +50247,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "The outbound webhook endpoints configured for this org.",
@@ -49186,6 +50346,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Register an outbound webhook endpoint; returns its signing secret once.",
@@ -49284,6 +50447,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Remove a webhook endpoint and its signing secret.",
@@ -49382,6 +50548,9 @@
         "security": [
           {
             "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
           }
         ],
         "summary": "Send a synthetic delivery to one endpoint to confirm the receiver is reachable.",
