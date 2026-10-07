@@ -18,6 +18,7 @@ import { CardSkeleton } from "../../components/Skeleton";
 import { currentPeriod, formatPeriod, shiftPeriod } from "../../lib/format";
 import { Page } from "../../shell/AppShell";
 import { useMe } from "../../session/Session";
+import { ViewBar, type DashboardState } from "./ViewBar";
 import { Widget } from "./Widget";
 
 const PAGE_KEY = "executive";
@@ -32,9 +33,13 @@ function recentPeriods(from: string, count = 12): { value: string; label: string
 export function DashboardView({
   dashboard,
   periodKey,
+  drill,
+  onDrill,
 }: {
   dashboard: Output<"widget.dashboard">;
   periodKey: string;
+  drill: Record<string, string>;
+  onDrill: (widgetKey: string, code: string | null) => void;
 }) {
   if (dashboard.widgets.length === 0) {
     return (
@@ -47,7 +52,13 @@ export function DashboardView({
   return (
     <div className="kg-exec-grid">
       {dashboard.widgets.map((w) => (
-        <Widget key={w.widget_key} placed={w} periodKey={periodKey} />
+        <Widget
+          key={w.widget_key}
+          placed={w}
+          periodKey={periodKey}
+          drillTo={drill[w.widget_key] ?? null}
+          onDrill={(code) => onDrill(w.widget_key, code)}
+        />
       ))}
     </div>
   );
@@ -75,6 +86,7 @@ function PeriodPicker({
 export function ExecutiveDashboardPage() {
   const me = useMe();
   const [periodKey, setPeriodKey] = useState(currentPeriod());
+  const [drill, setDrill] = useState<Record<string, string>>({});
   const periods = recentPeriods(currentPeriod());
   const [dashboard, reload] = useQuery("widget.dashboard", {});
 
@@ -89,11 +101,30 @@ export function ExecutiveDashboardPage() {
     );
   }
 
+  function onDrill(widgetKey: string, code: string | null) {
+    setDrill((prev) => {
+      const next = { ...prev };
+      if (code === null) delete next[widgetKey];
+      else next[widgetKey] = code;
+      return next;
+    });
+  }
+
+  function applyView(state: DashboardState) {
+    setPeriodKey(state.period_key);
+    setDrill(state.drill);
+  }
+
   return (
     <Page
       title="Executive"
       exec
-      actions={<PeriodPicker periodKey={periodKey} periods={periods} onPeriod={setPeriodKey} />}
+      actions={
+        <>
+          <ViewBar state={{ period_key: periodKey, drill }} onApply={applyView} />
+          <PeriodPicker periodKey={periodKey} periods={periods} onPeriod={setPeriodKey} />
+        </>
+      }
     >
       {dashboard.status === "loading" ? (
         <div className="kg-exec-grid">
@@ -104,7 +135,12 @@ export function ExecutiveDashboardPage() {
       ) : dashboard.status === "error" ? (
         <ErrorPanel error={dashboard.error} retry={reload} what="The dashboard" />
       ) : (
-        <DashboardView dashboard={dashboard.data} periodKey={periodKey} />
+        <DashboardView
+          dashboard={dashboard.data}
+          periodKey={periodKey}
+          drill={drill}
+          onDrill={onDrill}
+        />
       )}
     </Page>
   );

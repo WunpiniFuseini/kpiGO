@@ -19,6 +19,7 @@ import uuid
 
 from django.db import models
 
+from kpigo.access.models import AppUser
 from kpigo.metrics.models import Metric
 from kpigo.platform.db import Stamped, Tracked, one_of
 from kpigo.platform.vocab import PERIOD_KEY_PATTERN
@@ -183,3 +184,34 @@ class ExecutiveManualInput(Tracked):
     def __str__(self) -> str:
         slot = f"{self.dimension_type}:{self.member_code}" if self.dimension_type else "org"
         return f"{self.metric_code} {slot} {self.period_key} v{self.version}"
+
+
+class ExecutiveSavedView(Tracked):
+    """A reader's named snapshot of the dashboard's filter state (PRD EX-9, Scope §10.5).
+
+    The one dashboard is shared, but how a reader is looking at it — which period
+    and how far each breakdown widget is drilled — is personal. A saved view holds
+    that filter state under a name so the reader returns to the same vantage: what
+    one reader saves binds nobody else, the way view preferences do. ``state`` is
+    the opaque filter payload the dashboard writes and reads back (its period and a
+    per-widget drill path); it names nothing the registry owns, so it survives a
+    widget being renamed or removed — the dashboard ignores a key it no longer has.
+    """
+
+    view_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    app_user = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name="executive_views")
+    name = models.TextField()
+    state = models.JSONField()
+
+    class Meta:
+        db_table = "executive_saved_view"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["app_user", "name"], name="executive_saved_view_name_unique"
+            )
+        ]
+        indexes = [models.Index(fields=["org_id", "app_user"], name="executive_view_owner")]
+
+    def __str__(self) -> str:
+        return f"{self.app_user_id} view {self.name!r}"

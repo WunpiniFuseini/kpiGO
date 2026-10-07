@@ -1,10 +1,11 @@
 /**
  * One placed widget on the Executive dashboard. It reads its own figures for the
- * chosen period (`widget.data`), holds the drill position for a breakdown, and
- * shows the right state: loading, an error with a reference, the server's named
- * empty state (no grant, or genuinely nothing), or the drawn widget.
+ * chosen period (`widget.data`) and shows the right state: loading, an error with
+ * a reference, the server's named empty state (no grant, or genuinely nothing),
+ * or the drawn widget. Its drill position is owned by the page, so a saved view
+ * can capture and restore where every breakdown is drilled.
  */
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties } from "react";
 
 import type { Output } from "../../api/actions";
 import { useQuery } from "../../api/useAction";
@@ -15,8 +16,18 @@ import { WidgetBody } from "./renderers";
 
 export type PlacedWidget = Output<"widget.dashboard">["widgets"][number];
 
-export function Widget({ placed, periodKey }: { placed: PlacedWidget; periodKey: string }) {
-  const [drillTo, setDrillTo] = useState<string | null>(null);
+export function Widget({
+  placed,
+  periodKey,
+  drillTo = null,
+  onDrill,
+}: {
+  placed: PlacedWidget;
+  periodKey: string;
+  drillTo?: string | null;
+  onDrill?: (code: string | null) => void;
+}) {
+  const setDrillTo = (code: string | null) => onDrill?.(code);
   const [data, reload] = useQuery("widget.data", {
     widget_key: placed.widget_key,
     period_key: periodKey,
