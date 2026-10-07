@@ -312,6 +312,19 @@ if env("KPIGO_BACKUP_USER"):
         }
     )
 
+# Email the batched notification digest daily as this user, when one is named
+# (PRD NT-4). With no mail relay the digest is a clean no-op; the in-app centre
+# is always on regardless.
+if env("KPIGO_DIGEST_USER"):
+    KPIGO_SCHEDULED_ACTIONS.append(
+        {
+            "action": "notification.digest",
+            "run_as": env("KPIGO_DIGEST_USER"),
+            "every_seconds": 24 * 3600,
+            "params": {},
+        }
+    )
+
 # Send the licence heartbeat daily as this user, when a heartbeat URL is set.
 if KPIGO_LICENCE_HEARTBEAT_URL and env("KPIGO_LICENCE_HEARTBEAT_USER"):
     KPIGO_SCHEDULED_ACTIONS.append(
