@@ -61,6 +61,12 @@ class VersionOut(BaseModel):
     migrations: dict[str, str]
 
 
+class BackupHealth(BaseModel):
+    last_at: datetime | None
+    last_outcome: str | None
+    last_ok_at: datetime | None
+
+
 class HealthIn(BaseModel):
     check_workers: bool = True
 
@@ -74,6 +80,7 @@ class HealthOut(BaseModel):
     queue_depth: int | None
     feeds: FeedsOut | None
     licence: LicenceHealth | None
+    backup: BackupHealth | None
     version: VersionOut
 
 
@@ -178,6 +185,23 @@ def _licence(org_id: str) -> LicenceHealth | None:
     )
 
 
+def _backup(org_id: str) -> BackupHealth | None:
+    try:
+        from kpigo.platform.models import BackupRun
+
+        last = BackupRun.objects.filter(org_id=org_id).order_by("-created_at").first()
+        last_ok = (
+            BackupRun.objects.filter(org_id=org_id, outcome="ok").order_by("-created_at").first()
+        )
+    except Exception:
+        return None
+    return BackupHealth(
+        last_at=last.created_at if last else None,
+        last_outcome=last.outcome if last else None,
+        last_ok_at=last_ok.created_at if last_ok else None,
+    )
+
+
 @action(
     name="system.health",
     summary="Service, database, feed, queue, licence and version status for operations.",
@@ -198,6 +222,7 @@ def health(params: HealthIn, ctx: ActionContext) -> HealthOut:
         services.append(_workers())
     feeds = _feeds(ctx.org_id)
     licence = _licence(ctx.org_id)
+    backup = _backup(ctx.org_id)
     if feeds is not None and (feeds.stale or feeds.quarantined or feeds.failed):
         services.append(
             ServiceOut(
@@ -223,5 +248,6 @@ def health(params: HealthIn, ctx: ActionContext) -> HealthOut:
         queue_depth=depth,
         feeds=feeds,
         licence=licence,
+        backup=backup,
         version=VersionOut(product_version=product_version(), migrations=schema),
     )

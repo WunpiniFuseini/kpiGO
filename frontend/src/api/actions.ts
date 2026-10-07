@@ -206,6 +206,9 @@ export const ROUTES = {
   "subject.list": { method: "GET", path: "/api/v1/actions/subject.list", pathParams: [], public: false },
   "subject.register": { method: "POST", path: "/api/v1/actions/subject.register", pathParams: [], public: false },
   "subject.update": { method: "POST", path: "/api/v1/actions/subject.update", pathParams: [], public: false },
+  "system.backup": { method: "POST", path: "/api/v1/ops/backup", pathParams: [], public: false },
+  "system.backup.list": { method: "GET", path: "/api/v1/ops/backups", pathParams: [], public: false },
+  "system.diagnostics": { method: "GET", path: "/api/v1/ops/diagnostics", pathParams: [], public: false },
   "system.health": { method: "GET", path: "/api/v1/health", pathParams: [], public: false },
   "target.batch.list": { method: "GET", path: "/api/v1/actions/target.batch.list", pathParams: [], public: false },
   "target.batch.revert": { method: "POST", path: "/api/v1/actions/target.batch.revert", pathParams: [], public: false },
@@ -441,6 +444,9 @@ export interface Actions {
   "subject.list": { input: NonNullable<operations["subject_list"]["parameters"]["query"]>; output: operations["subject_list"]["responses"][200]["content"]["application/json"] };
   "subject.register": { input: NonNullable<operations["subject_register"]["requestBody"]>["content"]["application/json"]; output: operations["subject_register"]["responses"][200]["content"]["application/json"] };
   "subject.update": { input: NonNullable<operations["subject_update"]["requestBody"]>["content"]["application/json"]; output: operations["subject_update"]["responses"][200]["content"]["application/json"] };
+  "system.backup": { input: NonNullable<operations["system_backup"]["requestBody"]>["content"]["application/json"]; output: operations["system_backup"]["responses"][200]["content"]["application/json"] };
+  "system.backup.list": { input: NonNullable<operations["system_backup_list"]["parameters"]["query"]>; output: operations["system_backup_list"]["responses"][200]["content"]["application/json"] };
+  "system.diagnostics": { input: Record<string, never>; output: operations["system_diagnostics"]["responses"][200]["content"]["application/json"] };
   "system.health": { input: NonNullable<operations["system_health"]["parameters"]["query"]>; output: operations["system_health"]["responses"][200]["content"]["application/json"] };
   "target.batch.list": { input: NonNullable<operations["target_batch_list"]["parameters"]["query"]>; output: operations["target_batch_list"]["responses"][200]["content"]["application/json"] };
   "target.batch.revert": { input: NonNullable<operations["target_batch_revert"]["requestBody"]>["content"]["application/json"]; output: operations["target_batch_revert"]["responses"][200]["content"]["application/json"] };

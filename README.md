@@ -102,6 +102,35 @@ else. Email, when `KPIGO_EMAIL_HOST` is set, goes only to the bank's own relay.
 Licences are signed with `tools/licence_vendor.py` (vendor side, offline). The
 public keys a build trusts are in `kpigo/licence/document.py`.
 
+## Backup, restore and diagnostics
+
+A backup is a consistent `pg_dump` plus a configuration summary, bundled with a
+SHA-256 over each file under `KPIGO_BACKUP_DIR` (its own volume, so it survives
+restarts and upgrades). It runs as the action `system.backup`, so every backup
+is recorded and audited — never a stray `pg_dump` that leaves no trace.
+
+```bash
+scripts/backup.sh --run-as ops            # take one now (needs system.backup.manage)
+# or set KPIGO_BACKUP_USER in .env to take one daily
+```
+
+The health page shows when the last good backup ran (`system.backup.list` backs
+that). **Drill the restore during onboarding — an untested backup is a liability
+found at the worst moment.** Restore into a scratch database first:
+
+```bash
+scripts/restore.sh /var/lib/kpigo/backups/kpigo-backup-<stamp> --into kpigo_restore
+```
+
+It verifies the dump's checksum against the backup manifest before touching the
+target, and never drops the live database on its own. To recover the live
+install, stop the `app`/`worker`/`beat` services, restore into the real
+database, then bring the stack back up and confirm the health page.
+
+The **diagnostic bundle** (`system.diagnostics`) is the one artefact safe to send
+kpiGo support: versions, migration state, table sizes, counts and licence state,
+and **no client data** — no names, feeds, values or scores.
+
 ## Develop
 
 Python 3.12 with [uv](https://docs.astral.sh/uv/), Postgres 16 and Redis on

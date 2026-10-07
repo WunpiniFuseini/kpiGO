@@ -295,6 +295,18 @@ if env("KPIGO_INPUT_REMINDER_USER"):
         }
     )
 
+# Take a backup daily as this user, when one is named (PRD OP-5).
+KPIGO_BACKUP_DIR = env("KPIGO_BACKUP_DIR", "/var/lib/kpigo/backups")
+if env("KPIGO_BACKUP_USER"):
+    KPIGO_SCHEDULED_ACTIONS.append(
+        {
+            "action": "system.backup",
+            "run_as": env("KPIGO_BACKUP_USER"),
+            "every_seconds": 24 * 3600,
+            "params": {"kind": "scheduled"},
+        }
+    )
+
 # Send the licence heartbeat daily as this user, when a heartbeat URL is set.
 if KPIGO_LICENCE_HEARTBEAT_URL and env("KPIGO_LICENCE_HEARTBEAT_USER"):
     KPIGO_SCHEDULED_ACTIONS.append(

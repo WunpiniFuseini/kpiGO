@@ -1952,6 +1952,169 @@
         "title": "AssignmentOut",
         "type": "object"
       },
+      "BackupHealth": {
+        "properties": {
+          "last_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last At"
+          },
+          "last_ok_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Ok At"
+          },
+          "last_outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Outcome"
+          }
+        },
+        "required": [
+          "last_at",
+          "last_outcome",
+          "last_ok_at"
+        ],
+        "title": "BackupHealth",
+        "type": "object"
+      },
+      "BackupIn": {
+        "properties": {
+          "kind": {
+            "default": "manual",
+            "enum": [
+              "scheduled",
+              "manual",
+              "pre_upgrade"
+            ],
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "title": "BackupIn",
+        "type": "object"
+      },
+      "BackupListInQuery": {
+        "properties": {
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "BackupListInQuery",
+        "type": "object"
+      },
+      "BackupListOut": {
+        "properties": {
+          "backups": {
+            "items": {
+              "$ref": "#/components/schemas/BackupRunOut"
+            },
+            "title": "Backups",
+            "type": "array"
+          },
+          "latest_ok_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Ok At"
+          }
+        },
+        "required": [
+          "backups",
+          "latest_ok_at"
+        ],
+        "title": "BackupListOut",
+        "type": "object"
+      },
+      "BackupRunOut": {
+        "properties": {
+          "artefact_path": {
+            "title": "Artefact Path",
+            "type": "string"
+          },
+          "backup_id": {
+            "title": "Backup Id",
+            "type": "string"
+          },
+          "config_version": {
+            "title": "Config Version",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "detail": {
+            "default": "",
+            "title": "Detail",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "product_version": {
+            "title": "Product Version",
+            "type": "string"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "size_bytes": {
+            "title": "Size Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "backup_id",
+          "kind",
+          "outcome",
+          "created_at",
+          "product_version",
+          "config_version",
+          "artefact_path",
+          "sha256",
+          "size_bytes"
+        ],
+        "title": "BackupRunOut",
+        "type": "object"
+      },
       "BandIn": {
         "properties": {
           "colour_hex": {
@@ -7544,6 +7707,20 @@
         "title": "DeadlineSetIn",
         "type": "object"
       },
+      "DiagnosticsOut": {
+        "properties": {
+          "bundle": {
+            "additionalProperties": true,
+            "title": "Bundle",
+            "type": "object"
+          }
+        },
+        "required": [
+          "bundle"
+        ],
+        "title": "DiagnosticsOut",
+        "type": "object"
+      },
       "DimensionDefineIn": {
         "properties": {
           "dimension_type": {
@@ -9589,6 +9766,16 @@
       },
       "HealthOut": {
         "properties": {
+          "backup": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BackupHealth"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "checked_at": {
             "format": "date-time",
             "title": "Checked At",
@@ -9668,6 +9855,7 @@
           "queue_depth",
           "feeds",
           "licence",
+          "backup",
           "version"
         ],
         "title": "HealthOut",
@@ -45801,6 +45989,273 @@
           "platform"
         ],
         "x-kpigo-action": "licence.activate"
+      }
+    },
+    "/api/v1/ops/backup": {
+      "post": {
+        "operationId": "system_backup",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackupIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupRunOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Take a backup: a consistent database dump and a configuration summary.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "system.backup"
+      }
+    },
+    "/api/v1/ops/backups": {
+      "get": {
+        "operationId": "system_backup_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Recent backups and when the last good one ran (for the health page).",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "system.backup.list"
+      }
+    },
+    "/api/v1/ops/diagnostics": {
+      "get": {
+        "operationId": "system_diagnostics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiagnosticsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "A diagnostic bundle for kpiGo support: versions, sizes and status, no client data.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "system.diagnostics"
       }
     },
     "/api/v1/registry": {
