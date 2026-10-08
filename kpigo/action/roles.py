@@ -75,6 +75,10 @@ WEBHOOKS = ("webhook.view", "webhook.manage")
 # Read-API bearer tokens (PRD OP-8): issuing and revoking the tokens integrations use.
 APITOKENS = ("apitoken.view", "apitoken.manage")
 
+# The spreadsheet/Power BI import assistant (R6): previewing an uploaded sheet as a
+# reviewable draft and applying it. Onboarding work, so Admins hold it.
+IMPORT = ("import.view", "import.manage")
+
 # Configuration custodians: hierarchy, dimensions and FX are data-steward work.
 STEWARD = (
     "hierarchy.view",
@@ -153,6 +157,7 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *DEMO,
             *WEBHOOKS,
             *APITOKENS,
+            *IMPORT,
             "platform.registry.view",
             "platform.approval.decide",
             "platform.migrations.view",

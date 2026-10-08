@@ -440,3 +440,47 @@ class WebhookEndpoint(Tracked):
 
     def __str__(self) -> str:
         return f"{self.name} → {self.url} ({self.status})"
+
+
+IMPORT_KINDS = ("scorecard", "roster", "unknown")
+IMPORT_DRAFT_STATUSES = ("drafted", "applied", "discarded")
+
+
+class ImportDraft(Stamped):
+    """A client's own spreadsheet read into proposed config, held for review (R6).
+
+    The migration assistant parses an uploaded KPI sheet or staff roster, infers the
+    metrics, targets/weights and subjects it describes, and stores them here for an
+    Admin to review. Applying a draft calls the existing ``metric.register`` and
+    ``subject.register`` actions, so every change still passes the permission, approval
+    and audit pipeline. The uploaded file itself is never stored: only its name and a
+    hash, for provenance.
+    """
+
+    import_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org_id = models.UUIDField()
+    filename = models.TextField()
+    # sha256 of the uploaded bytes; identifies the file without keeping it.
+    content_hash = models.TextField()
+    kind = models.TextField()
+    status = models.TextField(db_default="drafted")
+    # The proposals the engine produced (kpigo.platform.import_assistant.Proposals).
+    proposals = models.JSONField()
+    summary = models.JSONField()
+    # Per-kind outcome counts once applied; null until then.
+    applied = models.JSONField(null=True)
+    applied_at = models.DateTimeField(null=True)
+    applied_by = models.BigIntegerField(null=True)
+
+    class Meta:
+        db_table = "import_draft"
+        indexes = [
+            models.Index(fields=["org_id", "-created_at"], name="import_draft_org_time"),
+        ]
+        constraints = [
+            one_of("kind", IMPORT_KINDS, "import_draft_kind_valid"),
+            one_of("status", IMPORT_DRAFT_STATUSES, "import_draft_status_valid"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.kind} import {self.import_id} ({self.status})"

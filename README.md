@@ -454,6 +454,33 @@ docker compose exec app python manage.py action apitoken.issue --user admin --js
 Browser requests from another origin are refused unless listed in
 `KPIGO_MCP_ALLOWED_ORIGINS`; desktop and server clients send no origin.
 
+## Import from a spreadsheet
+
+Most banks arrive with their scorecards in Excel. The import assistant reads such a
+sheet and proposes the kpiGo config it describes, for an Admin to review before
+anything is written. It recognises two shapes: a **scorecard** (one row per metric,
+with a Metric/KPI name and any of Weight, Target, Direction, Unit) and a **staff
+roster** (Staff No, Full Name, Email). Direction and unit are inferred from the sheet
+where a column does not state them, and every guess is flagged for review.
+
+```bash
+# Preview: upload a .csv/.xlsx (base64) and get back the proposed metrics,
+# targets/weights and the column mapping, stored as a reviewable draft.
+docker compose exec app python manage.py action import.spreadsheet.preview --user admin \
+  --json '{"file":{"filename":"scorecard.csv","content_base64":"<base64>"}}'
+# Review it, then apply: each proposed metric is registered as a draft through
+# metric.register, each person through subject.register — the same audited actions
+# the UI uses. import.draft.discard drops a draft instead.
+docker compose exec app python manage.py action import.draft.apply --user admin \
+  --json '{"import_id":"<uuid>"}'
+```
+
+Nothing bypasses the pipeline: when maker-checker is on for metric or hierarchy
+changes, apply submits each one for approval rather than writing it. Targets and
+weights are proposed and shown with their metrics; load them through the target
+workbench once the metrics are active. The uploaded file is never stored — only its
+name and a hash, for the audit trail.
+
 ## Starter packs
 
 A starter pack is a versioned, industry-specific configuration bundle — metric

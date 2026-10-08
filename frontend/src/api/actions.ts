@@ -111,6 +111,11 @@ export const ROUTES = {
   "feed.update": { method: "POST", path: "/api/v1/actions/feed.update", pathParams: [], public: false },
   "fx.list": { method: "GET", path: "/api/v1/actions/fx.list", pathParams: [], public: false },
   "fx.set": { method: "POST", path: "/api/v1/actions/fx.set", pathParams: [], public: false },
+  "import.draft.apply": { method: "POST", path: "/api/v1/actions/import.draft.apply", pathParams: [], public: false },
+  "import.draft.discard": { method: "POST", path: "/api/v1/actions/import.draft.discard", pathParams: [], public: false },
+  "import.draft.get": { method: "GET", path: "/api/v1/actions/import.draft.get", pathParams: [], public: false },
+  "import.draft.list": { method: "GET", path: "/api/v1/actions/import.draft.list", pathParams: [], public: false },
+  "import.spreadsheet.preview": { method: "POST", path: "/api/v1/actions/import.spreadsheet.preview", pathParams: [], public: false },
   "input.assignment.create": { method: "POST", path: "/api/v1/actions/input.assignment.create", pathParams: [], public: false },
   "input.assignment.end": { method: "POST", path: "/api/v1/actions/input.assignment.end", pathParams: [], public: false },
   "input.assignment.list": { method: "GET", path: "/api/v1/actions/input.assignment.list", pathParams: [], public: false },
@@ -368,6 +373,11 @@ export interface Actions {
   "feed.update": { input: NonNullable<operations["feed_update"]["requestBody"]>["content"]["application/json"]; output: operations["feed_update"]["responses"][200]["content"]["application/json"] };
   "fx.list": { input: NonNullable<operations["fx_list"]["parameters"]["query"]>; output: operations["fx_list"]["responses"][200]["content"]["application/json"] };
   "fx.set": { input: NonNullable<operations["fx_set"]["requestBody"]>["content"]["application/json"]; output: operations["fx_set"]["responses"][200]["content"]["application/json"] };
+  "import.draft.apply": { input: NonNullable<operations["import_draft_apply"]["requestBody"]>["content"]["application/json"]; output: operations["import_draft_apply"]["responses"][200]["content"]["application/json"] };
+  "import.draft.discard": { input: NonNullable<operations["import_draft_discard"]["requestBody"]>["content"]["application/json"]; output: operations["import_draft_discard"]["responses"][200]["content"]["application/json"] };
+  "import.draft.get": { input: NonNullable<operations["import_draft_get"]["parameters"]["query"]>; output: operations["import_draft_get"]["responses"][200]["content"]["application/json"] };
+  "import.draft.list": { input: NonNullable<operations["import_draft_list"]["parameters"]["query"]>; output: operations["import_draft_list"]["responses"][200]["content"]["application/json"] };
+  "import.spreadsheet.preview": { input: NonNullable<operations["import_spreadsheet_preview"]["requestBody"]>["content"]["application/json"]; output: operations["import_spreadsheet_preview"]["responses"][200]["content"]["application/json"] };
   "input.assignment.create": { input: NonNullable<operations["input_assignment_create"]["requestBody"]>["content"]["application/json"]; output: operations["input_assignment_create"]["responses"][200]["content"]["application/json"] };
   "input.assignment.end": { input: NonNullable<operations["input_assignment_end"]["requestBody"]>["content"]["application/json"]; output: operations["input_assignment_end"]["responses"][200]["content"]["application/json"] };
   "input.assignment.list": { input: NonNullable<operations["input_assignment_list"]["parameters"]["query"]>; output: operations["input_assignment_list"]["responses"][200]["content"]["application/json"] };
