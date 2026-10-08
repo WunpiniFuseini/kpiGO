@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "kpigo.agents",
     "kpigo.campaigns",
     "kpigo.executive",
+    "kpigo.assistant",
 ]
 
 MIDDLEWARE = [
@@ -376,7 +377,20 @@ if env("KPIGO_RETENTION_USER"):
 
 # Inference is optional and absent by default (TDD §13). The app must work
 # with this unset; CI boots the stack without it and runs the full suite.
+# The model is the client's own (PRD AG-3): a local OpenAI-compatible server
+# (vLLM, Ollama), their Azure OpenAI tenant, or Bedrock in their AWS account.
+# kpiGo calls nothing else; see kpigo/assistant/inference.py.
+#   openai_compatible  URL = base URL ending /v1; MODEL = served model name
+#   azure_openai       URL = resource endpoint; MODEL = deployment name
+#   bedrock            REGION (or URL); MODEL = model or inference-profile id;
+#                      API_KEY = a Bedrock API key
 KPIGO_INFERENCE_PROVIDER = env("KPIGO_INFERENCE_PROVIDER")
+KPIGO_INFERENCE_URL = env("KPIGO_INFERENCE_URL")
+KPIGO_INFERENCE_MODEL = env("KPIGO_INFERENCE_MODEL")
+KPIGO_INFERENCE_API_KEY = env_secret("KPIGO_INFERENCE_API_KEY")
+KPIGO_INFERENCE_API_VERSION = env("KPIGO_INFERENCE_API_VERSION", "2024-10-21")
+KPIGO_INFERENCE_REGION = env("KPIGO_INFERENCE_REGION")
+KPIGO_INFERENCE_TIMEOUT_SECONDS = int(env("KPIGO_INFERENCE_TIMEOUT_SECONDS", "60") or "60")
 
 LOGGING = {
     "version": 1,

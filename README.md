@@ -495,6 +495,30 @@ weights are proposed and shown with their metrics; load them through the target
 workbench once the metrics are active. The uploaded file is never stored — only its
 name and a hash, for the audit trail.
 
+## The assistant: connecting your own model (R7)
+
+The assistant is off until an Admin connects a model the institution runs or
+rents; kpiGo works fully without one, and CI proves it on every build. Set
+`KPIGO_INFERENCE_PROVIDER` and its companions in `.env` (see `.env.example`):
+
+| Provider | `KPIGO_INFERENCE_URL` | `KPIGO_INFERENCE_MODEL` | Key |
+|---|---|---|---|
+| `openai_compatible` (vLLM, Ollama) | base URL ending `/v1` | served model name | optional |
+| `azure_openai` | `https://<resource>.openai.azure.com` | deployment name | required |
+| `bedrock` | none; set `KPIGO_INFERENCE_REGION` | model or inference-profile id | a Bedrock API key |
+
+The key may come from `KPIGO_INFERENCE_API_KEY_FILE` on the secret mount. kpiGo
+calls only that endpoint, with plain HTTPS (no model SDKs). `assistant.status`
+says whether the assistant is available and, if not, what is missing;
+`assistant.connection.test` sends one tiny prompt with no client data and reports
+whether the model answered.
+
+The assistant runs as the person asking: same permissions, same data scope, every
+call audited with `caller="agent"`. Read actions run; any change it makes becomes
+an approval request (`platform.approval.list`) that a person confirms or rejects.
+Period close, target publish, override decisions and access changes are refused
+outright by the actions' own metadata (`agent_forbidden`).
+
 ## Starter packs
 
 A starter pack is a versioned, industry-specific configuration bundle — metric

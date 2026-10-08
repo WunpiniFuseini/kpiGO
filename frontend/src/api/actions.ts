@@ -29,6 +29,8 @@ export const ROUTES = {
   "assignment.create": { method: "POST", path: "/api/v1/actions/assignment.create", pathParams: [], public: false },
   "assignment.end": { method: "POST", path: "/api/v1/actions/assignment.end", pathParams: [], public: false },
   "assignment.list": { method: "GET", path: "/api/v1/actions/assignment.list", pathParams: [], public: false },
+  "assistant.connection.test": { method: "POST", path: "/api/v1/actions/assistant.connection.test", pathParams: [], public: false },
+  "assistant.status": { method: "GET", path: "/api/v1/actions/assistant.status", pathParams: [], public: false },
   "auth.invite.accept": { method: "POST", path: "/api/v1/auth/invite/accept", pathParams: [], public: true },
   "auth.login": { method: "POST", path: "/api/v1/auth/login", pathParams: [], public: true },
   "auth.logout": { method: "POST", path: "/api/v1/auth/logout", pathParams: [], public: false },
@@ -296,6 +298,8 @@ export interface Actions {
   "assignment.create": { input: NonNullable<operations["assignment_create"]["requestBody"]>["content"]["application/json"]; output: operations["assignment_create"]["responses"][200]["content"]["application/json"] };
   "assignment.end": { input: NonNullable<operations["assignment_end"]["requestBody"]>["content"]["application/json"]; output: operations["assignment_end"]["responses"][200]["content"]["application/json"] };
   "assignment.list": { input: NonNullable<operations["assignment_list"]["parameters"]["query"]>; output: operations["assignment_list"]["responses"][200]["content"]["application/json"] };
+  "assistant.connection.test": { input: NonNullable<operations["assistant_connection_test"]["requestBody"]>["content"]["application/json"]; output: operations["assistant_connection_test"]["responses"][200]["content"]["application/json"] };
+  "assistant.status": { input: Record<string, never>; output: operations["assistant_status"]["responses"][200]["content"]["application/json"] };
   "auth.invite.accept": { input: NonNullable<operations["auth_invite_accept"]["requestBody"]>["content"]["application/json"]; output: operations["auth_invite_accept"]["responses"][200]["content"]["application/json"] };
   "auth.login": { input: NonNullable<operations["auth_login"]["requestBody"]>["content"]["application/json"]; output: operations["auth_login"]["responses"][200]["content"]["application/json"] };
   "auth.logout": { input: NonNullable<operations["auth_logout"]["requestBody"]>["content"]["application/json"]; output: operations["auth_logout"]["responses"][200]["content"]["application/json"] };
