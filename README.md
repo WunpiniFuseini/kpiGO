@@ -519,6 +519,17 @@ an approval request (`platform.approval.list`) that a person confirms or rejects
 Period close, target publish, override decisions and access changes are refused
 outright by the actions' own metadata (`agent_forbidden`).
 
+Ask with `assistant.ask` (`message`, optionally `conversation_id` to continue).
+The model gets three tools generated from the registry, `find_actions`,
+`describe_action` and `run_action`, over exactly the actions the user could run
+themselves; each answer lists the actions run and what came of them (ran,
+proposed, refused). Conversations are private to their owner
+(`assistant.conversation.list/get/delete`). Every model call is metered in tokens
+(counts only, never text); `assistant.budget.set` caps the org per month and each
+person per day, and `assistant.usage` reports both. One question is limited by
+`KPIGO_ASSISTANT_MAX_STEPS` (8 model round trips), `KPIGO_ASSISTANT_MAX_OUTPUT_TOKENS`
+and `KPIGO_ASSISTANT_DEADLINE_SECONDS` (240, under the web proxy's timeout).
+
 ## Starter packs
 
 A starter pack is a versioned, industry-specific configuration bundle — metric

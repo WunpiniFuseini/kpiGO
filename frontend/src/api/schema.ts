@@ -395,6 +395,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/assistant.ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask the assistant a question; it reads through your own actions and only proposes changes. */
+        post: operations["assistant_ask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/assistant.budget.set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cap the assistant's tokens per month for the organisation and per person per day. */
+        post: operations["assistant_budget_set"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/assistant.connection.test": {
         parameters: {
             query?: never;
@@ -412,6 +446,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/assistant.conversation.delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Delete one of your assistant conversations. Its audit trail stays. */
+        post: operations["assistant_conversation_delete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/assistant.conversation.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One of your assistant conversations, with each action it ran and the result. */
+        get: operations["assistant_conversation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/assistant.conversation.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Your assistant conversations, most recent first. */
+        get: operations["assistant_conversation_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/assistant.status": {
         parameters: {
             query?: never;
@@ -421,6 +506,23 @@ export interface paths {
         };
         /** Whether the assistant is available on this install, and which model it uses. */
         get: operations["assistant_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/assistant.usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tokens used this month and today against the organisation's assistant budget. */
+        get: operations["assistant_usage"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5238,6 +5340,153 @@ export interface components {
              */
             subject_id: string;
         };
+        /** AssistantAskIn */
+        AssistantAskIn: {
+            /** Conversation Id */
+            conversation_id?: string | null;
+            /** Message */
+            message: string;
+        };
+        /** AssistantAskOut */
+        AssistantAskOut: {
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Reply */
+            reply: string;
+            /** Steps */
+            steps: components["schemas"]["AssistantStepOut"][];
+            /**
+             * Stopped
+             * @enum {string}
+             */
+            stopped: "answered" | "max_steps" | "budget" | "model_error" | "deadline";
+        };
+        /** AssistantBudgetIn */
+        AssistantBudgetIn: {
+            /** Monthly Tokens */
+            monthly_tokens?: number | null;
+            /** User Daily Tokens */
+            user_daily_tokens?: number | null;
+        };
+        /** AssistantBudgetOut */
+        AssistantBudgetOut: {
+            /** Monthly Tokens */
+            monthly_tokens: number | null;
+            /** User Daily Tokens */
+            user_daily_tokens: number | null;
+        };
+        /** AssistantConversationDeleteOut */
+        AssistantConversationDeleteOut: {
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+            /** Deleted */
+            deleted: boolean;
+        };
+        /** AssistantConversationIn */
+        AssistantConversationIn: {
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+        };
+        /** AssistantConversationInQuery */
+        AssistantConversationInQuery: {
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+        };
+        /** AssistantConversationListInQuery */
+        AssistantConversationListInQuery: {
+            /**
+             * Limit
+             * @default 50
+             */
+            limit?: number;
+        };
+        /** AssistantConversationListOut */
+        AssistantConversationListOut: {
+            /** Conversations */
+            conversations: components["schemas"]["AssistantConversationSummaryOut"][];
+        };
+        /** AssistantConversationOut */
+        AssistantConversationOut: {
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+            /** Messages */
+            messages: components["schemas"]["AssistantMessageOut"][];
+            /** Title */
+            title: string;
+        };
+        /** AssistantConversationSummaryOut */
+        AssistantConversationSummaryOut: {
+            /**
+             * Conversation Id
+             * Format: uuid
+             */
+            conversation_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** AssistantMessageOut */
+        AssistantMessageOut: {
+            /**
+             * Action Name
+             * @default
+             */
+            action_name?: string;
+            /** Approval Request Id */
+            approval_request_id?: string | null;
+            /** Content */
+            content: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Outcome */
+            outcome?: ("ok" | "proposed" | "refused" | "error") | null;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            } | null;
+            /** Result */
+            result?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant" | "tool";
+            /** Seq */
+            seq: number;
+        };
         /** AssistantStatusOut */
         AssistantStatusOut: {
             /** Api Key Set */
@@ -5254,6 +5503,31 @@ export interface components {
             provider_label: string;
             /** Reason */
             reason: string;
+        };
+        /** AssistantStepOut */
+        AssistantStepOut: {
+            /** Action Name */
+            action_name: string;
+            /** Approval Request Id */
+            approval_request_id?: string | null;
+            /**
+             * Error
+             * @default
+             */
+            error?: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "ok" | "proposed" | "refused" | "error";
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Result */
+            result?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** AssistantTestIn */
         AssistantTestIn: Record<string, never>;
@@ -5278,6 +5552,30 @@ export interface components {
              * @default 0
              */
             output_tokens?: number;
+        };
+        /** AssistantUsageOut */
+        AssistantUsageOut: {
+            /** By User */
+            by_user?: components["schemas"]["AssistantUserUsageOut"][] | null;
+            /** Exhausted */
+            exhausted: string;
+            /** Month Tokens */
+            month_tokens: number;
+            /** Monthly Limit */
+            monthly_limit: number | null;
+            /** Today Tokens */
+            today_tokens: number;
+            /** User Daily Limit */
+            user_daily_limit: number | null;
+        };
+        /** AssistantUserUsageOut */
+        AssistantUserUsageOut: {
+            /** Display Name */
+            display_name: string;
+            /** Tokens */
+            tokens: number;
+            /** User Id */
+            user_id: number | null;
         };
         /** BackupHealth */
         BackupHealth: {
@@ -14381,6 +14679,162 @@ export interface operations {
             };
         };
     };
+    assistant_ask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistantAskIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantAskOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    assistant_budget_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistantBudgetIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantBudgetOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     assistant_connection_test: {
         parameters: {
             query?: never;
@@ -14459,6 +14913,218 @@ export interface operations {
             };
         };
     };
+    assistant_conversation_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistantConversationIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantConversationDeleteOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    assistant_conversation_get: {
+        parameters: {
+            query: {
+                conversation_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantConversationOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    assistant_conversation_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantConversationListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     assistant_status: {
         parameters: {
             query?: never;
@@ -14475,6 +15141,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssistantStatusOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    assistant_usage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantUsageOut"];
                 };
             };
             /** @description Unauthorized */
