@@ -442,7 +442,7 @@ class WebhookEndpoint(Tracked):
         return f"{self.name} → {self.url} ({self.status})"
 
 
-IMPORT_KINDS = ("scorecard", "roster", "unknown")
+IMPORT_KINDS = ("scorecard", "roster", "powerbi", "unknown")
 IMPORT_DRAFT_STATUSES = ("drafted", "applied", "discarded")
 
 

@@ -115,6 +115,7 @@ export const ROUTES = {
   "import.draft.discard": { method: "POST", path: "/api/v1/actions/import.draft.discard", pathParams: [], public: false },
   "import.draft.get": { method: "GET", path: "/api/v1/actions/import.draft.get", pathParams: [], public: false },
   "import.draft.list": { method: "GET", path: "/api/v1/actions/import.draft.list", pathParams: [], public: false },
+  "import.powerbi.preview": { method: "POST", path: "/api/v1/actions/import.powerbi.preview", pathParams: [], public: false },
   "import.spreadsheet.preview": { method: "POST", path: "/api/v1/actions/import.spreadsheet.preview", pathParams: [], public: false },
   "input.assignment.create": { method: "POST", path: "/api/v1/actions/input.assignment.create", pathParams: [], public: false },
   "input.assignment.end": { method: "POST", path: "/api/v1/actions/input.assignment.end", pathParams: [], public: false },
@@ -377,6 +378,7 @@ export interface Actions {
   "import.draft.discard": { input: NonNullable<operations["import_draft_discard"]["requestBody"]>["content"]["application/json"]; output: operations["import_draft_discard"]["responses"][200]["content"]["application/json"] };
   "import.draft.get": { input: NonNullable<operations["import_draft_get"]["parameters"]["query"]>; output: operations["import_draft_get"]["responses"][200]["content"]["application/json"] };
   "import.draft.list": { input: NonNullable<operations["import_draft_list"]["parameters"]["query"]>; output: operations["import_draft_list"]["responses"][200]["content"]["application/json"] };
+  "import.powerbi.preview": { input: NonNullable<operations["import_powerbi_preview"]["requestBody"]>["content"]["application/json"]; output: operations["import_powerbi_preview"]["responses"][200]["content"]["application/json"] };
   "import.spreadsheet.preview": { input: NonNullable<operations["import_spreadsheet_preview"]["requestBody"]>["content"]["application/json"]; output: operations["import_spreadsheet_preview"]["responses"][200]["content"]["application/json"] };
   "input.assignment.create": { input: NonNullable<operations["input_assignment_create"]["requestBody"]>["content"]["application/json"]; output: operations["input_assignment_create"]["responses"][200]["content"]["application/json"] };
   "input.assignment.end": { input: NonNullable<operations["input_assignment_end"]["requestBody"]>["content"]["application/json"]; output: operations["input_assignment_end"]["responses"][200]["content"]["application/json"] };

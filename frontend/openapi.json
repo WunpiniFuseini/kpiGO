@@ -8187,6 +8187,7 @@
                 "enum": [
                   "scorecard",
                   "roster",
+                  "powerbi",
                   "unknown"
                 ],
                 "type": "string"
@@ -16655,6 +16656,40 @@
         "title": "PolicySetIn",
         "type": "object"
       },
+      "PowerBiFile": {
+        "description": "A Power BI model: a .pbit template, a model.bim/.json, or a .tmdl (or zipped PBIP).",
+        "properties": {
+          "content_base64": {
+            "minLength": 1,
+            "title": "Content Base64",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          }
+        },
+        "required": [
+          "filename",
+          "content_base64"
+        ],
+        "title": "PowerBiFile",
+        "type": "object"
+      },
+      "PowerBiPreviewIn": {
+        "properties": {
+          "file": {
+            "$ref": "#/components/schemas/PowerBiFile"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "PowerBiPreviewIn",
+        "type": "object"
+      },
       "PreferenceListOut": {
         "properties": {
           "preferences": {
@@ -17340,6 +17375,7 @@
             "enum": [
               "scorecard",
               "roster",
+              "powerbi",
               "unknown"
             ],
             "title": "Kind",
@@ -34879,6 +34915,7 @@
                   "enum": [
                     "scorecard",
                     "roster",
+                    "powerbi",
                     "unknown"
                   ],
                   "type": "string"
@@ -34966,6 +35003,107 @@
           "platform"
         ],
         "x-kpigo-action": "import.draft.list"
+      }
+    },
+    "/api/v1/actions/import.powerbi.preview": {
+      "post": {
+        "operationId": "import_powerbi_preview",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PowerBiPreviewIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportDraftOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "summary": "Read a Power BI model's measures and propose them as metrics to review.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "import.powerbi.preview"
       }
     },
     "/api/v1/actions/import.spreadsheet.preview": {
