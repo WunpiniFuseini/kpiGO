@@ -13,6 +13,7 @@ const PAGES: Me["pages"] = [
   { page_key: "admin.scorecard_setup", label: "Scorecard setup", group: "administer", access: "edit" },
   { page_key: "admin.calendar", label: "Business calendar", group: "administer", access: "edit" },
   { page_key: "admin.data_integration", label: "Data integration", group: "administer", access: "edit" },
+  { page_key: "admin.integrations", label: "Integrations", group: "administer", access: "edit" },
   { page_key: "admin.health", label: "Health", group: "administer", access: "edit" },
   { page_key: "admin.audit", label: "Audit log", group: "administer", access: "edit" },
 ];
@@ -34,7 +35,7 @@ export const adminMe: Me = {
     roles: ["admin"],
     last_login_at: "2026-10-04T08:12:00Z",
   },
-  permissions: ["auth.session", "user.view", "user.manage", "metric.view", "metric.manage", "system.health.view"],
+  permissions: ["auth.session", "user.view", "user.manage", "metric.view", "metric.manage", "system.health.view", "apitoken.view", "apitoken.manage"],
   pages: PAGES,
   home: "scorecards",
   no_access: [],
@@ -240,3 +241,38 @@ export const metrics: Output<"metric.list"> = {
 
 export const forbidden = { status: 403, error: "permission_denied", message: "Your roles do not include user.view." };
 export const serverError = { status: 500, error: "http_500", message: "Server error." };
+
+export const mcpOn: Output<"mcp.status"> = {
+  enabled: true,
+  endpoint_path: "/api/mcp",
+  endpoint_url: "https://kpigo.bank.example/api/mcp",
+  protocol_versions: ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"],
+  tools: [
+    { name: "metric_list", action: "metric.list", summary: "List metric definitions." },
+    { name: "platform_hello", action: "platform.hello", summary: "Say hello. Proves an action is reachable on every surface." },
+    { name: "scorecard_compute", action: "scorecard.compute", summary: "Compute a subject's scorecard for a period." },
+  ],
+  message: "Point the assistant at this address with an API token issued here. It sees exactly what you see in kpiGo, through read-only tools, and every call is audited.",
+};
+
+export const mcpOff: Output<"mcp.status"> = {
+  ...mcpOn,
+  enabled: false,
+  endpoint_url: null,
+  message: "The MCP endpoint is off for this install (KPIGO_MCP_ENABLED=0). Your infrastructure team turns it on in the install's settings.",
+};
+
+export const apiTokens: Output<"apitoken.list"> = {
+  tokens: [
+    { name: "claude-desktop", prefix: "kpigo_Xa3f9Q", status: "active", expires_at: "2027-01-06T09:00:00Z", last_used_at: "2026-10-07T16:42:00Z", created_at: "2026-10-08T09:00:00Z" },
+    { name: "reporting-etl", prefix: "kpigo_b81Kpz", status: "revoked", expires_at: null, last_used_at: null, created_at: "2026-09-01T09:00:00Z" },
+  ],
+};
+
+export const noApiTokens: Output<"apitoken.list"> = { tokens: [] };
+
+export const tokenIssued: Output<"apitoken.issue"> = {
+  token: { name: "claude-desktop", prefix: "kpigo_Xa3f9Q", status: "active", expires_at: "2027-01-06T09:00:00Z", last_used_at: null, created_at: "2026-10-08T09:00:00Z" },
+  secret: "kpigo_Xa3f9Q-example-token-not-real",
+  message: "Store this token now; it is not shown again. Send it as 'Authorization: Bearer <token>'. It reaches read-only actions only and carries your own permissions and visibility.",
+};

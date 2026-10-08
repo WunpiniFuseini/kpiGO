@@ -286,3 +286,23 @@ def test_the_official_mcp_client_reads_through_kpigo(make_user: Callable[..., Us
     assert result.is_error is False
     assert result.structured_content["greeting"] == "Hello, sdk!"
     assert result.structured_content["caller"] == "mcp"
+
+
+def test_mcp_status_tells_an_admin_where_to_connect_and_what_they_get(
+    make_user: Callable[..., User], settings: Any
+) -> None:
+    admin = make_user("admin")
+    ctx = build_context(admin, caller="http")
+    settings.KPIGO_PUBLIC_URL = "https://kpigo.bank.local"
+    status: Any = invoke(registry.get("mcp.status"), {}, ctx)
+    assert status.enabled is True
+    assert status.endpoint_url == "https://kpigo.bank.local/api/mcp"
+    assert status.protocol_versions == list(PROTOCOL_VERSIONS)
+    # Exactly the tools a token this admin issues would list.
+    token = issue_token(admin)
+    assert {t.name for t in status.tools} == tool_names(token)
+    settings.KPIGO_PUBLIC_URL = ""
+    settings.KPIGO_MCP_ENABLED = False
+    off: Any = invoke(registry.get("mcp.status"), {}, ctx)
+    assert off.enabled is False and off.endpoint_url is None
+    assert "KPIGO_MCP_ENABLED" in off.message

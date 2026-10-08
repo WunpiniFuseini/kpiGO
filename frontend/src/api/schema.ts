@@ -3949,6 +3949,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mcp/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether the MCP endpoint is on, its address, and the tools your token would offer. */
+        get: operations["mcp_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notifications": {
         parameters: {
             query?: never;
@@ -8511,6 +8528,30 @@ export interface components {
             name: string;
             /** Region Code */
             region_code: string | null;
+        };
+        /** McpStatusOut */
+        McpStatusOut: {
+            /** Enabled */
+            enabled: boolean;
+            /** Endpoint Path */
+            endpoint_path: string;
+            /** Endpoint Url */
+            endpoint_url: string | null;
+            /** Message */
+            message: string;
+            /** Protocol Versions */
+            protocol_versions: string[];
+            /** Tools */
+            tools: components["schemas"]["McpToolOut"][];
+        };
+        /** McpToolOut */
+        McpToolOut: {
+            /** Action */
+            action: string;
+            /** Name */
+            name: string;
+            /** Summary */
+            summary: string;
         };
         /** MeOut */
         MeOut: {
@@ -29763,6 +29804,71 @@ export interface operations {
             };
             /** @description Service Unavailable */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    mcp_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["McpStatusOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -13155,6 +13155,80 @@
         "title": "MatrixRowOut",
         "type": "object"
       },
+      "McpStatusOut": {
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "endpoint_path": {
+            "title": "Endpoint Path",
+            "type": "string"
+          },
+          "endpoint_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint Url"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "protocol_versions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Protocol Versions",
+            "type": "array"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/McpToolOut"
+            },
+            "title": "Tools",
+            "type": "array"
+          }
+        },
+        "required": [
+          "enabled",
+          "endpoint_path",
+          "endpoint_url",
+          "protocol_versions",
+          "tools",
+          "message"
+        ],
+        "title": "McpStatusOut",
+        "type": "object"
+      },
+      "McpToolOut": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "action",
+          "summary"
+        ],
+        "title": "McpToolOut",
+        "type": "object"
+      },
       "MeOut": {
         "properties": {
           "home": {
@@ -48499,6 +48573,87 @@
           "platform"
         ],
         "x-kpigo-action": "licence.activate"
+      }
+    },
+    "/api/v1/mcp/status": {
+      "get": {
+        "operationId": "mcp_status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpStatusOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "summary": "Whether the MCP endpoint is on, its address, and the tools your token would offer.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "mcp.status"
       }
     },
     "/api/v1/notifications": {
