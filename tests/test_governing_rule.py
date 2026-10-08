@@ -5,6 +5,7 @@ from ninja.operation import PathView
 
 from kpigo.action import registry
 from kpigo.action.adapters.jobs import TASK_PREFIX
+from kpigo.action.adapters.mcp import is_mcp_view, tool_definitions
 from kpigo.celery import app as celery_app
 from kpigo.urls import api
 
@@ -35,6 +36,9 @@ def test_every_url_is_an_action_route() -> None:
     for pattern in _walk(get_resolver().url_patterns):
         if pattern.name in ALLOWED_NON_ACTION_VIEWS:
             continue
+        if is_mcp_view(pattern.callback):
+            # The MCP adapter serves registry actions as tools; checked below.
+            continue
         # Ninja serves every operation on a path through one PathView, which the
         # Django view closes over.
         cells = pattern.callback.__closure__ or ()
@@ -45,6 +49,19 @@ def test_every_url_is_an_action_route() -> None:
             assert hasattr(op.view_func, "__kpigo_action__"), (
                 f"URL '{pattern.pattern}' serves a view that is not a registered action"
             )
+
+
+def test_the_mcp_adapter_is_mounted_once_and_offers_only_registered_read_actions() -> None:
+    mcp_patterns = [p for p in _walk(get_resolver().url_patterns) if is_mcp_view(p.callback)]
+    assert [p.name for p in mcp_patterns] == ["kpigo-mcp"]
+    tools = tool_definitions(registry)
+    assert tools, "the registry has read-only actions to offer"
+    for definition in tools.values():
+        assert registry.get(definition.name) is definition
+        assert definition.read_only and not definition.public
+    # Every read-only, non-public action is offered (to callers holding its permission).
+    expected = {d.name for d in registry if d.read_only and not d.public}
+    assert {d.name for d in tools.values()} == expected
 
 
 def test_only_registry_routers_are_mounted() -> None:

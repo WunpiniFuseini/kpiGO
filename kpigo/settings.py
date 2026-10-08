@@ -293,6 +293,13 @@ KPIGO_WEBHOOKS_ENABLED = (env("KPIGO_WEBHOOKS_ENABLED", "1") or "1").lower() not
     "no",
 )
 
+# The MCP endpoint (/api/mcp, R6) lets a client's own assistant read through an API token.
+# It reaches nothing a token cannot already read over the REST API; this switch turns the
+# endpoint off install-wide. Browser origins other than the install's own are refused
+# unless listed.
+KPIGO_MCP_ENABLED = (env("KPIGO_MCP_ENABLED", "1") or "1").lower() not in ("0", "false", "no")
+KPIGO_MCP_ALLOWED_ORIGINS = env_list("KPIGO_MCP_ALLOWED_ORIGINS", "")
+
 # Run the manual-input escalation ladder as this user; it checks daily who is due.
 if env("KPIGO_INPUT_REMINDER_USER"):
     KPIGO_SCHEDULED_ACTIONS.append(
