@@ -68,6 +68,10 @@ AGENT_FORBIDDEN = {
     "auth.password.change",
     "licence.activate",
     "system.update.apply",
+    # The assistant's own controls: it cannot ask itself, delete its record or lift its budget.
+    "assistant.ask",
+    "assistant.conversation.delete",
+    "assistant.budget.set",
 }
 
 
