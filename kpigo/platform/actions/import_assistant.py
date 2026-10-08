@@ -18,6 +18,7 @@ import base64
 import binascii
 import hashlib
 import uuid
+from datetime import datetime
 from typing import Annotated, Any, Literal
 
 from django.conf import settings
@@ -37,6 +38,7 @@ from kpigo.action import (
     registry,
 )
 from kpigo.ingestion import validator as v
+from kpigo.metrics.models import Aggregation, Direction, Unit
 from kpigo.platform import import_assistant as engine
 from kpigo.platform import powerbi
 from kpigo.platform.models import ImportDraft
@@ -58,8 +60,8 @@ class ImportDraftOut(BaseModel):
     proposals: engine.Proposals
     # Per-kind outcome counts once applied; null until then.
     applied: dict[str, dict[str, int]] | None = None
-    created_at: Any = None
-    applied_at: Any = None
+    created_at: datetime | None = None
+    applied_at: datetime | None = None
 
 
 def _out(row: ImportDraft) -> ImportDraftOut:
@@ -244,8 +246,41 @@ class ImportApplyOut(BaseModel):
     outcomes: list[ImportApplyOutcome]
 
 
+class MetricEdit(BaseModel):
+    """A reviewer's corrections to one proposed metric, keyed by its source row.
+
+    Only the fields the reviewer changed are set; the rest fall back to what the
+    assistant proposed. ``include=False`` leaves the metric out of the import.
+    """
+
+    source_row: int
+    include: bool = True
+    display_name: str | None = None
+    metric_code: str | None = None
+    direction: Direction | None = None
+    aggregation: Aggregation | None = None
+    unit: Unit | None = None
+    is_percentage: bool | None = None
+    decimal_places: int | None = Field(default=None, ge=0, le=6)
+    description: str | None = Field(default=None, max_length=4000)
+
+
+class SubjectEdit(BaseModel):
+    """A reviewer's corrections to one proposed subject, keyed by its source row."""
+
+    source_row: int
+    include: bool = True
+    staff_no: str | None = None
+    full_name: str | None = None
+    email: str | None = None
+
+
 class DraftApplyIn(BaseModel):
     import_id: uuid.UUID
+    # The reviewer's corrections, keyed by source row. Rows with no edit apply as
+    # proposed; an empty list applies the whole draft verbatim.
+    metrics: list[MetricEdit] = Field(default_factory=list)
+    subjects: list[SubjectEdit] = Field(default_factory=list)
 
 
 def _apply_one(name: str, payload: dict[str, Any], ctx: ActionContext) -> tuple[str, str]:
@@ -284,6 +319,8 @@ def apply(params: DraftApplyIn, ctx: ActionContext) -> ImportApplyOut:
     if row.status != "drafted":
         raise Conflict(f"This import is already {row.status}.")
     proposals = engine.Proposals.model_validate(row.proposals)
+    metric_edits = {e.source_row: e for e in params.metrics}
+    subject_edits = {e.source_row: e for e in params.subjects}
 
     outcomes: list[ImportApplyOutcome] = []
     counts: dict[str, dict[str, int]] = {}
@@ -292,17 +329,27 @@ def apply(params: DraftApplyIn, ctx: ActionContext) -> ImportApplyOut:
         counts.setdefault(kind, {})[outcome] = counts.setdefault(kind, {}).get(outcome, 0) + 1
 
     for m in proposals.metrics:
+        edit = metric_edits.get(m.source_row)
+        if edit is not None and not edit.include:
+            continue  # the reviewer unticked this metric
+        code = edit.metric_code if edit and edit.metric_code else m.metric_code
         outcome, detail = _apply_one(
             "metric.register",
             {
-                "display_name": m.display_name,
-                "metric_code": m.metric_code,
-                "description": m.description,
-                "direction": m.direction,
-                "aggregation": m.aggregation,
-                "unit": m.unit,
-                "decimal_places": m.decimal_places,
-                "is_percentage": m.is_percentage,
+                "display_name": edit.display_name if edit and edit.display_name else m.display_name,
+                "metric_code": code,
+                "description": edit.description
+                if edit and edit.description is not None
+                else m.description,
+                "direction": edit.direction if edit and edit.direction else m.direction,
+                "aggregation": edit.aggregation if edit and edit.aggregation else m.aggregation,
+                "unit": edit.unit if edit and edit.unit else m.unit,
+                "decimal_places": edit.decimal_places
+                if edit and edit.decimal_places is not None
+                else m.decimal_places,
+                "is_percentage": edit.is_percentage
+                if edit and edit.is_percentage is not None
+                else m.is_percentage,
                 "products": ["scorecards"],
                 "status": "draft",
                 # The Admin reviewed the proposal list, so near-duplicate names are expected.
@@ -310,23 +357,27 @@ def apply(params: DraftApplyIn, ctx: ActionContext) -> ImportApplyOut:
             },
             ctx,
         )
-        outcomes.append(
-            ImportApplyOutcome(kind="metric", ref=m.metric_code, outcome=outcome, detail=detail)
-        )
+        outcomes.append(ImportApplyOutcome(kind="metric", ref=code, outcome=outcome, detail=detail))
         tally("metrics", outcome)
 
     for s in proposals.subjects:
-        if not s.email:
+        sedit = subject_edits.get(s.source_row)
+        if sedit is not None and not sedit.include:
+            continue  # the reviewer unticked this person
+        staff_no = sedit.staff_no if sedit and sedit.staff_no else s.staff_no
+        full_name = sedit.full_name if sedit and sedit.full_name else s.full_name
+        email = sedit.email if sedit and sedit.email is not None else s.email
+        if not email:
             # A subject needs a real email to be registered; the roster had none for them.
             outcome, detail = "failed", "A valid email address is needed to register this person."
         else:
             outcome, detail = _apply_one(
                 "subject.register",
-                {"staff_no": s.staff_no, "full_name": s.full_name, "email": s.email},
+                {"staff_no": staff_no, "full_name": full_name, "email": email},
                 ctx,
             )
         outcomes.append(
-            ImportApplyOutcome(kind="subject", ref=s.staff_no, outcome=outcome, detail=detail)
+            ImportApplyOutcome(kind="subject", ref=staff_no, outcome=outcome, detail=detail)
         )
         tally("subjects", outcome)
 

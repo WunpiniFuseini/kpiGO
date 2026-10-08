@@ -182,6 +182,89 @@ def test_discard_stops_an_apply(make_user: Callable[..., User]) -> None:
     assert not Metric.objects.filter(org_id=ORG_ID).exists()
 
 
+def test_apply_honours_reviewer_edits(make_user: Callable[..., User]) -> None:
+    make_user("admin")
+    draft = run("import.spreadsheet.preview", file=sheet(SCORECARD))
+    out = run(
+        "import.draft.apply",
+        import_id=draft.import_id,
+        metrics=[
+            # Row 1 (Total Deposits): rename its code and keep the rest as proposed.
+            {"source_row": 1, "metric_code": "deposits_total"},
+            # Row 2 (Cost to Income Ratio): the reviewer corrects the inferred unit.
+            {"source_row": 2, "unit": "count"},
+            # Row 3 (Customer Complaints): leave it out of the import entirely.
+            {"source_row": 3, "include": False},
+        ],
+    )
+    assert out.draft.applied["metrics"]["registered"] == 2
+    metrics = {m.metric_code: m for m in Metric.objects.filter(org_id=ORG_ID)}
+    assert set(metrics) == {"deposits_total", "cost_to_income_ratio"}
+    assert metrics["cost_to_income_ratio"].unit == "count"
+
+
+def test_apply_edit_supplies_a_missing_subject_email(make_user: Callable[..., User]) -> None:
+    make_user("admin")
+    roster = [["Staff No", "Full Name", "Email"], ["E1001", "Ama Mensah", ""]]
+    draft = run("import.spreadsheet.preview", file=sheet(roster))
+    # The roster had no email for this person; without one they cannot be registered.
+    assert draft.proposals.subjects[0].email == ""
+    out = run(
+        "import.draft.apply",
+        import_id=draft.import_id,
+        subjects=[{"source_row": 1, "email": "ama.mensah@bank.example"}],
+    )
+    assert out.draft.applied["subjects"]["registered"] == 1
+    assert Subject.objects.filter(org_id=ORG_ID, email="ama.mensah@bank.example").exists()
+
+
+# A realistic retail-bank RM scorecard with only names, weights and targets — no unit or
+# direction column — so every unit and direction is inferred. Scope §17.3 expects the
+# assistant to auto-convert about 70% of such a sheet without correction; this pins that.
+BANK_SCORECARD = [
+    ["Metric", "Weight", "Target"],
+    ["Total Deposits", "15", "5,000,000"],
+    ["Loan Disbursement", "10", "2,000,000"],
+    ["CASA Ratio", "10", "35%"],
+    ["Cost to Income Ratio", "10", "48%"],
+    ["NPL Ratio", "10", "5%"],
+    ["Customer Complaints", "5", "10"],
+    ["Account Opening TAT", "5", "2"],
+    ["Customer Satisfaction Score", "10", "4.5"],
+    ["Cross-Sell Ratio", "5", "2.5"],
+    ["New Accounts Opened", "5", "150"],
+    ["Portfolio at Risk", "5", "4%"],
+    ["Digital Adoption Rate", "10", "60%"],
+]
+# What a bank analyst would confirm for each (direction, unit).
+BANK_EXPECTED = {
+    "Total Deposits": ("higher_is_better", "currency"),
+    "Loan Disbursement": ("higher_is_better", "currency"),
+    "CASA Ratio": ("higher_is_better", "percent"),
+    "Cost to Income Ratio": ("lower_is_better", "percent"),
+    "NPL Ratio": ("lower_is_better", "percent"),
+    "Customer Complaints": ("lower_is_better", "count"),
+    "Account Opening TAT": ("lower_is_better", "days"),
+    "Customer Satisfaction Score": ("higher_is_better", "score"),
+    "Cross-Sell Ratio": ("higher_is_better", "count"),
+    "New Accounts Opened": ("higher_is_better", "count"),
+    "Portfolio at Risk": ("lower_is_better", "percent"),
+    "Digital Adoption Rate": ("higher_is_better", "percent"),
+}
+
+
+def test_engine_auto_converts_about_seventy_percent_of_a_real_sheet() -> None:
+    p = engine.propose(BANK_SCORECARD[0], [tuple(r) for r in BANK_SCORECARD[1:]])
+    assert p.kind == "scorecard"
+    assert len(p.metrics) == len(BANK_EXPECTED)
+    fully_correct = sum(
+        1 for m in p.metrics if (m.direction, m.unit) == BANK_EXPECTED[m.display_name]
+    )
+    ratio = fully_correct / len(p.metrics)
+    # Scope §17.3's ~70%: at least that share needs no correction at all.
+    assert ratio >= 0.70, f"only {fully_correct}/{len(p.metrics)} inferred correctly"
+
+
 def test_apply_surfaces_pending_approval_when_maker_checker_is_on(
     make_user: Callable[..., User], settings: Any
 ) -> None:
