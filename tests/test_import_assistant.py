@@ -6,6 +6,9 @@ the pipeline with ``run``, so the permission, approval and audit path is the UI'
 """
 
 import base64
+import io
+import json
+import zipfile
 from collections.abc import Callable
 from typing import Any
 
@@ -16,6 +19,7 @@ from kpigo.action.identity import build_context
 from kpigo.hierarchy.models import Subject
 from kpigo.metrics.models import Metric
 from kpigo.platform import import_assistant as engine
+from kpigo.platform import powerbi
 from kpigo.platform.models import AuditLog, ImportDraft
 from tests.conftest import ORG_ID, run
 
@@ -207,3 +211,128 @@ def test_list_filters_by_status_and_kind(make_user: Callable[..., User]) -> None
     assert len(everything.drafts) == 2
     rosters = run("import.draft.list", kind="roster")
     assert [d.kind for d in rosters.drafts] == ["roster"]
+
+
+# ── Power BI import (increment 4) ───────────────────────────────────────────
+
+TMSL = {
+    "model": {
+        "tables": [
+            {
+                "name": "Sales",
+                "measures": [
+                    {
+                        "name": "Total Revenue",
+                        "expression": "SUM(Sales[Amt])",
+                        "formatString": "\\$#,##0",
+                    },
+                    {
+                        "name": "Cost to Income",
+                        "expression": "DIVIDE([Cost],[Income])",
+                        "formatString": "0.0%",
+                    },
+                    {"name": "Helper", "expression": "1", "isHidden": True},
+                ],
+            },
+            {"name": "Calendar", "measures": []},
+        ]
+    }
+}
+
+TMDL_TEXT = (
+    "table 'Sales'\n"
+    "\tmeasure 'Total Revenue' = SUM('Sales'[Amt])\n"
+    "\t\tformatString: \\$#,##0\n"
+    "\tmeasure 'Cost to Income' =\n"
+    "\t\t\tDIVIDE([Cost], [Income])\n"
+    "\t\tformatString: 0.0%\n"
+)
+
+
+def bim_file() -> dict[str, str]:
+    raw = json.dumps(TMSL).encode()
+    return {"filename": "model.bim", "content_base64": base64.b64encode(raw).decode()}
+
+
+def pbit_file() -> dict[str, str]:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("DataModelSchema", json.dumps(TMSL).encode("utf-16"))
+        archive.writestr("Report/Layout", b"{}")
+    return {
+        "filename": "report.pbit",
+        "content_base64": base64.b64encode(buffer.getvalue()).decode(),
+    }
+
+
+def tmdl_file() -> dict[str, str]:
+    return {
+        "filename": "sales.tmdl",
+        "content_base64": base64.b64encode(TMDL_TEXT.encode()).decode(),
+    }
+
+
+def test_powerbi_parses_a_bim_model() -> None:
+    model = powerbi.parse_model("model.bim", json.dumps(TMSL).encode())
+    names = {m.name for m in model.measures}
+    assert names == {"Total Revenue", "Cost to Income", "Helper"}
+    assert "Sales" in model.tables
+
+
+def test_powerbi_parses_a_pbit_zip() -> None:
+    raw = base64.b64decode(pbit_file()["content_base64"])
+    model = powerbi.parse_model("report.pbit", raw)
+    assert model.source == "pbit"
+    assert {m.name for m in model.measures} >= {"Total Revenue", "Cost to Income"}
+
+
+def test_powerbi_parses_tmdl_text() -> None:
+    measures = {m.name: m for m in powerbi.parse_model("sales.tmdl", TMDL_TEXT.encode()).measures}
+    assert set(measures) == {"Total Revenue", "Cost to Income"}
+    assert measures["Cost to Income"].format_string == "0.0%"
+
+
+def test_powerbi_rejects_a_pbix() -> None:
+    with pytest.raises(powerbi.PowerBiError, match="template"):
+        powerbi.parse_model("report.pbix", b"PK\x03\x04nope")
+
+
+def test_engine_proposes_metrics_from_measures() -> None:
+    model = powerbi.parse_model("model.bim", json.dumps(TMSL).encode())
+    p = engine.propose_powerbi(model.measures, model.tables)
+    assert p.kind == "powerbi"
+    by_name = {m.display_name: m for m in p.metrics}
+    # The hidden helper is not proposed.
+    assert set(by_name) == {"Total Revenue", "Cost to Income"}
+    assert by_name["Total Revenue"].unit == "currency"  # from the $ formatString
+    assert by_name["Cost to Income"].unit == "percent"  # from the % formatString
+    assert by_name["Cost to Income"].direction == "lower_is_better"  # "cost" in the name
+    # The DAX is carried into the metric's note for the reviewer.
+    assert "DAX" in by_name["Total Revenue"].description
+
+
+def test_powerbi_preview_and_apply(make_user: Callable[..., User]) -> None:
+    make_user("admin")
+    draft = run("import.powerbi.preview", file=bim_file())
+    assert draft.kind == "powerbi"
+    assert draft.summary["metrics"] == 2
+    out = run("import.draft.apply", import_id=draft.import_id)
+    assert out.draft.applied["metrics"]["registered"] == 2
+    metrics = {m.metric_code: m for m in Metric.objects.filter(org_id=ORG_ID)}
+    assert metrics["total_revenue"].status == "draft"
+    assert metrics["cost_to_income"].unit == "percent"
+
+
+def test_powerbi_preview_accepts_a_pbit(make_user: Callable[..., User]) -> None:
+    make_user("admin")
+    draft = run("import.powerbi.preview", file=pbit_file())
+    assert draft.summary["metrics"] == 2
+
+
+def test_powerbi_preview_rejects_a_pbix(make_user: Callable[..., User]) -> None:
+    from kpigo.action import InvalidInput
+
+    make_user("admin")
+    pbix = {"filename": "r.pbix", "content_base64": base64.b64encode(b"nope").decode()}
+    with pytest.raises(InvalidInput, match="template"):
+        run("import.powerbi.preview", file=pbix)

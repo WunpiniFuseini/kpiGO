@@ -1670,6 +1670,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/import.powerbi.preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Read a Power BI model's measures and propose them as metrics to review. */
+        post: operations["import_powerbi_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/import.spreadsheet.preview": {
         parameters: {
             query?: never;
@@ -7072,7 +7089,7 @@ export interface components {
         /** DraftListInQuery */
         DraftListInQuery: {
             /** Kind */
-            kind?: ("scorecard" | "roster" | "unknown") | null;
+            kind?: ("scorecard" | "roster" | "powerbi" | "unknown") | null;
             /** Status */
             status?: ("drafted" | "applied" | "discarded") | null;
         };
@@ -9694,6 +9711,20 @@ export interface components {
              */
             scope_type: "role" | "profile";
         };
+        /**
+         * PowerBiFile
+         * @description A Power BI model: a .pbit template, a model.bim/.json, or a .tmdl (or zipped PBIP).
+         */
+        PowerBiFile: {
+            /** Content Base64 */
+            content_base64: string;
+            /** Filename */
+            filename: string;
+        };
+        /** PowerBiPreviewIn */
+        PowerBiPreviewIn: {
+            file: components["schemas"]["PowerBiFile"];
+        };
         /** PreferenceListOut */
         PreferenceListOut: {
             /** Preferences */
@@ -9953,7 +9984,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "scorecard" | "roster" | "unknown";
+            kind: "scorecard" | "roster" | "powerbi" | "unknown";
             /** Mapping */
             mapping: {
                 [key: string]: string;
@@ -19659,7 +19690,7 @@ export interface operations {
         parameters: {
             query?: {
                 status?: ("drafted" | "applied" | "discarded") | null;
-                kind?: ("scorecard" | "roster" | "unknown") | null;
+                kind?: ("scorecard" | "roster" | "powerbi" | "unknown") | null;
             };
             header?: never;
             path?: never;
@@ -19714,6 +19745,84 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    import_powerbi_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PowerBiPreviewIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportDraftOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

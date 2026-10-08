@@ -18,11 +18,12 @@ sheet or inferred, and nothing here writes. Applying a reviewed draft is the job
 from __future__ import annotations
 
 import re
-from typing import Literal
+from collections.abc import Sequence
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
-Kind = Literal["scorecard", "roster", "unknown"]
+Kind = Literal["scorecard", "roster", "powerbi", "unknown"]
 
 # The most metrics or subjects one sheet may propose; a larger sheet is read up to the
 # validator's row cap and the overflow is reported, never silently dropped.
@@ -481,6 +482,82 @@ def _roster(header: list[str], rows: Rows, mapping: dict[str, str]) -> Proposals
         metrics=[],
         targets=[],
         subjects=subjects,
+        warnings=warnings,
+    )
+
+
+def _unit_from_format_string(fmt: str) -> str | None:
+    """A Power BI measure's formatString, where it names a unit kpiGo recognises."""
+    if not fmt:
+        return None
+    if "%" in fmt:
+        return "percent"
+    if any(symbol in fmt for symbol in ("$", "£", "€", "¤")):
+        return "currency"
+    return None
+
+
+def propose_powerbi(measures: Sequence[Any], tables: Sequence[str]) -> Proposals:
+    """Turn a Power BI model's measures into proposed metrics (see kpigo.platform.powerbi).
+
+    A ``measure`` is any object with ``name``, ``expression``, ``format_string``,
+    ``description`` and ``is_hidden`` attributes. Hidden measures are kept out: they are
+    usually intermediate helpers, not KPIs. Direction is inferred from the name and unit
+    from the formatString (then the name), as for a spreadsheet, and flagged for review.
+    """
+    metrics: list[ProposedMetric] = []
+    warnings: list[str] = []
+    taken: set[str] = set()
+    hidden = 0
+    for n, m in enumerate(measures, start=1):
+        if getattr(m, "is_hidden", False):
+            hidden += 1
+            continue
+        name = str(getattr(m, "name", "")).strip()
+        if not name:
+            continue
+        if len(metrics) >= MAX_METRICS:
+            warnings.append(
+                f"Only the first {MAX_METRICS} measures were read; the rest were skipped."
+            )
+            break
+        fmt = str(getattr(m, "format_string", "") or "")
+        unit = _unit_from_format_string(fmt)
+        unit_inferred = unit is None
+        if unit is None:
+            unit, _ = _infer_unit(name, None, None)
+        direction, _ = _infer_direction(name, None)
+        inferred = ["direction", "aggregation"] + (["unit"] if unit_inferred else [])
+        # The DAX keeps the source formula visible to the reviewer and the DE team.
+        note = str(getattr(m, "description", "") or "").strip()
+        dax = str(getattr(m, "expression", "") or "").strip()
+        if dax:
+            note = f"{note}\n\nPower BI DAX: {dax}".strip()
+        metrics.append(
+            ProposedMetric(
+                source_row=n,
+                display_name=name[:200],
+                metric_code=_slug(name, taken),
+                direction=direction,
+                aggregation=_aggregation_for(unit),
+                unit=unit,
+                is_percentage=unit == "percent",
+                decimal_places=_decimals_for(unit),
+                description=note[:4000],
+                inferred=inferred,
+            )
+        )
+    if not metrics:
+        warnings.append("The model has no visible measures to propose as metrics.")
+    if hidden:
+        warnings.append(f"{hidden} hidden measure(s) were skipped; unhide any you want imported.")
+    return Proposals(
+        kind="powerbi",
+        mapping={"source": f"{len(metrics)} measure(s) from {len(tables)} table(s)"},
+        unmapped_columns=[],
+        metrics=metrics,
+        targets=[],
+        subjects=[],
         warnings=warnings,
     )
 

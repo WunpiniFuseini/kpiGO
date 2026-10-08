@@ -38,6 +38,7 @@ from kpigo.action import (
 )
 from kpigo.ingestion import validator as v
 from kpigo.platform import import_assistant as engine
+from kpigo.platform import powerbi
 from kpigo.platform.models import ImportDraft
 
 Filename = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)]
@@ -95,21 +96,28 @@ class SpreadsheetPreviewIn(BaseModel):
     file: SpreadsheetFile
 
 
-def _decode(file: SpreadsheetFile) -> tuple[v.RawTable, str]:
+def _raw_bytes(content_base64: str) -> bytes:
     limit = int(getattr(settings, "KPIGO_UPLOAD_MAX_BYTES", 50 * 1024 * 1024))
-    if len(file.content_base64) > limit * 4 // 3 + 4:
+    if len(content_base64) > limit * 4 // 3 + 4:
         raise InvalidInput(f"The file is larger than the {limit // (1024 * 1024)} MB limit.")
     try:
-        data = base64.b64decode(file.content_base64, validate=True)
+        return base64.b64decode(content_base64, validate=True)
     except (binascii.Error, ValueError):
         raise InvalidInput("The file is not valid base64.") from None
-    try:
-        table = v.read_file(file.filename, data, row_cap=ROW_CAP)
-    except v.RowCapExceeded as exc:
-        raise InvalidInput(str(exc)) from None
-    except v.SourceError as exc:
-        raise InvalidInput(str(exc)) from None
-    return table, hashlib.sha256(data).hexdigest()
+
+
+def _store(
+    filename: str, data: bytes, proposals: engine.Proposals, ctx: ActionContext
+) -> ImportDraft:
+    return ImportDraft.objects.create(
+        org_id=ctx.org_id,
+        filename=filename,
+        content_hash=hashlib.sha256(data).hexdigest(),
+        kind=proposals.kind,
+        proposals=proposals.model_dump(mode="json"),
+        summary=proposals.summary(),
+        created_by=ctx.user_id,
+    )
 
 
 @action(
@@ -123,18 +131,52 @@ def _decode(file: SpreadsheetFile) -> tuple[v.RawTable, str]:
     example={"file": {"filename": "scorecard.csv", "content_base64": "bWV0cmljLHdlaWdodA=="}},
 )
 def preview(params: SpreadsheetPreviewIn, ctx: ActionContext) -> ImportDraftOut:
-    table, content_hash = _decode(params.file)
+    data = _raw_bytes(params.file.content_base64)
+    try:
+        table = v.read_file(params.file.filename, data, row_cap=ROW_CAP)
+    except (v.RowCapExceeded, v.SourceError) as exc:
+        raise InvalidInput(str(exc)) from None
     proposals = engine.propose(table.header, table.rows)
-    row = ImportDraft.objects.create(
-        org_id=ctx.org_id,
-        filename=params.file.filename,
-        content_hash=content_hash,
-        kind=proposals.kind,
-        proposals=proposals.model_dump(mode="json"),
-        summary=proposals.summary(),
-        created_by=ctx.user_id,
-    )
-    return _out(row)
+    return _out(_store(params.file.filename, data, proposals, ctx))
+
+
+# ── import.powerbi.preview ──────────────────────────────────────────────────
+
+
+class PowerBiFile(BaseModel):
+    """A Power BI model: a .pbit template, a model.bim/.json, or a .tmdl (or zipped PBIP)."""
+
+    filename: Filename
+    content_base64: str = Field(min_length=1)
+
+    @field_serializer("content_base64", when_used="json")
+    def _summarise(self, value: str) -> str:
+        digest = hashlib.sha256(value.encode()).hexdigest()[:16]
+        return f"<{len(value)} base64 characters, sha256 {digest}>"
+
+
+class PowerBiPreviewIn(BaseModel):
+    file: PowerBiFile
+
+
+@action(
+    name="import.powerbi.preview",
+    summary="Read a Power BI model's measures and propose them as metrics to review.",
+    schema=PowerBiPreviewIn,
+    output=ImportDraftOut,
+    permission="import.manage",
+    read_only=False,
+    audit="import.previewed",
+    example={"file": {"filename": "model.bim", "content_base64": "e30="}},
+)
+def preview_powerbi(params: PowerBiPreviewIn, ctx: ActionContext) -> ImportDraftOut:
+    data = _raw_bytes(params.file.content_base64)
+    try:
+        model = powerbi.parse_model(params.file.filename, data)
+    except powerbi.PowerBiError as exc:
+        raise InvalidInput(str(exc)) from None
+    proposals = engine.propose_powerbi(model.measures, model.tables)
+    return _out(_store(params.file.filename, data, proposals, ctx))
 
 
 # ── import.draft.get / import.draft.list ────────────────────────────────────
@@ -162,7 +204,7 @@ def get(params: DraftGetIn, ctx: ActionContext) -> ImportDraftOut:
 
 class DraftListIn(BaseModel):
     status: Literal["drafted", "applied", "discarded"] | None = None
-    kind: Literal["scorecard", "roster", "unknown"] | None = None
+    kind: Literal["scorecard", "roster", "powerbi", "unknown"] | None = None
 
 
 class ImportDraftListOut(BaseModel):
