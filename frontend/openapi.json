@@ -8137,6 +8137,86 @@
         "title": "DiscardIn",
         "type": "object"
       },
+      "DraftApplyIn": {
+        "properties": {
+          "import_id": {
+            "format": "uuid",
+            "title": "Import Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "import_id"
+        ],
+        "title": "DraftApplyIn",
+        "type": "object"
+      },
+      "DraftDiscardIn": {
+        "properties": {
+          "import_id": {
+            "format": "uuid",
+            "title": "Import Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "import_id"
+        ],
+        "title": "DraftDiscardIn",
+        "type": "object"
+      },
+      "DraftGetInQuery": {
+        "properties": {
+          "import_id": {
+            "format": "uuid",
+            "title": "Import Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "import_id"
+        ],
+        "title": "DraftGetInQuery",
+        "type": "object"
+      },
+      "DraftListInQuery": {
+        "properties": {
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "scorecard",
+                  "roster",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "drafted",
+                  "applied",
+                  "discarded"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "DraftListInQuery",
+        "type": "object"
+      },
       "EdgeCreateIn": {
         "properties": {
           "counts_toward_rollup": {
@@ -10404,6 +10484,134 @@
           "band_ramp_position"
         ],
         "title": "HistoryPointOut",
+        "type": "object"
+      },
+      "ImportApplyOut": {
+        "properties": {
+          "draft": {
+            "$ref": "#/components/schemas/ImportDraftOut"
+          },
+          "outcomes": {
+            "items": {
+              "$ref": "#/components/schemas/ImportApplyOutcome"
+            },
+            "title": "Outcomes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "draft",
+          "outcomes"
+        ],
+        "title": "ImportApplyOut",
+        "type": "object"
+      },
+      "ImportApplyOutcome": {
+        "properties": {
+          "detail": {
+            "default": "",
+            "title": "Detail",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "ref",
+          "outcome"
+        ],
+        "title": "ImportApplyOutcome",
+        "type": "object"
+      },
+      "ImportDraftListOut": {
+        "properties": {
+          "drafts": {
+            "items": {
+              "$ref": "#/components/schemas/ImportDraftOut"
+            },
+            "title": "Drafts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "drafts"
+        ],
+        "title": "ImportDraftListOut",
+        "type": "object"
+      },
+      "ImportDraftOut": {
+        "properties": {
+          "applied": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "type": "object"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applied"
+          },
+          "applied_at": {
+            "title": "Applied At"
+          },
+          "created_at": {
+            "title": "Created At"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "import_id": {
+            "format": "uuid",
+            "title": "Import Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "proposals": {
+            "$ref": "#/components/schemas/Proposals"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Summary",
+            "type": "object"
+          }
+        },
+        "required": [
+          "import_id",
+          "kind",
+          "status",
+          "filename",
+          "summary",
+          "proposals"
+        ],
+        "title": "ImportDraftOut",
         "type": "object"
       },
       "ImportListInQuery": {
@@ -17126,6 +17334,208 @@
         "title": "Proposal",
         "type": "object"
       },
+      "Proposals": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "scorecard",
+              "roster",
+              "unknown"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "mapping": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Mapping",
+            "type": "object"
+          },
+          "message": {
+            "default": "",
+            "title": "Message",
+            "type": "string"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/ProposedMetric"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/ProposedSubject"
+            },
+            "title": "Subjects",
+            "type": "array"
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/ProposedTarget"
+            },
+            "title": "Targets",
+            "type": "array"
+          },
+          "unmapped_columns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unmapped Columns",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "mapping",
+          "unmapped_columns",
+          "metrics",
+          "targets",
+          "subjects",
+          "warnings"
+        ],
+        "title": "Proposals",
+        "type": "object"
+      },
+      "ProposedMetric": {
+        "properties": {
+          "aggregation": {
+            "title": "Aggregation",
+            "type": "string"
+          },
+          "decimal_places": {
+            "title": "Decimal Places",
+            "type": "integer"
+          },
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "direction": {
+            "title": "Direction",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "inferred": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Inferred",
+            "type": "array"
+          },
+          "is_percentage": {
+            "title": "Is Percentage",
+            "type": "boolean"
+          },
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "source_row": {
+            "title": "Source Row",
+            "type": "integer"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_row",
+          "display_name",
+          "metric_code",
+          "direction",
+          "aggregation",
+          "unit",
+          "is_percentage",
+          "decimal_places",
+          "inferred"
+        ],
+        "title": "ProposedMetric",
+        "type": "object"
+      },
+      "ProposedSubject": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "source_row": {
+            "title": "Source Row",
+            "type": "integer"
+          },
+          "staff_no": {
+            "title": "Staff No",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_row",
+          "staff_no",
+          "full_name",
+          "email"
+        ],
+        "title": "ProposedSubject",
+        "type": "object"
+      },
+      "ProposedTarget": {
+        "properties": {
+          "metric_code": {
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "source_row": {
+            "title": "Source Row",
+            "type": "integer"
+          },
+          "target_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Value"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight"
+          }
+        },
+        "required": [
+          "source_row",
+          "metric_code",
+          "target_value",
+          "weight"
+        ],
+        "title": "ProposedTarget",
+        "type": "object"
+      },
       "ProviderOut": {
         "properties": {
           "enabled": {
@@ -20171,6 +20581,40 @@
           "created_by"
         ],
         "title": "SnapshotOut",
+        "type": "object"
+      },
+      "SpreadsheetFile": {
+        "description": "A CSV or XLSX workbook, base64-encoded.",
+        "properties": {
+          "content_base64": {
+            "minLength": 1,
+            "title": "Content Base64",
+            "type": "string"
+          },
+          "filename": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Filename",
+            "type": "string"
+          }
+        },
+        "required": [
+          "filename",
+          "content_base64"
+        ],
+        "title": "SpreadsheetFile",
+        "type": "object"
+      },
+      "SpreadsheetPreviewIn": {
+        "properties": {
+          "file": {
+            "$ref": "#/components/schemas/SpreadsheetFile"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "SpreadsheetPreviewIn",
         "type": "object"
       },
       "SsoCompleteOut": {
@@ -34104,6 +34548,525 @@
           "platform"
         ],
         "x-kpigo-action": "fx.set"
+      }
+    },
+    "/api/v1/actions/import.draft.apply": {
+      "post": {
+        "operationId": "import_draft_apply",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftApplyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportApplyOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "summary": "Register the reviewed metrics and subjects from an import draft.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "import.draft.apply"
+      }
+    },
+    "/api/v1/actions/import.draft.discard": {
+      "post": {
+        "operationId": "import_draft_discard",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftDiscardIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportDraftOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "summary": "Discard an import draft without applying it.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "import.draft.discard"
+      }
+    },
+    "/api/v1/actions/import.draft.get": {
+      "get": {
+        "operationId": "import_draft_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Import Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportDraftOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "summary": "One import draft and everything it proposes.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "import.draft.get"
+      }
+    },
+    "/api/v1/actions/import.draft.list": {
+      "get": {
+        "operationId": "import_draft_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "drafted",
+                    "applied",
+                    "discarded"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "scorecard",
+                    "roster",
+                    "unknown"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportDraftListOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "summary": "Import drafts, newest first.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "import.draft.list"
+      }
+    },
+    "/api/v1/actions/import.spreadsheet.preview": {
+      "post": {
+        "operationId": "import_spreadsheet_preview",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpreadsheetPreviewIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportDraftOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "summary": "Read an uploaded KPI sheet or staff roster and propose the config it describes.",
+        "tags": [
+          "platform"
+        ],
+        "x-kpigo-action": "import.spreadsheet.preview"
       }
     },
     "/api/v1/actions/input.assignment.create": {

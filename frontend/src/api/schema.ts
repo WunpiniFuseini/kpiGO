@@ -1602,6 +1602,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/actions/import.draft.apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register the reviewed metrics and subjects from an import draft. */
+        post: operations["import_draft_apply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/import.draft.discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Discard an import draft without applying it. */
+        post: operations["import_draft_discard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/import.draft.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One import draft and everything it proposes. */
+        get: operations["import_draft_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/import.draft.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Import drafts, newest first. */
+        get: operations["import_draft_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/actions/import.spreadsheet.preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Read an uploaded KPI sheet or staff roster and propose the config it describes. */
+        post: operations["import_spreadsheet_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/actions/input.assignment.create": {
         parameters: {
             query?: never;
@@ -6960,6 +7045,37 @@ export interface components {
              */
             import_id: string;
         };
+        /** DraftApplyIn */
+        DraftApplyIn: {
+            /**
+             * Import Id
+             * Format: uuid
+             */
+            import_id: string;
+        };
+        /** DraftDiscardIn */
+        DraftDiscardIn: {
+            /**
+             * Import Id
+             * Format: uuid
+             */
+            import_id: string;
+        };
+        /** DraftGetInQuery */
+        DraftGetInQuery: {
+            /**
+             * Import Id
+             * Format: uuid
+             */
+            import_id: string;
+        };
+        /** DraftListInQuery */
+        DraftListInQuery: {
+            /** Kind */
+            kind?: ("scorecard" | "roster" | "unknown") | null;
+            /** Status */
+            status?: ("drafted" | "applied" | "discarded") | null;
+        };
         /** EdgeCreateIn */
         EdgeCreateIn: {
             /**
@@ -7697,6 +7813,60 @@ export interface components {
             source: string;
             /** Total Score */
             total_score: string;
+        };
+        /** ImportApplyOut */
+        ImportApplyOut: {
+            draft: components["schemas"]["ImportDraftOut"];
+            /** Outcomes */
+            outcomes: components["schemas"]["ImportApplyOutcome"][];
+        };
+        /** ImportApplyOutcome */
+        ImportApplyOutcome: {
+            /**
+             * Detail
+             * @default
+             */
+            detail?: string;
+            /** Kind */
+            kind: string;
+            /** Outcome */
+            outcome: string;
+            /** Ref */
+            ref: string;
+        };
+        /** ImportDraftListOut */
+        ImportDraftListOut: {
+            /** Drafts */
+            drafts: components["schemas"]["ImportDraftOut"][];
+        };
+        /** ImportDraftOut */
+        ImportDraftOut: {
+            /** Applied */
+            applied?: {
+                [key: string]: {
+                    [key: string]: number;
+                };
+            } | null;
+            /** Applied At */
+            applied_at?: unknown;
+            /** Created At */
+            created_at?: unknown;
+            /** Filename */
+            filename: string;
+            /**
+             * Import Id
+             * Format: uuid
+             */
+            import_id: string;
+            /** Kind */
+            kind: string;
+            proposals: components["schemas"]["Proposals"];
+            /** Status */
+            status: string;
+            /** Summary */
+            summary: {
+                [key: string]: number;
+            };
         };
         /** ImportListInQuery */
         ImportListInQuery: {
@@ -9777,6 +9947,81 @@ export interface components {
              */
             status?: string;
         };
+        /** Proposals */
+        Proposals: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "scorecard" | "roster" | "unknown";
+            /** Mapping */
+            mapping: {
+                [key: string]: string;
+            };
+            /**
+             * Message
+             * @default
+             */
+            message?: string;
+            /** Metrics */
+            metrics: components["schemas"]["ProposedMetric"][];
+            /** Subjects */
+            subjects: components["schemas"]["ProposedSubject"][];
+            /** Targets */
+            targets: components["schemas"]["ProposedTarget"][];
+            /** Unmapped Columns */
+            unmapped_columns: string[];
+            /** Warnings */
+            warnings: string[];
+        };
+        /** ProposedMetric */
+        ProposedMetric: {
+            /** Aggregation */
+            aggregation: string;
+            /** Decimal Places */
+            decimal_places: number;
+            /**
+             * Description
+             * @default
+             */
+            description?: string;
+            /** Direction */
+            direction: string;
+            /** Display Name */
+            display_name: string;
+            /** Inferred */
+            inferred: string[];
+            /** Is Percentage */
+            is_percentage: boolean;
+            /** Metric Code */
+            metric_code: string;
+            /** Source Row */
+            source_row: number;
+            /** Unit */
+            unit: string;
+        };
+        /** ProposedSubject */
+        ProposedSubject: {
+            /** Email */
+            email: string;
+            /** Full Name */
+            full_name: string;
+            /** Source Row */
+            source_row: number;
+            /** Staff No */
+            staff_no: string;
+        };
+        /** ProposedTarget */
+        ProposedTarget: {
+            /** Metric Code */
+            metric_code: string;
+            /** Source Row */
+            source_row: number;
+            /** Target Value */
+            target_value: string | null;
+            /** Weight */
+            weight: string | null;
+        };
         /** ProviderOut */
         ProviderOut: {
             /** Enabled */
@@ -10832,6 +11077,20 @@ export interface components {
             snapshot_version: number;
             /** Subjects */
             subjects: number;
+        };
+        /**
+         * SpreadsheetFile
+         * @description A CSV or XLSX workbook, base64-encoded.
+         */
+        SpreadsheetFile: {
+            /** Content Base64 */
+            content_base64: string;
+            /** Filename */
+            filename: string;
+        };
+        /** SpreadsheetPreviewIn */
+        SpreadsheetPreviewIn: {
+            file: components["schemas"]["SpreadsheetFile"];
         };
         /** SsoCompleteOut */
         SsoCompleteOut: {
@@ -19115,6 +19374,375 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    import_draft_apply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftApplyIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportApplyOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    import_draft_discard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftDiscardIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportDraftOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    import_draft_get: {
+        parameters: {
+            query: {
+                import_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportDraftOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    import_draft_list: {
+        parameters: {
+            query?: {
+                status?: ("drafted" | "applied" | "discarded") | null;
+                kind?: ("scorecard" | "roster" | "unknown") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportDraftListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    import_spreadsheet_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SpreadsheetPreviewIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportDraftOut"];
                 };
             };
             /** @description Unauthorized */
