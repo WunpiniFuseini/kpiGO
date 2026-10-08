@@ -16,6 +16,7 @@ const paths: Record<string, ReactElement> = {
   "admin.product_lines": <path d="M2 2h5v5H2zM9 9h5v5H9zM9 4.5h5M2 11.5h5" />,
   "admin.data_integration": <path d="M8 1.5c3.3 0 6 1 6 2.5S11.3 6.5 8 6.5 2 5.5 2 4s2.7-2.5 6-2.5zM2 4v8c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V4M2 8c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5" />,
   "admin.widgets": <path d="M2 2h12v12H2zM2 6h12M6 6v8" />,
+  "admin.approvals": <path d="M3 2h7l3 3v9H3zM10 2v3h3M5.5 9.5 7 11l3.5-3.5" />,
   "admin.health": <path d="M1.5 8h3l1.5-4 3 8 1.5-4h4" />,
   "admin.audit": <path d="M3 2h10v12H3zM5.5 5h5M5.5 8h5M5.5 11h3" />,
   signout: <path d="M6 14H3V2h3M10.5 11 14 8l-3.5-3M14 8H6" />,
