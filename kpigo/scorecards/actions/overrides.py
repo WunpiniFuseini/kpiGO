@@ -295,6 +295,7 @@ class OverrideRejectIn(BaseModel):
 
 @action(
     name="override.approve",
+    agent_forbidden=True,
     summary="Approve someone else's pending override; it applies from now on.",
     schema=OverrideDecideIn,
     output=OverrideOut,
@@ -326,6 +327,7 @@ def approve_override(params: OverrideDecideIn, ctx: ActionContext) -> OverrideOu
 
 @action(
     name="override.reject",
+    agent_forbidden=True,
     summary="Reject a pending override, saying why.",
     schema=OverrideRejectIn,
     output=OverrideOut,
@@ -380,6 +382,7 @@ def withdraw_override(params: OverrideDecideIn, ctx: ActionContext) -> OverrideO
 
 @action(
     name="override.revoke",
+    agent_forbidden=True,
     summary="Stop an approved override applying, saying why; scores revert to the inputs beneath it.",
     schema=OverrideRejectIn,
     output=OverrideOut,

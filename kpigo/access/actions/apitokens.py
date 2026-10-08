@@ -67,6 +67,7 @@ class ApiTokenIssueOut(BaseModel):
 
 @action(
     name="apitoken.issue",
+    agent_forbidden=True,
     summary="Issue a read-API bearer token bound to your account; returns the token once.",
     schema=ApiTokenIssueIn,
     output=ApiTokenIssueOut,
@@ -146,6 +147,7 @@ class ApiTokenRevokeOut(BaseModel):
 
 @action(
     name="apitoken.revoke",
+    agent_forbidden=True,
     summary="Revoke one of your API tokens; it stops working at once.",
     schema=ApiTokenRevokeIn,
     output=ApiTokenRevokeOut,

@@ -84,6 +84,7 @@ class TransitionIn(BaseModel):
 
 @action(
     name="period.transition",
+    agent_forbidden=True,
     summary="Move a period through open, closing, closed and restating.",
     schema=TransitionIn,
     output=PeriodStatusOut,

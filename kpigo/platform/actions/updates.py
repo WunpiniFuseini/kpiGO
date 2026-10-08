@@ -112,6 +112,7 @@ _NEXT_STEPS = [
 
 @action(
     name="system.update.apply",
+    agent_forbidden=True,
     summary="Authorise a staged upgrade: re-check, take the mandatory pre-upgrade backup, log it.",
     schema=UpdateApplyIn,
     output=UpdateApplyOut,

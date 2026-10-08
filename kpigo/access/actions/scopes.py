@@ -68,6 +68,7 @@ class CreateIn(BaseModel):
 
 @action(
     name="scope.grant.create",
+    agent_forbidden=True,
     summary="Grant a role or a user Executive or Campaign data for a dimension member.",
     schema=CreateIn,
     output=GrantOut,
@@ -135,6 +136,7 @@ class EndIn(BaseModel):
 
 @action(
     name="scope.grant.end",
+    agent_forbidden=True,
     summary="End a grant. Grants are ended, never deleted, so history stays explainable.",
     schema=EndIn,
     output=GrantOut,

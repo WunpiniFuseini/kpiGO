@@ -97,6 +97,12 @@ def authorise(definition: ActionDefinition, ctx: ActionContext) -> None:
         )
 
 
+def agent_gate(definition: ActionDefinition, ctx: ActionContext) -> None:
+    """The assistant's hard prohibitions, enforced by metadata not prompt (PRD AG-6)."""
+    if ctx.caller == "agent" and not definition.agent_allowed:
+        raise PermissionDenied(f"'{definition.name}' is never run by the assistant.")
+
+
 def narrow_scope(definition: ActionDefinition, params: BaseModel, ctx: ActionContext) -> None:
     if definition.scope == "subject":
         subject_id = getattr(params, "subject_id", None)
@@ -126,6 +132,7 @@ def invoke(
         try:
             params = validate(definition, raw)
             authorise(definition, ctx)
+            agent_gate(definition, ctx)
             narrow_scope(definition, params, ctx)
             licence_gate(definition)
             if not definition.read_only and maintenance_mode():
@@ -196,12 +203,14 @@ def _execute(
                     )
                     return output, "idempotent_replay"
 
-            if (
-                definition.requires_approval
+            # The assistant never changes anything itself (PRD AG-5): every mutating
+            # call it makes becomes a proposal a human reviews, dry runs included.
+            proposes = ctx.caller == "agent" or (
+                definition.requires_approval is not None
                 and approval_enabled(definition.requires_approval, ctx.org_id)
-                and not replaying_approval
                 and not ctx.dry_run
-            ):
+            )
+            if proposes and not replaying_approval:
                 request = ApprovalRequest.objects.create(
                     org_id=ctx.org_id,
                     action_name=definition.name,
@@ -210,7 +219,13 @@ def _execute(
                     caller=ctx.caller,
                 )
                 proposal = Proposal(
-                    approval_request_id=str(request.request_id), action_name=definition.name
+                    approval_request_id=str(request.request_id),
+                    action_name=definition.name,
+                    message=(
+                        "Proposed for review. Nothing changes until a person approves it."
+                        if ctx.caller == "agent"
+                        else "Submitted for approval."
+                    ),
                 )
                 _write_audit(
                     definition,

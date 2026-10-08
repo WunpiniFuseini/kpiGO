@@ -66,6 +66,16 @@ class ActionDefinition:
     tags: tuple[str, ...] = field(default_factory=tuple)
     config_change: bool = False
     public: bool = False
+    agent_forbidden: bool = False
+
+    @property
+    def agent_allowed(self) -> bool:
+        """Whether the assistant may call this action at all (TDD §13, PRD AG-6).
+
+        Public actions and those declaring ``agent_forbidden`` are never offered
+        to it; the pipeline refuses them for ``caller="agent"`` whatever the user holds.
+        """
+        return not (self.public or self.agent_forbidden)
 
     @property
     def audit_event(self) -> str:
@@ -97,6 +107,7 @@ def action(
     tags: tuple[str, ...] = (),
     config_change: bool = False,
     public: bool = False,
+    agent_forbidden: bool = False,
 ) -> Callable[[F], F]:
     """Declare a function as a kpiGo action.
 
@@ -111,6 +122,11 @@ def action(
     ``public=True`` is for the few actions an anonymous caller must reach (login,
     SSO callbacks, first-run setup). They take no permission; the matrix test
     pins the list so a new public action is a reviewed decision.
+
+    ``agent_forbidden=True`` is a hard prohibition for the assistant (PRD AG-6):
+    it never runs or proposes the action, even for a user who holds the permission.
+    Period close, target publish, override decisions and access changes declare it,
+    so the rule lives in metadata rather than in a prompt.
     """
     if public:
         if permission not in ("", PUBLIC_PERMISSION):
@@ -130,6 +146,8 @@ def action(
         raise RegistryError(f"Action '{name}' declares unknown module '{module}'.")
     if read_only and requires_approval:
         raise RegistryError(f"Read-only action '{name}' cannot require approval.")
+    if agent_forbidden and read_only:
+        raise RegistryError(f"Read-only action '{name}' cannot be forbidden to the assistant.")
     if read_only and config_change:
         raise RegistryError(f"Read-only action '{name}' cannot change configuration.")
     if not (isinstance(schema, type) and issubclass(schema, BaseModel)):
@@ -177,6 +195,7 @@ def action(
             tags=tags,
             config_change=config_change,
             public=public,
+            agent_forbidden=agent_forbidden,
         )
         fn.__kpigo_action__ = definition  # type: ignore[attr-defined]
         return fn

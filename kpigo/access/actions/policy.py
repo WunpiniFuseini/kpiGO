@@ -60,6 +60,7 @@ class SetIn(BaseModel):
 
 @action(
     name="approval.policy.set",
+    agent_forbidden=True,
     summary="Turn maker-checker on or off for an action class.",
     schema=SetIn,
     output=ApprovalPolicyListOut,

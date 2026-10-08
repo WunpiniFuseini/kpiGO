@@ -492,6 +492,7 @@ class PublishOut(BaseModel):
 
 @action(
     name="target.publish",
+    agent_forbidden=True,
     summary="Publish drafts as one versioned batch, after the weight-sum check.",
     schema=PublishIn,
     output=PublishOut,
@@ -557,6 +558,7 @@ class BatchRevertOut(BaseModel):
 
 @action(
     name="target.batch.revert",
+    agent_forbidden=True,
     summary="Revert a publish while its periods are still in the future.",
     schema=BatchRevertIn,
     output=BatchRevertOut,

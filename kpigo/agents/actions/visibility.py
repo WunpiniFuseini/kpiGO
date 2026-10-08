@@ -99,6 +99,7 @@ def _check(ctx: ActionContext, params: VisibilitySetIn) -> None:
 
 @action(
     name="agent.visibility.set",
+    agent_forbidden=True,
     summary="Narrow (or keep open) which agents a role or profile sees in a module.",
     schema=VisibilitySetIn,
     output=VisibilityRuleOut,
@@ -143,6 +144,7 @@ class VisibilityClearOut(BaseModel):
 
 @action(
     name="agent.visibility.clear",
+    agent_forbidden=True,
     summary="Remove a visibility rule: that role or profile goes back to the module's default.",
     schema=VisibilityClearIn,
     output=VisibilityClearOut,

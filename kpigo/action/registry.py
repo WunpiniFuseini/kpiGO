@@ -60,6 +60,9 @@ class Registry:
         except KeyError:
             raise UnknownAction(f"No action named '{name}' is registered.") from None
 
+    def find(self, name: str) -> ActionDefinition | None:
+        return self._actions.get(name)
+
     def __contains__(self, name: object) -> bool:
         return name in self._actions
 

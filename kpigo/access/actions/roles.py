@@ -113,6 +113,7 @@ class CloneIn(BaseModel):
 
 @action(
     name="role.clone",
+    agent_forbidden=True,
     summary="Clone a role, its permissions and page access, under a new code.",
     schema=CloneIn,
     output=RoleOut,
@@ -187,6 +188,7 @@ class RoleUpdateIn(BaseModel):
 
 @action(
     name="role.update",
+    agent_forbidden=True,
     summary="Edit a cloned role: name, permissions, or its page access matrix.",
     schema=RoleUpdateIn,
     output=RoleOut,

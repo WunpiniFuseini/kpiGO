@@ -73,6 +73,7 @@ class InviteOut(BaseModel):
 
 @action(
     name="user.invite",
+    agent_forbidden=True,
     summary="Invite a user: identity, roles and an optional link to their subject.",
     schema=InviteIn,
     output=InviteOut,
@@ -126,6 +127,7 @@ class ResendIn(BaseModel):
 
 @action(
     name="user.invite.resend",
+    agent_forbidden=True,
     summary="Issue a fresh invitation link for a local user who has not accepted yet.",
     schema=ResendIn,
     output=InviteOut,
@@ -164,6 +166,7 @@ class UserUpdateIn(BaseModel):
 
 @action(
     name="user.update",
+    agent_forbidden=True,
     summary="Change a user's name, roles, subject link or sign-in method, or unlock them.",
     schema=UserUpdateIn,
     output=UserOut,
@@ -227,6 +230,7 @@ class DisableIn(BaseModel):
 
 @action(
     name="user.disable",
+    agent_forbidden=True,
     summary="Disable a user. Their sessions stop working; their history is kept.",
     schema=DisableIn,
     output=UserOut,
@@ -262,6 +266,7 @@ class EnableIn(BaseModel):
 
 @action(
     name="user.enable",
+    agent_forbidden=True,
     summary="Re-enable a disabled user.",
     schema=EnableIn,
     output=UserOut,
@@ -305,6 +310,7 @@ class ReassignOut(BaseModel):
 
 @action(
     name="user.reassign",
+    agent_forbidden=True,
     summary="Move a user's ownerships (feeds, metric families) to another user.",
     schema=ReassignIn,
     output=ReassignOut,

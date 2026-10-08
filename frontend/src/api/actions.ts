@@ -161,7 +161,11 @@ export const ROUTES = {
   "pipeline.stage.remove": { method: "POST", path: "/api/v1/actions/pipeline.stage.remove", pathParams: [], public: false },
   "pipeline.stage.set": { method: "POST", path: "/api/v1/actions/pipeline.stage.set", pathParams: [], public: false },
   "platform.approval.approve": { method: "POST", path: "/api/v1/actions/platform.approval.approve", pathParams: [], public: false },
+  "platform.approval.confirm": { method: "POST", path: "/api/v1/actions/platform.approval.confirm", pathParams: [], public: false },
+  "platform.approval.get": { method: "GET", path: "/api/v1/actions/platform.approval.get", pathParams: [], public: false },
+  "platform.approval.list": { method: "GET", path: "/api/v1/actions/platform.approval.list", pathParams: [], public: false },
   "platform.approval.reject": { method: "POST", path: "/api/v1/actions/platform.approval.reject", pathParams: [], public: false },
+  "platform.approval.withdraw": { method: "POST", path: "/api/v1/actions/platform.approval.withdraw", pathParams: [], public: false },
   "platform.hello": { method: "GET", path: "/api/v1/hello", pathParams: [], public: false },
   "platform.migrations.plan": { method: "GET", path: "/api/v1/actions/platform.migrations.plan", pathParams: [], public: false },
   "platform.registry.list": { method: "GET", path: "/api/v1/registry", pathParams: [], public: false },
@@ -424,7 +428,11 @@ export interface Actions {
   "pipeline.stage.remove": { input: NonNullable<operations["pipeline_stage_remove"]["requestBody"]>["content"]["application/json"]; output: operations["pipeline_stage_remove"]["responses"][200]["content"]["application/json"] };
   "pipeline.stage.set": { input: NonNullable<operations["pipeline_stage_set"]["requestBody"]>["content"]["application/json"]; output: operations["pipeline_stage_set"]["responses"][200]["content"]["application/json"] };
   "platform.approval.approve": { input: NonNullable<operations["platform_approval_approve"]["requestBody"]>["content"]["application/json"]; output: operations["platform_approval_approve"]["responses"][200]["content"]["application/json"] };
+  "platform.approval.confirm": { input: NonNullable<operations["platform_approval_confirm"]["requestBody"]>["content"]["application/json"]; output: operations["platform_approval_confirm"]["responses"][200]["content"]["application/json"] };
+  "platform.approval.get": { input: NonNullable<operations["platform_approval_get"]["parameters"]["query"]>; output: operations["platform_approval_get"]["responses"][200]["content"]["application/json"] };
+  "platform.approval.list": { input: NonNullable<operations["platform_approval_list"]["parameters"]["query"]>; output: operations["platform_approval_list"]["responses"][200]["content"]["application/json"] };
   "platform.approval.reject": { input: NonNullable<operations["platform_approval_reject"]["requestBody"]>["content"]["application/json"]; output: operations["platform_approval_reject"]["responses"][200]["content"]["application/json"] };
+  "platform.approval.withdraw": { input: NonNullable<operations["platform_approval_withdraw"]["requestBody"]>["content"]["application/json"]; output: operations["platform_approval_withdraw"]["responses"][200]["content"]["application/json"] };
   "platform.hello": { input: NonNullable<operations["platform_hello"]["parameters"]["query"]>; output: operations["platform_hello"]["responses"][200]["content"]["application/json"] };
   "platform.migrations.plan": { input: Record<string, never>; output: operations["platform_migrations_plan"]["responses"][200]["content"]["application/json"] };
   "platform.registry.list": { input: NonNullable<operations["platform_registry_list"]["parameters"]["query"]>; output: operations["platform_registry_list"]["responses"][200]["content"]["application/json"] };

@@ -178,6 +178,7 @@ def write_file(document: str) -> bool:
 
 @action(
     name="licence.activate",
+    agent_forbidden=True,
     summary="Activate a signed licence file, offline. Works in every grace and lock state.",
     schema=ActivateIn,
     output=ActivateOut,

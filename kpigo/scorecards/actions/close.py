@@ -148,6 +148,7 @@ def _snapshot(s: ScoreSnapshot) -> SnapshotOut:
 
 @action(
     name="scorecard.period.close",
+    agent_forbidden=True,
     summary="Close a Scorecards period: pre-check, score everyone, freeze the snapshot.",
     schema=PeriodCloseIn,
     output=SnapshotOut,
@@ -208,6 +209,7 @@ class PeriodRestateIn(BaseModel):
 
 @action(
     name="scorecard.period.restate",
+    agent_forbidden=True,
     summary="Reopen a closed Scorecards period for restatement, saying why.",
     schema=PeriodRestateIn,
     output=CloseCheckOut,
