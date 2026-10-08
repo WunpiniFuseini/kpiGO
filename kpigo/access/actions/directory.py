@@ -157,6 +157,7 @@ class ApplyIn(BaseModel):
 
 @action(
     name="directory.import.apply",
+    agent_forbidden=True,
     summary="Apply a reviewed directory import to subjects and reporting lines.",
     schema=ApplyIn,
     output=ImportOut,

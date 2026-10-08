@@ -115,6 +115,7 @@ class LogoutOut(BaseModel):
 
 @action(
     name="auth.logout",
+    agent_forbidden=True,
     summary="Sign out of this session.",
     schema=LogoutIn,
     output=LogoutOut,
@@ -219,6 +220,7 @@ class PasswordChangeOut(BaseModel):
 
 @action(
     name="auth.password.change",
+    agent_forbidden=True,
     summary="Change your own password (local accounts only).",
     schema=PasswordChangeIn,
     output=PasswordChangeOut,

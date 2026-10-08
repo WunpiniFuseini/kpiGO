@@ -34,6 +34,10 @@ EVERYONE = (
     "auth.session",
     # Everyone reads and clears their own notification centre (PRD NT-3).
     "notification.view",
+    # Everyone sees, withdraws and (for the assistant's proposals) confirms their own
+    # approval requests; deciding other people's is platform.approval.decide (R7).
+    "approval.request.view",
+    "approval.request.own",
 )
 
 # Users, roles, page access, data scope grants, maker-checker policy, directory.
