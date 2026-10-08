@@ -127,6 +127,7 @@ export const ROUTES = {
   "licence.entitlement.check": { method: "GET", path: "/api/v1/actions/licence.entitlement.check", pathParams: [], public: false },
   "licence.heartbeat": { method: "POST", path: "/api/v1/actions/licence.heartbeat", pathParams: [], public: false },
   "licence.status": { method: "GET", path: "/api/v1/licence", pathParams: [], public: false },
+  "mcp.status": { method: "GET", path: "/api/v1/mcp/status", pathParams: [], public: false },
   "metric.binding.set": { method: "POST", path: "/api/v1/actions/metric.binding.set", pathParams: [], public: false },
   "metric.check_name": { method: "GET", path: "/api/v1/actions/metric.check_name", pathParams: [], public: false },
   "metric.get": { method: "GET", path: "/api/v1/actions/metric.get", pathParams: [], public: false },
@@ -383,6 +384,7 @@ export interface Actions {
   "licence.entitlement.check": { input: NonNullable<operations["licence_entitlement_check"]["parameters"]["query"]>; output: operations["licence_entitlement_check"]["responses"][200]["content"]["application/json"] };
   "licence.heartbeat": { input: NonNullable<operations["licence_heartbeat"]["requestBody"]>["content"]["application/json"]; output: operations["licence_heartbeat"]["responses"][200]["content"]["application/json"] };
   "licence.status": { input: Record<string, never>; output: operations["licence_status"]["responses"][200]["content"]["application/json"] };
+  "mcp.status": { input: Record<string, never>; output: operations["mcp_status"]["responses"][200]["content"]["application/json"] };
   "metric.binding.set": { input: NonNullable<operations["metric_binding_set"]["requestBody"]>["content"]["application/json"]; output: operations["metric_binding_set"]["responses"][200]["content"]["application/json"] };
   "metric.check_name": { input: NonNullable<operations["metric_check_name"]["parameters"]["query"]>; output: operations["metric_check_name"]["responses"][200]["content"]["application/json"] };
   "metric.get": { input: NonNullable<operations["metric_get"]["parameters"]["query"]>; output: operations["metric_get"]["responses"][200]["content"]["application/json"] };

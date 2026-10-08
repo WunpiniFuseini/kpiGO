@@ -434,6 +434,14 @@ through the same pipeline — permission, subject scope, licence, audit — and 
 audited with `caller="mcp"`, attributed to the token's account. No model runs
 inside kpiGo for this: the assistant is the client's.
 
+An Admin connects an assistant from **Administer → Integrations**: it shows
+whether the endpoint is on and its address (`KPIGO_PUBLIC_URL` + `/api/mcp`, or
+the address kpiGo was opened at), lists the tools a token they issue would offer
+(`mcp.status`), and issues and revokes their API tokens. Straight after issuing,
+it shows the token once with ready-to-paste settings for a generic MCP client,
+VS Code / GitHub Copilot (`mcp.json`) and Claude Desktop (via the `mcp-remote`
+bridge, which needs Node.js on the desktop). The same can be done from the CLI:
+
 ```bash
 # Issue a token for the assistant (shown once), as above:
 docker compose exec app python manage.py action apitoken.issue --user admin --json \
