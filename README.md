@@ -465,6 +465,13 @@ or a **staff roster** (Staff No, Full Name, Email). A **Power BI model** is read
 metric. Direction and unit are inferred (from the sheet, or a measure's formatString and
 name) where they are not stated, and every guess is flagged for review.
 
+An Admin does all of this from **Administer → Import data**: upload a file, and the
+proposed metrics (or people) appear as cards with every guessed field flagged, each
+editable. Untick what you don't want, correct a direction or unit, then apply —
+the screen reports what was registered, what already existed and what is awaiting
+approval. The same review is available over the CLI and MCP through the `import.*`
+actions below.
+
 ```bash
 # Spreadsheet: upload a .csv/.xlsx (base64) → proposed metrics, targets/weights and
 # the column mapping, stored as a reviewable draft.
@@ -476,9 +483,10 @@ docker compose exec app python manage.py action import.powerbi.preview --user ad
   --json '{"file":{"filename":"report.pbit","content_base64":"<base64>"}}'
 # Review a draft (import.draft.get / list), then apply: each proposed metric is
 # registered as a draft through metric.register, each person through subject.register —
-# the same audited actions the UI uses. import.draft.discard drops a draft instead.
+# the same audited actions the UI uses. Pass "metrics"/"subjects" edits to correct an
+# inferred field or leave a row out; import.draft.discard drops a draft instead.
 docker compose exec app python manage.py action import.draft.apply --user admin \
-  --json '{"import_id":"<uuid>"}'
+  --json '{"import_id":"<uuid>","metrics":[{"source_row":1,"unit":"days"}]}'
 ```
 
 Nothing bypasses the pipeline: when maker-checker is on for metric or hierarchy

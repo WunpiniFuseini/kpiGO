@@ -8143,6 +8143,20 @@
             "format": "uuid",
             "title": "Import Id",
             "type": "string"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/MetricEdit"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "subjects": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectEdit"
+            },
+            "title": "Subjects",
+            "type": "array"
           }
         },
         "required": [
@@ -10571,9 +10585,27 @@
             "title": "Applied"
           },
           "applied_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Applied At"
           },
           "created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Created At"
           },
           "filename": {
@@ -13827,6 +13859,135 @@
           "run_id"
         ],
         "title": "MetricDataOut",
+        "type": "object"
+      },
+      "MetricEdit": {
+        "description": "A reviewer's corrections to one proposed metric, keyed by its source row.\n\nOnly the fields the reviewer changed are set; the rest fall back to what the\nassistant proposed. ``include=False`` leaves the metric out of the import.",
+        "properties": {
+          "aggregation": {
+            "anyOf": [
+              {
+                "enum": [
+                  "sum",
+                  "average",
+                  "latest",
+                  "count",
+                  "ratio"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aggregation"
+          },
+          "decimal_places": {
+            "anyOf": [
+              {
+                "maximum": 6,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decimal Places"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "direction": {
+            "anyOf": [
+              {
+                "enum": [
+                  "higher_is_better",
+                  "lower_is_better"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Direction"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "include": {
+            "default": true,
+            "title": "Include",
+            "type": "boolean"
+          },
+          "is_percentage": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Percentage"
+          },
+          "metric_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Code"
+          },
+          "source_row": {
+            "title": "Source Row",
+            "type": "integer"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "enum": [
+                  "currency",
+                  "count",
+                  "percent",
+                  "days",
+                  "hours",
+                  "score"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "source_row"
+        ],
+        "title": "MetricEdit",
         "type": "object"
       },
       "MetricGetInQuery": {
@@ -20808,6 +20969,58 @@
           "periods"
         ],
         "title": "StatusListOut",
+        "type": "object"
+      },
+      "SubjectEdit": {
+        "description": "A reviewer's corrections to one proposed subject, keyed by its source row.",
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "include": {
+            "default": true,
+            "title": "Include",
+            "type": "boolean"
+          },
+          "source_row": {
+            "title": "Source Row",
+            "type": "integer"
+          },
+          "staff_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff No"
+          }
+        },
+        "required": [
+          "source_row"
+        ],
+        "title": "SubjectEdit",
         "type": "object"
       },
       "SubjectGetInQuery": {

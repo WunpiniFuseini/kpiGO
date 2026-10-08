@@ -7069,6 +7069,10 @@ export interface components {
              * Format: uuid
              */
             import_id: string;
+            /** Metrics */
+            metrics?: components["schemas"]["MetricEdit"][];
+            /** Subjects */
+            subjects?: components["schemas"]["SubjectEdit"][];
         };
         /** DraftDiscardIn */
         DraftDiscardIn: {
@@ -7865,9 +7869,9 @@ export interface components {
                 };
             } | null;
             /** Applied At */
-            applied_at?: unknown;
+            applied_at?: string | null;
             /** Created At */
-            created_at?: unknown;
+            created_at?: string | null;
             /** Filename */
             filename: string;
             /**
@@ -8862,6 +8866,38 @@ export interface components {
             source: "independent" | "rollup" | "campaign";
             /** Unit */
             unit: string;
+        };
+        /**
+         * MetricEdit
+         * @description A reviewer's corrections to one proposed metric, keyed by its source row.
+         *
+         *     Only the fields the reviewer changed are set; the rest fall back to what the
+         *     assistant proposed. ``include=False`` leaves the metric out of the import.
+         */
+        MetricEdit: {
+            /** Aggregation */
+            aggregation?: ("sum" | "average" | "latest" | "count" | "ratio") | null;
+            /** Decimal Places */
+            decimal_places?: number | null;
+            /** Description */
+            description?: string | null;
+            /** Direction */
+            direction?: ("higher_is_better" | "lower_is_better") | null;
+            /** Display Name */
+            display_name?: string | null;
+            /**
+             * Include
+             * @default true
+             */
+            include?: boolean;
+            /** Is Percentage */
+            is_percentage?: boolean | null;
+            /** Metric Code */
+            metric_code?: string | null;
+            /** Source Row */
+            source_row: number;
+            /** Unit */
+            unit?: ("currency" | "count" | "percent" | "days" | "hours" | "score") | null;
         };
         /** MetricGetInQuery */
         MetricGetInQuery: {
@@ -11173,6 +11209,25 @@ export interface components {
         StatusListOut: {
             /** Periods */
             periods: components["schemas"]["PeriodStatusOut"][];
+        };
+        /**
+         * SubjectEdit
+         * @description A reviewer's corrections to one proposed subject, keyed by its source row.
+         */
+        SubjectEdit: {
+            /** Email */
+            email?: string | null;
+            /** Full Name */
+            full_name?: string | null;
+            /**
+             * Include
+             * @default true
+             */
+            include?: boolean;
+            /** Source Row */
+            source_row: number;
+            /** Staff No */
+            staff_no?: string | null;
         };
         /** SubjectGetInQuery */
         SubjectGetInQuery: {
