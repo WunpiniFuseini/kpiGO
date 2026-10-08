@@ -38,6 +38,9 @@ EVERYONE = (
     # approval requests; deciding other people's is platform.approval.decide (R7).
     "approval.request.view",
     "approval.request.own",
+    # Asking the assistant (R7). It runs as the user, with exactly their rights, and
+    # is off until an Admin connects a model; Admins clone roles to withhold it.
+    "assistant.use",
 )
 
 # Users, roles, page access, data scope grants, maker-checker policy, directory.
@@ -162,6 +165,8 @@ SYSTEM_ROLES: dict[str, RoleSpec] = {
             *WEBHOOKS,
             *APITOKENS,
             *IMPORT,
+            # Connecting and checking the install's model (R7).
+            "assistant.manage",
             "platform.registry.view",
             "platform.approval.decide",
             "platform.migrations.view",
