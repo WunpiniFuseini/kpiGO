@@ -6,6 +6,7 @@ export const PAGE_PATHS: Record<string, string> = {
   executive: "/executive",
   my_inputs: "/my-inputs",
   input_compliance: "/input-compliance",
+  assistant: "/assistant",
   "admin.users": "/admin/users",
   "admin.metrics": "/admin/metrics",
   "admin.targets": "/admin/targets",

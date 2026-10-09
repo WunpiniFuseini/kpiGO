@@ -8,6 +8,7 @@ const paths: Record<string, ReactElement> = {
   executive: <path d="M2 2h5v5H2zM9 2h5v3H9zM9 7h5v7H9zM2 9h5v5H2z" />,
   my_inputs: <path d="M3 2h7l3 3v9H3zM6 8h4M6 11h4M10 2v3h3" />,
   input_compliance: <path d="M2 3h12v11H2zM2 6h12M5 9l1.5 1.5L9 8M11 9.5h1" />,
+  assistant: <path d="M2.5 3h11v7h-7l-3 3zM5 6h6M5 8h4" />,
   "admin.users": <path d="M6 7a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM1.5 14c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5M11 2.5a2.5 2.5 0 0 1 0 4.5M12.5 9.8c1.2.6 2 1.9 2 3.7" />,
   "admin.metrics": <path d="M2 3h12M2 8h12M2 13h12M5 1.5v3M10 6.5v3M7 11.5v3" />,
   "admin.targets": <path d="M8 14A6 6 0 1 0 8 2a6 6 0 0 0 0 12zM8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 8h.01" />,

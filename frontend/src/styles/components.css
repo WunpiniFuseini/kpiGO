@@ -338,3 +338,16 @@
 .kg-problems { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
 .kg-history { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .kg-history li { padding-bottom: 10px; border-bottom: 1px solid var(--line-2); font-size: 13px; }
+
+/* The assistant chat surface (R7). */
+.kg-asst { display: flex; flex-direction: column; gap: 14px; }
+.kg-asst-thread { gap: 10px; }
+.kg-asst-msg { display: flex; flex-direction: column; gap: 2px; max-width: 54ch; }
+.kg-asst-msg p { margin: 0; white-space: pre-wrap; padding: 8px 12px; border-radius: var(--r-md); }
+.kg-asst-msg--user { align-self: flex-end; align-items: flex-end; }
+.kg-asst-msg--user p { background: var(--accent-soft); color: var(--accent-ink); }
+.kg-asst-msg--assistant p { background: var(--sunken); color: var(--ink); }
+.kg-asst-step { padding: 10px 12px; }
+.kg-asst-composer { display: flex; gap: 8px; align-items: flex-end; }
+.kg-asst-composer .kg-field { flex: 1; }
+.kg-asst-composer .kg-btn { white-space: nowrap; }
