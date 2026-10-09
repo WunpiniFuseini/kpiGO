@@ -16,6 +16,7 @@ export const PAGE_PATHS: Record<string, string> = {
   "admin.imports": "/admin/imports",
   "admin.widgets": "/admin/widgets",
   "admin.integrations": "/admin/integrations",
+  "admin.approvals": "/admin/approvals",
   "admin.health": "/admin/health",
   "admin.audit": "/admin/audit",
 };

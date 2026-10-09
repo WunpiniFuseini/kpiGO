@@ -14,6 +14,7 @@ const PAGES: Me["pages"] = [
   { page_key: "admin.calendar", label: "Business calendar", group: "administer", access: "edit" },
   { page_key: "admin.data_integration", label: "Data integration", group: "administer", access: "edit" },
   { page_key: "admin.integrations", label: "Integrations", group: "administer", access: "edit" },
+  { page_key: "admin.approvals", label: "Approvals", group: "administer", access: "edit" },
   { page_key: "admin.health", label: "Health", group: "administer", access: "edit" },
   { page_key: "admin.audit", label: "Audit log", group: "administer", access: "edit" },
 ];
@@ -275,4 +276,108 @@ export const tokenIssued: Output<"apitoken.issue"> = {
   token: { name: "claude-desktop", prefix: "kpigo_Xa3f9Q", status: "active", expires_at: "2027-01-06T09:00:00Z", last_used_at: null, created_at: "2026-10-08T09:00:00Z" },
   secret: "kpigo_Xa3f9Q-example-token-not-real",
   message: "Store this token now; it is not shown again. Send it as 'Authorization: Bearer <token>'. It reaches read-only actions only and carries your own permissions and visibility.",
+};
+
+// --- Approvals (R7) ----------------------------------------------------------
+
+type ApprovalRequest = Output<"platform.approval.list">["requests"][number];
+
+const baseRequest: ApprovalRequest = {
+  approval_request_id: "a0000000-0000-0000-0000-000000000001",
+  action_name: "metric.register",
+  action_summary: "Register a new metric.",
+  caller: "agent",
+  payload: { metric_code: "TAT_CARDS", name: "Turnaround, cards", direction: "lower_is_better", unit: "days" },
+  status: "pending",
+  requested_by_id: 42,
+  requested_by_name: "Ama Mensah",
+  requested_at: "2026-10-08T14:20:00Z",
+  decided_by_name: "",
+  decided_at: null,
+  rejection_reason: "",
+  result: null,
+  mine: false,
+  can_decide: true,
+  can_confirm: false,
+  can_withdraw: false,
+};
+
+// A decider's org queue: someone else's assistant proposal, and a person's own request.
+export const approvalQueue: Output<"platform.approval.list"> = {
+  scope: "org",
+  requests: [
+    baseRequest,
+    {
+      ...baseRequest,
+      approval_request_id: "a0000000-0000-0000-0000-000000000002",
+      action_name: "target.batch.load",
+      action_summary: "Load a batch of targets.",
+      caller: "http",
+      payload: { period_key: "202611", rows: 140 },
+      requested_by_name: "Kwame Asante",
+      requested_at: "2026-10-08T13:05:00Z",
+    },
+  ],
+};
+
+// A maker-checker class is on: the requester cannot confirm their own, only withdraw.
+export const myProposals: Output<"platform.approval.list"> = {
+  scope: "own",
+  requests: [
+    {
+      ...baseRequest,
+      approval_request_id: "a0000000-0000-0000-0000-000000000003",
+      requested_by_name: "Kofi Boateng",
+      mine: true,
+      can_decide: false,
+      can_confirm: true,
+      can_withdraw: true,
+    },
+  ],
+};
+
+// Own queue where the class needs a second person: confirm is closed, withdraw stays.
+export const myProposalsSecondPerson: Output<"platform.approval.list"> = {
+  scope: "own",
+  requests: [{ ...myProposals.requests[0], can_confirm: false }],
+};
+
+export const decidedApprovals: Output<"platform.approval.list"> = {
+  scope: "org",
+  requests: [
+    {
+      ...baseRequest,
+      approval_request_id: "a0000000-0000-0000-0000-000000000004",
+      status: "approved",
+      caller: "http",
+      decided_by_name: "Efua Owusu",
+      decided_at: "2026-10-08T15:00:00Z",
+      result: { metric_code: "TAT_CARDS", version: 1 },
+      can_decide: false,
+    },
+    {
+      ...baseRequest,
+      approval_request_id: "a0000000-0000-0000-0000-000000000005",
+      status: "rejected",
+      decided_by_name: "Efua Owusu",
+      decided_at: "2026-10-08T15:02:00Z",
+      rejection_reason: "The metric already exists under a different code.",
+      can_decide: false,
+    },
+  ],
+};
+
+export const noApprovals: Output<"platform.approval.list"> = { scope: "org", requests: [] };
+export const noMyProposals: Output<"platform.approval.list"> = { scope: "own", requests: [] };
+
+// An Admin who may decide the whole organisation's queue.
+export const approverMe: Me = {
+  ...adminMe,
+  permissions: [...adminMe.permissions, "platform.approval.decide", "approval.request.view", "approval.request.own"],
+};
+
+// Someone who only has their own proposals (no decide).
+export const proposerMe: Me = {
+  ...staffMe,
+  permissions: ["auth.session", "scorecard.view", "approval.request.view", "approval.request.own", "assistant.use"],
 };

@@ -42,6 +42,7 @@ PAGES: tuple[Page, ...] = (
     Page("admin.imports", "Import data", "administer", "platform"),
     Page("admin.widgets", "Widgets", "administer", "executive"),
     Page("admin.integrations", "Integrations", "administer", "platform"),
+    Page("admin.approvals", "Approvals", "administer", "platform"),
     Page("admin.health", "Health", "administer", "platform"),
     Page("admin.audit", "Audit log", "administer", "platform"),
 )
