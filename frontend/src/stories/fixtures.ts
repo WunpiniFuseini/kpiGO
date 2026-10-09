@@ -7,6 +7,7 @@ const PAGES: Me["pages"] = [
   { page_key: "agent_performance", label: "Agent Performance", group: "modules", access: "view" },
   { page_key: "campaign", label: "Campaign Manager", group: "modules", access: "view" },
   { page_key: "executive", label: "Executive", group: "modules", access: "view" },
+  { page_key: "assistant", label: "Assistant", group: "modules", access: "view" },
   { page_key: "admin.users", label: "Users & access", group: "administer", access: "edit" },
   { page_key: "admin.metrics", label: "Metric registry", group: "administer", access: "edit" },
   { page_key: "admin.targets", label: "Targets", group: "administer", access: "edit" },
@@ -380,4 +381,96 @@ export const approverMe: Me = {
 export const proposerMe: Me = {
   ...staffMe,
   permissions: ["auth.session", "scorecard.view", "approval.request.view", "approval.request.own", "assistant.use"],
+};
+
+// --- Assistant (R7) ----------------------------------------------------------
+
+export const assistantOn: Output<"assistant.status"> = {
+  available: true,
+  reason: "",
+  provider: "openai_compatible",
+  provider_label: "OpenAI-compatible (vLLM, Ollama)",
+  model: "qwen2.5-32b-instruct",
+  endpoint: "https://llm.bank.example/v1",
+  api_key_set: true,
+};
+
+export const assistantOff: Output<"assistant.status"> = {
+  available: false,
+  reason: "No model is configured (KPIGO_INFERENCE_PROVIDER is unset).",
+  provider: null,
+  provider_label: "",
+  model: "",
+};
+
+export const assistantUsage: Output<"assistant.usage"> = {
+  month_tokens: 1_240_000,
+  monthly_limit: 5_000_000,
+  today_tokens: 48_000,
+  user_daily_limit: 200_000,
+  exhausted: "",
+  by_user: null,
+};
+
+export const assistantUsageExhausted: Output<"assistant.usage"> = {
+  ...assistantUsage,
+  today_tokens: 200_000,
+  exhausted: "You have used your 200,000 tokens for today. The assistant resumes tomorrow.",
+};
+
+export const assistantAnswer: Output<"assistant.ask"> = {
+  conversation_id: "c0000000-0000-0000-0000-000000000001",
+  reply: "Ama's turnaround is 4.1 days against a 3-day target, driven by two cases that sat over a weekend. Everything else is on track.",
+  stopped: "answered",
+  steps: [
+    {
+      action_name: "scorecard.compute",
+      params: { subject_id: "ama", period_key: "202610" },
+      outcome: "ok",
+      result: { grade: "B", score: 78 },
+      error: "",
+      approval_request_id: null,
+    },
+  ],
+  input_tokens: 1800,
+  output_tokens: 240,
+};
+
+export const assistantProposal: Output<"assistant.ask"> = {
+  conversation_id: "c0000000-0000-0000-0000-000000000002",
+  reply: "I've drafted the target change. It won't take effect until you approve it.",
+  stopped: "answered",
+  steps: [
+    {
+      action_name: "target.set",
+      params: { metric_code: "TAT", period_key: "202611", value: 3 },
+      outcome: "proposed",
+      result: null,
+      error: "",
+      approval_request_id: "a0000000-0000-0000-0000-000000000009",
+    },
+  ],
+  input_tokens: 2100,
+  output_tokens: 180,
+};
+
+// A conversation loaded back from the store (get blanks tool text, drops search turns).
+export const assistantConversation: Output<"assistant.conversation.get"> = {
+  conversation_id: "c0000000-0000-0000-0000-000000000001",
+  title: "Why is Ama behind?",
+  messages: [
+    { seq: 1, role: "user", content: "Why is Ama's TAT below target this month?", created_at: "2026-10-09T09:00:00Z" },
+    {
+      seq: 2,
+      role: "tool",
+      content: "",
+      action_name: "scorecard.compute",
+      params: { subject_id: "ama", period_key: "202610" },
+      outcome: "ok",
+      result: { grade: "B", score: 78 },
+      approval_request_id: null,
+      created_at: "2026-10-09T09:00:01Z",
+    },
+    { seq: 3, role: "assistant", content: "Her turnaround is 4.1 days against a 3-day target.", created_at: "2026-10-09T09:00:03Z" },
+  ],
 };

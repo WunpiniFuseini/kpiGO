@@ -22,6 +22,7 @@ import { UsersPage } from "./pages/admin/Users";
 import { InviteAccept } from "./pages/InviteAccept";
 import { Login } from "./pages/Login";
 import { OidcCallback } from "./pages/OidcCallback";
+import { AssistantPage } from "./pages/Assistant";
 import { Setup } from "./pages/Setup";
 import { AppShell } from "./shell/AppShell";
 import { pageKeyFor, pathFor } from "./shell/pages";
@@ -44,6 +45,7 @@ export function App() {
         <Route path="/executive" element={<ExecutiveDashboardPage />} />
         <Route path="/my-inputs" element={<MyInputsPage />} />
         <Route path="/input-compliance" element={<CompliancePage />} />
+        <Route path="/assistant" element={<AssistantPage />} />
         <Route path="/admin/users" element={<UsersPage />} />
         <Route path="/admin/metrics" element={<MetricsPage />} />
         <Route path="/admin/health" element={<HealthPage />} />

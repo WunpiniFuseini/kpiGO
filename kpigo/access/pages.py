@@ -32,6 +32,7 @@ PAGES: tuple[Page, ...] = (
     Page("executive", "Executive", "modules", "executive"),
     Page("my_inputs", "My inputs", "modules", "platform"),
     Page("input_compliance", "Input compliance", "modules", "platform"),
+    Page("assistant", "Assistant", "modules", "platform"),
     Page("admin.users", "Users & access", "administer", "platform"),
     Page("admin.metrics", "Metric registry", "administer", "platform"),
     Page("admin.targets", "Targets", "administer", "scorecards"),
@@ -97,6 +98,12 @@ SYSTEM_PAGE_ACCESS: dict[str, dict[str, Access]] = {
     # Agent Performance is open by default: the comparison is the point (AP-7).
     "staff": {"scorecards": "view", "agent_performance": "view"},
 }
+
+# The assistant is open to everyone who can sign in (assistant.use is in EVERYONE),
+# so its page shows for every system role; a role with no model connected still
+# sees the page and its "not connected" state.
+for _access in SYSTEM_PAGE_ACCESS.values():
+    _access.setdefault("assistant", "view")
 
 
 def merge(*matrices: dict[str, str]) -> dict[str, str]:

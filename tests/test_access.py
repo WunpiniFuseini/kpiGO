@@ -144,7 +144,7 @@ def test_invite_accept_login_logout_over_http(make_user: Callable[..., User]) ->
     login = post(browser, "/auth/login", {"email": "KOFI@bank.example", "password": PASSWORD})
     assert login.status_code == 200, login.content
     me = get(browser, "/auth/me").json()
-    assert [p["page_key"] for p in me["pages"]] == ["scorecards", "agent_performance"]
+    assert [p["page_key"] for p in me["pages"]] == ["scorecards", "agent_performance", "assistant"]
     assert me["home"] == "scorecards"
     assert post(browser, "/auth/logout").status_code == 200
     assert get(browser, "/auth/me").status_code == 401
@@ -341,6 +341,7 @@ def test_clone_a_system_role_then_edit_the_clone(make_user: Callable[..., User])
         "agent_performance": "view",
         "my_inputs": "edit",
         "input_compliance": "view",
+        "assistant": "view",
         "admin.data_integration": "view",
     }
     listed = {r.code for r in as_user(admin, "role.list").roles}
